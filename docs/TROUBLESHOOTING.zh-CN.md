@@ -90,6 +90,14 @@ codesign --verify --deep --strict "$DEEPCODEX_APP"
 
 如果这是维护者私有构建，可能是 ad-hoc 签名。公开发布前应明确签名策略和校验值。
 
+如果是刚从 GitHub 下载的 zip，请先确认 `.sha256` 校验是 `OK`，再右键打开 `Install-DeepCodeX.command`。仍被拦截时，可以对已解压且校验通过的目录执行：
+
+```bash
+xattr -dr com.apple.quarantine DeepCodeX-private-with-local-ccx-*
+```
+
+不要对来源不明或校验不一致的文件执行 quarantine 移除。
+
 ### 8. 发图片后失败
 
 DeepSeek 文本模型不支持原生图片输入。DeepCodeX 通过 image-strip shim 删除或转写图片块，保护主链路。

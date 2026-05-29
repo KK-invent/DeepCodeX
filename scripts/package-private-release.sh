@@ -253,6 +253,10 @@ base URL 填你能访问的 DeepSeek/OpenAI-compatible 服务入口。
 不要填写 127.0.0.1:3100；那是 DeepCodeX 内部地址。
 
 安装脚本不会打印 API key。
+
+如果 macOS 阻止打开，请先确认 .sha256 校验是 OK，再右键打开 Install-DeepCodeX.command。
+仍被拦截时，只对校验通过的解压目录执行：
+  xattr -dr com.apple.quarantine DeepCodeX-private-with-local-ccx-*
 EOF
 
 cat > "${pkg}/PACKAGE-MANIFEST.txt" <<EOF

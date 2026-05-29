@@ -25,6 +25,8 @@
 
 无外网环境下，`base URL` 要填写这台 Mac 能访问的内网 DeepSeek / OpenAI-compatible 网关。不要填写 `127.0.0.1:3100`，那是 DeepCodeX 内部地址。
 
+如果 macOS 阻止打开，请先确认 `.sha256` 校验是 `OK`，再右键打开安装脚本。仍被拦截时，只对校验通过的解压目录执行 `xattr -dr com.apple.quarantine DeepCodeX-private-with-local-ccx-*`。
+
 ## 安全边界
 
 - 安装脚本不会打印 API key。

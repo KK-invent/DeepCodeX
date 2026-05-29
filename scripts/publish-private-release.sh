@@ -134,7 +134,12 @@ if [ "${DRAFT}" -eq 1 ]; then
 fi
 
 if gh release view "${TAG}" --repo "${REPO}" >/dev/null 2>&1; then
-  echo "[release] existing release found; uploading assets with --clobber"
+  echo "[release] existing release found; updating metadata and uploading assets with --clobber"
+  edit_flags=(--repo "${REPO}" --title "${TITLE}" --notes-file "${NOTES_FILE}" --target "${target}" --prerelease)
+  if [ "${DRAFT}" -eq 1 ]; then
+    edit_flags+=(--draft)
+  fi
+  gh release edit "${TAG}" "${edit_flags[@]}"
 else
   gh release create "${TAG}" "${release_flags[@]}"
 fi
