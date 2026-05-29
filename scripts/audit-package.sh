@@ -56,6 +56,26 @@ if [ -z "${app}" ]; then
   exit 1
 fi
 
+required_paths=(
+  "Install-DeepCodeX.command"
+  "README-FIRST.zh-CN.txt"
+  "support/README.zh-CN.md"
+  "support/docs/INSTALL.zh-CN.md"
+  "support/docs/OFFLINE_QUICKSTART.zh-CN.md"
+  "support/docs/TROUBLESHOOTING.zh-CN.md"
+  "support/docs/PRIVACY.zh-CN.md"
+  "support/scripts/detect-install-mode.sh"
+  "support/scripts/preflight-mac.sh"
+  "runtime/THIRD_PARTY_BINARIES.txt"
+)
+package_root="$(dirname "${app}")"
+for rel in "${required_paths[@]}"; do
+  if [ ! -e "${package_root}/${rel}" ]; then
+    echo "[FAIL] package is missing ${rel}" >&2
+    exit 1
+  fi
+done
+
 plist="${app}/Contents/Info.plist"
 python3 - "${plist}" <<'PY'
 import plistlib

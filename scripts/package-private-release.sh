@@ -97,6 +97,7 @@ install -m 755 "${ROOT}/scripts/detect-install-mode.sh" "${pkg}/support/scripts/
 install -m 755 "${ROOT}/scripts/preflight-mac.sh" "${pkg}/support/scripts/"
 install -m 644 "${ROOT}/README.zh-CN.md" "${pkg}/support/"
 install -m 644 "${ROOT}/docs/INSTALL.zh-CN.md" "${pkg}/support/docs/"
+install -m 644 "${ROOT}/docs/OFFLINE_QUICKSTART.zh-CN.md" "${pkg}/support/docs/"
 install -m 644 "${ROOT}/docs/TROUBLESHOOTING.zh-CN.md" "${pkg}/support/docs/"
 install -m 644 "${ROOT}/docs/PRIVACY.zh-CN.md" "${pkg}/support/docs/"
 
@@ -157,16 +158,27 @@ if [ ! -f "${DEEPCODEX_HOME}/secrets.env" ]; then
   install -m 600 "${ROOT}/support/config/secrets.env.example" "${DEEPCODEX_HOME}/secrets.env"
 fi
 
+RUNTIME_READY=0
 if [ -x "${ROOT}/runtime/ccx/ccx" ]; then
+  if [ -f "${ROOT}/runtime/ccx/SHA256SUMS" ]; then
+    (cd "${ROOT}/runtime/ccx" && shasum -a 256 -c SHA256SUMS)
+  fi
   install -m 755 "${ROOT}/runtime/ccx/ccx" "${DEEPCODEX_HOME}/ccx/ccx"
+  RUNTIME_READY=1
+  echo "[OK] bundled ccx runtime installed"
+elif [ -x "${DEEPCODEX_HOME}/ccx/ccx" ]; then
+  RUNTIME_READY=1
+  echo "[OK] existing ccx runtime found: ${DEEPCODEX_HOME}/ccx/ccx"
 else
   echo "[WARN] package does not contain ccx runtime; DeepSeek route needs ${DEEPCODEX_HOME}/ccx/ccx"
+  echo "[WARN] ordinary first-time users should ask for a with-local-ccx package"
 fi
 
 echo "[install] copying app to ${DEEPCODEX_APP}"
 ditto --noqtn "${ROOT}/Deepcodex.app" "${DEEPCODEX_APP}"
 
-cat > "${LAUNCH_AGENTS}/${CCX_LABEL}.plist" <<PLIST
+if [ "${RUNTIME_READY}" -eq 1 ]; then
+  cat > "${LAUNCH_AGENTS}/${CCX_LABEL}.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
@@ -183,7 +195,7 @@ cat > "${LAUNCH_AGENTS}/${CCX_LABEL}.plist" <<PLIST
 </dict></plist>
 PLIST
 
-cat > "${LAUNCH_AGENTS}/${IMAGE_STRIP_LABEL}.plist" <<PLIST
+  cat > "${LAUNCH_AGENTS}/${IMAGE_STRIP_LABEL}.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
@@ -203,16 +215,23 @@ cat > "${LAUNCH_AGENTS}/${IMAGE_STRIP_LABEL}.plist" <<PLIST
   </dict>
 </dict></plist>
 PLIST
+else
+  echo "[WARN] runtime is missing; launchd service files were not written"
+fi
 
 echo "[config] 请填写 DeepSeek base URL 和 API key"
-"${DEEPCODEX_HOME}/bin/deepcodex-configure-deepseek.py" --restart-services
+"${DEEPCODEX_HOME}/bin/deepcodex-configure-deepseek.py"
 
-for label in "${CCX_LABEL}" "${IMAGE_STRIP_LABEL}"; do
-  plist="${LAUNCH_AGENTS}/${label}.plist"
-  launchctl bootout "gui/$(id -u)" "${plist}" >/dev/null 2>&1 || true
-  launchctl bootstrap "gui/$(id -u)" "${plist}" >/dev/null 2>&1 || true
-  launchctl kickstart -k "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
-done
+if [ "${RUNTIME_READY}" -eq 1 ]; then
+  for label in "${CCX_LABEL}" "${IMAGE_STRIP_LABEL}"; do
+    plist="${LAUNCH_AGENTS}/${label}.plist"
+    launchctl bootout "gui/$(id -u)" "${plist}" >/dev/null 2>&1 || true
+    launchctl bootstrap "gui/$(id -u)" "${plist}" >/dev/null 2>&1 || true
+    launchctl kickstart -k "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
+  done
+else
+  echo "[WARN] DeepCodeX installed, but runtime is missing; model requests will not work yet"
+fi
 
 echo "== 安装完成 =="
 echo "可以打开：${DEEPCODEX_APP}"
@@ -225,6 +244,9 @@ DeepCodeX 私有成品包
 
 第一步：双击 Install-DeepCodeX.command。
 第二步：按提示填写 DeepSeek base URL 和 API key。
+
+完全没装 Codex 的新用户，建议使用文件名包含 with-local-ccx 的包。
+如果文件名包含 no-ccx，说明包内不带 runtime，普通新用户还不能直接发起模型请求。
 
 base URL 填你能访问的 DeepSeek/OpenAI-compatible 服务入口。
 如果没有外网，请填写内网网关地址。

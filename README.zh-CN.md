@@ -31,7 +31,7 @@ scripts/detect-install-mode.sh
 
 - 已装 DeepCodeX，也已装 Codex：可做 doctor 和版本漂移检查。
 - 已装 DeepCodeX，没装 Codex：普通用户成品包路径，只配置 DeepSeek 即可。
-- 没装 DeepCodeX，已装 Codex：维护者构建路径。
+- 没装 DeepCodeX，已装 Codex：普通用户可以继续安装成品包；维护者才需要走源码构建路径。
 - 两者都没装：普通新用户需要先取得 DeepCodeX 成品包，源码仓库不能直接生成完整 app。
 
 如果电脑没有外网环境，`https://api.deepseek.com` 可能无法访问。这种情况下必须填写你所在网络能访问的内网 DeepSeek 兼容网关，而不是代理地址，也不是 `127.0.0.1:3100`。
@@ -84,6 +84,7 @@ git ls-files
 更多文档：
 
 - [中文安装指南](docs/INSTALL.zh-CN.md)
+- [离线新用户快速指南](docs/OFFLINE_QUICKSTART.zh-CN.md)
 - [中文排障指南](docs/TROUBLESHOOTING.zh-CN.md)
 - [隐私与安全说明](docs/PRIVACY.zh-CN.md)
 - [合规说明](docs/COMPLIANCE.md)

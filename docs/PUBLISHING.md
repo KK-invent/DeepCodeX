@@ -30,6 +30,12 @@ If the name already exists, create a private repository with a dated suffix and 
 
 Do not change visibility to public until `docs/COMPLIANCE.md` is complete and the maintainer has manually reviewed the GitHub file list.
 
+## Private Binary Assets
+
+If a private binary package is needed, build it locally and upload it as a private release asset only after `scripts/audit-package.sh` passes.
+
+Use `with-local-ccx` only for private, reviewed distribution where the runtime boundary is acceptable. Use `no-ccx` for conservative sharing, but document that ordinary new users still need a compatible runtime.
+
 ## Optional GitHub Actions
 
 The local audit script is intentionally committed as `scripts/audit-release.sh`. A GitHub Actions workflow can be added later, but pushing workflow files requires a GitHub token with the `workflow` scope. Keep CI out of the initial private push unless that scope is available.

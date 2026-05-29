@@ -15,6 +15,8 @@ This repository should stay private until these boundaries are reviewed.
 
 The scripts expect users to install the official Codex desktop app themselves. The patcher reads that local installation and builds a local private derivative on the user's own machine.
 
+Private binary packages are a separate distribution path. They must stay out of git and must be reviewed before sharing, especially if they include an app bundle or local `ccx` runtime.
+
 Before public release, review whether this patching model is acceptable under the upstream app's terms and any applicable distribution rules. If the answer is unclear, keep the repository private.
 
 ## Trademark Boundary
@@ -34,7 +36,7 @@ Do not choose a public license until the upstream binary and trademark boundarie
 - `scripts/audit-release.sh` passes.
 - `git ls-files` contains only expected source, docs, templates, and audit scripts.
 - No `.app`, `.asar`, `.dmg`, `.pkg`, `.sqlite`, `.db`, `.log`, `.env`, `auth.json`, or session files are tracked.
-- README clearly says users must install official Codex separately.
+- README clearly distinguishes source-build users from private-package users who do not have Codex installed.
 - README clearly says real DeepSeek API keys are user-provided and never committed.
 - License decision is intentional.
 - GitHub repository is private until the maintainer completes review.

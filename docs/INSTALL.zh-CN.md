@@ -38,6 +38,8 @@ DeepCodeX 使用 DeepSeek 兼容接口，不需要 ChatGPT OAuth 登录。但它
 
 适用于维护者已经提供 `DeepCodeX.dmg` 或 `DeepCodeX.app.zip` 的情况。
 
+如果这台 Mac 没有安装 Codex，也没有外网，优先使用文件名包含 `with-local-ccx` 的成品包。文件名包含 `no-ccx` 的包可以安装应用外壳，但普通新用户还需要另外取得兼容 runtime。
+
 先识别当前电脑状态：
 
 ```bash

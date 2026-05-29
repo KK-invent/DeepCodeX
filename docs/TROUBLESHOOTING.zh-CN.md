@@ -64,6 +64,7 @@ export no_proxy="127.0.0.1,localhost,::1"
 
 - 成品包通过内网、U 盘或其他离线方式拿到本机。
 - base URL 是本机能访问的内网 DeepSeek 兼容服务。
+- 对完全新用户，成品包文件名最好包含 `with-local-ccx`；`no-ccx` 包缺少本地 runtime，不能单独完成模型请求。
 
 如果没有可访问的模型服务，应用可以打开，但无法完成模型请求。
 
