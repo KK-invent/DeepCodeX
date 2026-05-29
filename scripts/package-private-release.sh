@@ -10,19 +10,19 @@ INCLUDE_LOCAL_CCX=0
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/package-private-release.sh [--include-local-ccx]
+  scripts/package-private-release.sh [--bundle-runtime]
 
 Creates a private, user-installable DeepCodeX zip from an already verified
 Deepcodex.app. The package is for private review/distribution only.
 
-By default the package excludes the local ccx binary. Use --include-local-ccx
+By default the package excludes the local runtime binary. Use --bundle-runtime
 only after reviewing redistribution rights for that binary.
 EOF
 }
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --include-local-ccx) INCLUDE_LOCAL_CCX=1 ;;
+    --bundle-runtime) INCLUDE_LOCAL_CCX=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -45,9 +45,9 @@ fi
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "${DEEPCODEX_APP}/Contents/Info.plist" 2>/dev/null || echo unknown)"
 build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "${DEEPCODEX_APP}/Contents/Info.plist" 2>/dev/null || echo 0)"
 stamp="$(date '+%Y%m%d-%H%M%S')"
-runtime_suffix="no-ccx"
+runtime_suffix="runtime-external"
 if [ "${INCLUDE_LOCAL_CCX}" -eq 1 ]; then
-  runtime_suffix="with-local-ccx"
+  runtime_suffix="runtime-bundled"
 fi
 name="DeepCodeX-private-${runtime_suffix}-${version}-${build}-${stamp}"
 work="$(mktemp -d)"
@@ -96,6 +96,8 @@ install -m 644 "${ROOT}/config/secrets.env.example" "${pkg}/support/config/secre
 install -m 755 "${ROOT}/scripts/detect-install-mode.sh" "${pkg}/support/scripts/"
 install -m 755 "${ROOT}/scripts/preflight-mac.sh" "${pkg}/support/scripts/"
 install -m 644 "${ROOT}/README.zh-CN.md" "${pkg}/support/"
+mkdir -p "${pkg}/support/assets/brand"
+install -m 644 "${ROOT}/assets/brand/"* "${pkg}/support/assets/brand/"
 install -m 644 "${ROOT}/docs/INSTALL.zh-CN.md" "${pkg}/support/docs/"
 install -m 644 "${ROOT}/docs/OFFLINE_QUICKSTART.zh-CN.md" "${pkg}/support/docs/"
 install -m 644 "${ROOT}/docs/TROUBLESHOOTING.zh-CN.md" "${pkg}/support/docs/"
@@ -103,7 +105,7 @@ install -m 644 "${ROOT}/docs/PRIVACY.zh-CN.md" "${pkg}/support/docs/"
 
 if [ "${INCLUDE_LOCAL_CCX}" -eq 1 ]; then
   if [ ! -x "${DEEPCODEX_HOME}/ccx/ccx" ]; then
-    echo "[FAIL] --include-local-ccx requested, but ${DEEPCODEX_HOME}/ccx/ccx is missing" >&2
+    echo "[FAIL] --bundle-runtime requested, but ${DEEPCODEX_HOME}/ccx/ccx is missing" >&2
     exit 2
   fi
   mkdir -p "${pkg}/runtime/ccx"
@@ -128,6 +130,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 DEEPCODEX_HOME="${DEEPCODEX_HOME:-${HOME}/.codex-deepseek}"
 DEEPCODEX_APP="${DEEPCODEX_APP:-/Applications/Deepcodex.app}"
+CODEX_APP="${CODEX_APP:-/Applications/Codex.app}"
+CODEX_DOWNLOAD_PAGE="${CODEX_DOWNLOAD_PAGE:-https://openai.com/codex/}"
 LAUNCHD_DOMAIN="${DEEPCODEX_LAUNCHD_DOMAIN:-com.deepcodex}"
 CCX_LABEL="${DEEPCODEX_CCX_LABEL:-${LAUNCHD_DOMAIN}.ccx-deepseek}"
 IMAGE_STRIP_LABEL="${DEEPCODEX_IMAGE_STRIP_LABEL:-${LAUNCHD_DOMAIN}.deepcodex-image-strip}"
@@ -139,10 +143,20 @@ echo "你需要准备 DeepSeek base URL 和 API key。"
 echo ""
 echo "== 环境检测 =="
 if [ -x "${ROOT}/support/scripts/detect-install-mode.sh" ]; then
-  CODEX_APP="${CODEX_APP:-/Applications/Codex.app}" DEEPCODEX_APP="${DEEPCODEX_APP}" "${ROOT}/support/scripts/detect-install-mode.sh" || true
+  CODEX_APP="${CODEX_APP}" DEEPCODEX_APP="${DEEPCODEX_APP}" CODEX_DOWNLOAD_PAGE="${CODEX_DOWNLOAD_PAGE}" "${ROOT}/support/scripts/detect-install-mode.sh" || true
 else
   echo "[WARN] 未找到环境检测脚本，将继续安装。"
 fi
+echo ""
+if [ ! -d "${CODEX_APP}" ]; then
+  echo "[ACTION REQUIRED] 未检测到官方 Codex.app，DeepCodeX 安装暂不继续。"
+  echo "请先从官方页面下载并安装 Codex:"
+  echo "  ${CODEX_DOWNLOAD_PAGE}"
+  echo "安装后确认 ${CODEX_APP} 存在，再重新运行 Install-DeepCodeX.command。"
+  echo "如果这台 Mac 没有外网，请在有网机器从官方页面下载 Codex 安装包，再通过内网或 U 盘传入。"
+  exit 2
+fi
+echo "[OK] official Codex app found: ${CODEX_APP}"
 echo ""
 echo "base URL 示例："
 echo "  可直连官方 DeepSeek: https://api.deepseek.com"
@@ -171,7 +185,7 @@ elif [ -x "${DEEPCODEX_HOME}/ccx/ccx" ]; then
   echo "[OK] existing ccx runtime found: ${DEEPCODEX_HOME}/ccx/ccx"
 else
   echo "[WARN] package does not contain ccx runtime; DeepSeek route needs ${DEEPCODEX_HOME}/ccx/ccx"
-  echo "[WARN] ordinary first-time users should ask for a with-local-ccx package"
+  echo "[WARN] runtime is not bundled; ask the maintainer for a runtime-bundled package or install a compatible runtime"
 fi
 
 echo "[install] copying app to ${DEEPCODEX_APP}"
@@ -245,8 +259,11 @@ DeepCodeX 私有成品包
 第一步：双击 Install-DeepCodeX.command。
 第二步：按提示填写 DeepSeek base URL 和 API key。
 
-完全没装 Codex 的新用户，建议使用文件名包含 with-local-ccx 的包。
-如果文件名包含 no-ccx，说明包内不带 runtime，普通新用户还不能直接发起模型请求。
+DeepCodeX 是统一安装包，不区分有 Codex 版和无 Codex 版。
+安装器会先检测 /Applications/Codex.app；如果没有，会引导你去官方页面下载 Codex。
+
+Codex 官方下载页面：
+  https://openai.com/codex/
 
 base URL 填你能访问的 DeepSeek/OpenAI-compatible 服务入口。
 如果没有外网，请填写内网网关地址。
@@ -256,7 +273,7 @@ base URL 填你能访问的 DeepSeek/OpenAI-compatible 服务入口。
 
 如果 macOS 阻止打开，请先确认 .sha256 校验是 OK，再右键打开 Install-DeepCodeX.command。
 仍被拦截时，只对校验通过的解压目录执行：
-  xattr -dr com.apple.quarantine DeepCodeX-private-with-local-ccx-*
+  xattr -dr com.apple.quarantine DeepCodeX-private-runtime-bundled-*
 EOF
 
 cat > "${pkg}/PACKAGE-MANIFEST.txt" <<EOF
@@ -264,7 +281,7 @@ DeepCodeX private package
 Version: ${version}
 Build: ${build}
 Created: ${stamp}
-Includes local ccx: ${INCLUDE_LOCAL_CCX}
+Includes bundled runtime: ${INCLUDE_LOCAL_CCX}
 
 Run: Install-DeepCodeX.command
 EOF

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="420" viewBox="0 0 1120 420" role="img" aria-labelledby="title desc">
+  <title id="title">DeepCodeX safety scorecard</title>
+  <desc id="desc">Minimal scorecard summarizing local secrets, package audit, offline guidance, and staged upgrade safety gates.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8faff}
+      .card{fill:#fff;stroke:#dbe3ff;stroke-width:2}
+      .txt{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#0f2942}
+      .sub{fill:#56617a}
+      .bar{fill:#e3e8ff}
+      .fill{fill:#4D6BFE}
+    </style>
+  </defs>
+  <rect class="bg" width="1120" height="420" rx="32"/>
+  <text class="txt" x="64" y="70" font-size="34" font-weight="760">Safety gates at a glance</text>
+  <text class="txt sub" x="64" y="108" font-size="18">Small checks that make the private package easier to trust and explain.</text>
+
+  <g transform="translate(64 158)">
+    <rect class="card" width="224" height="164" rx="22"/>
+    <text class="txt" x="24" y="48" font-size="22" font-weight="720">Local secrets</text>
+    <text class="txt sub" x="24" y="80" font-size="15">API key is not printed</text>
+    <rect class="bar" x="24" y="112" width="176" height="12" rx="6"/>
+    <rect class="fill" x="24" y="112" width="168" height="12" rx="6"/>
+  </g>
+  <g transform="translate(320 158)">
+    <rect class="card" width="224" height="164" rx="22"/>
+    <text class="txt" x="24" y="48" font-size="22" font-weight="720">Package audit</text>
+    <text class="txt sub" x="24" y="80" font-size="15">keys, paths, runtime files</text>
+    <rect class="bar" x="24" y="112" width="176" height="12" rx="6"/>
+    <rect class="fill" x="24" y="112" width="176" height="12" rx="6"/>
+  </g>
+  <g transform="translate(576 158)">
+    <rect class="card" width="224" height="164" rx="22"/>
+    <text class="txt" x="24" y="48" font-size="22" font-weight="720">Install guidance</text>
+    <text class="txt sub" x="24" y="80" font-size="15">Codex check and base URL</text>
+    <rect class="bar" x="24" y="112" width="176" height="12" rx="6"/>
+    <rect class="fill" x="24" y="112" width="164" height="12" rx="6"/>
+  </g>
+  <g transform="translate(832 158)">
+    <rect class="card" width="224" height="164" rx="22"/>
+    <text class="txt" x="24" y="48" font-size="22" font-weight="720">Upgrade gate</text>
+    <text class="txt sub" x="24" y="80" font-size="15">stage, smoke, apply</text>
+    <rect class="bar" x="24" y="112" width="176" height="12" rx="6"/>
+    <rect class="fill" x="24" y="112" width="152" height="12" rx="6"/>
+  </g>
+</svg>

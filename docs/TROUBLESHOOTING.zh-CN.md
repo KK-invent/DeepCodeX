@@ -23,10 +23,10 @@ missing upstream app: /Applications/Codex.app
 
 处理：
 
-- 普通用户：下载维护者提供的 DeepCodeX 成品包。
+- 普通用户：先安装官方 Codex desktop app，再运行维护者提供的 DeepCodeX 统一成品包。
 - 维护者：先安装官方 Codex desktop app，再运行 `deepcodex-sync-upstream.py --stage`。
 
-如果检测结果是 `[MODE] app-user`，说明已经有 DeepCodeX 成品包，不需要 Codex 也可以按普通用户路径配置 DeepSeek。
+如果检测结果是 `[MODE] codex-required` 或 `[MODE] codex-missing-existing-deepcodex`，说明当前机器缺少官方 Codex。安装器会停止并提示官方 Codex 下载页面；补装 Codex 后重新运行安装器。
 
 ### 2. 不知道 base URL 填什么
 
@@ -63,8 +63,9 @@ export no_proxy="127.0.0.1,localhost,::1"
 如果完全不能访问外部网络，需要满足两个条件：
 
 - 成品包通过内网、U 盘或其他离线方式拿到本机。
+- 官方 Codex 安装包也通过内网、U 盘或其他离线方式拿到本机，并安装到 `/Applications/Codex.app`。
 - base URL 是本机能访问的内网 DeepSeek 兼容服务。
-- 对完全新用户，成品包文件名最好包含 `with-local-ccx`；`no-ccx` 包缺少本地 runtime，不能单独完成模型请求。
+- 对普通新用户，成品包文件名应包含 `runtime-bundled`；`runtime-external` 包缺少本地 runtime，不能单独完成模型请求。
 
 如果没有可访问的模型服务，应用可以打开，但无法完成模型请求。
 
@@ -93,7 +94,7 @@ codesign --verify --deep --strict "$DEEPCODEX_APP"
 如果是刚从 GitHub 下载的 zip，请先确认 `.sha256` 校验是 `OK`，再右键打开 `Install-DeepCodeX.command`。仍被拦截时，可以对已解压且校验通过的目录执行：
 
 ```bash
-xattr -dr com.apple.quarantine DeepCodeX-private-with-local-ccx-*
+xattr -dr com.apple.quarantine DeepCodeX-private-runtime-bundled-*
 ```
 
 不要对来源不明或校验不一致的文件执行 quarantine 移除。

@@ -36,9 +36,14 @@ DeepCodeX 使用 DeepSeek 兼容接口，不需要 ChatGPT OAuth 登录。但它
 
 ## 普通用户安装路径
 
-适用于维护者已经提供 `DeepCodeX.dmg` 或 `DeepCodeX.app.zip` 的情况。
+适用于维护者已经提供私有 Release 成品包的情况。推荐下载：
 
-如果这台 Mac 没有安装 Codex，也没有外网，优先使用文件名包含 `with-local-ccx` 的成品包。文件名包含 `no-ccx` 的包可以安装应用外壳，但普通新用户还需要另外取得兼容 runtime。
+```text
+DeepCodeX-private-runtime-bundled-*.zip
+DeepCodeX-private-runtime-bundled-*.zip.sha256
+```
+
+DeepCodeX 不再区分“有 Codex 版”和“无 Codex 版”。同一个安装包会先检测 `/Applications/Codex.app`。如果没有检测到官方 Codex，安装器会停止，并引导你去 [OpenAI Codex 官方页面](https://openai.com/codex/) 下载 Codex。
 
 先识别当前电脑状态：
 
@@ -51,7 +56,7 @@ scripts/detect-install-mode.sh
 3. 双击 `Install-DeepCodeX.command`。
 4. 先看安装脚本输出的环境检测结果：
    - 已安装 Codex：可以继续安装，DeepCodeX 使用独立目录，不覆盖原 Codex。
-   - 未安装 Codex：也可以继续安装成品包，不需要先理解或安装 Codex。
+   - 未安装 Codex：先安装官方 Codex，再重新运行 `Install-DeepCodeX.command`。
 5. 按安装脚本提示填写：
    - `DeepSeek base URL`
    - `DeepSeek API key`
@@ -93,7 +98,9 @@ scripts/preflight-mac.sh
 
 ## 没有 Codex.app 怎么办
 
-如果你是普通用户：使用维护者发布的成品包。
+如果你是普通用户：先安装官方 Codex desktop app，再运行维护者发布的 DeepCodeX 成品包。
+
+如果这台 Mac 没有外网：在有网机器从官方页面取得 Codex 安装包，再通过内网或 U 盘传入这台 Mac。安装完成后确认 `/Applications/Codex.app` 存在。
 
 如果你是维护者：需要先安装官方 Codex desktop app，或者在合规允许的私有环境里准备一个可审计的 DeepCodeX 成品包。当前源码仓库不会附带官方 Codex 二进制。
 

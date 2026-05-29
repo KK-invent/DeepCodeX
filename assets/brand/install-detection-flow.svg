@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="500" viewBox="0 0 1120 500" role="img" aria-labelledby="title desc">
+  <title id="title">DeepCodeX unified install detection</title>
+  <desc id="desc">Minimal install flow: detect Codex, guide official download if missing, then configure DeepSeek.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8faff}
+      .card{fill:#fff;stroke:#dbe3ff;stroke-width:2}
+      .action{fill:#f1f4ff;stroke:#4D6BFE;stroke-width:2}
+      .txt{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#0f2942}
+      .sub{fill:#56617a}
+      .line{stroke:#4D6BFE;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 10 5 0 10z" fill="#4D6BFE"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1120" height="500" rx="32"/>
+  <text class="txt" x="64" y="70" font-size="34" font-weight="760">Unified install: detect first, guide next</text>
+  <text class="txt sub" x="64" y="108" font-size="18">One package. Missing Codex stops installation and points to the official download.</text>
+
+  <rect class="card" x="64" y="178" width="220" height="112" rx="22"/>
+  <text class="txt" x="94" y="224" font-size="22" font-weight="720">Run installer</text>
+  <text class="txt sub" x="94" y="258" font-size="16">Install-DeepCodeX.command</text>
+  <path class="line" d="M284 234h86"/>
+
+  <rect class="action" x="370" y="178" width="240" height="112" rx="22"/>
+  <text class="txt" x="400" y="224" font-size="22" font-weight="720">Detect Codex.app</text>
+  <text class="txt sub" x="400" y="258" font-size="16">/Applications/Codex.app</text>
+  <path class="line" d="M610 210h82"/>
+  <path class="line" d="M610 260h82"/>
+
+  <rect class="card" x="692" y="132" width="350" height="112" rx="22"/>
+  <text class="txt" x="722" y="178" font-size="22" font-weight="720">Missing Codex</text>
+  <text class="txt sub" x="722" y="212" font-size="16">Install official Codex first</text>
+
+  <rect class="card" x="692" y="284" width="350" height="112" rx="22"/>
+  <text class="txt" x="722" y="330" font-size="22" font-weight="720">Codex present</text>
+  <text class="txt sub" x="722" y="364" font-size="16">Install, then configure DeepSeek</text>
+
+  <text class="txt sub" x="64" y="440" font-size="16">Offline Mac: download official Codex on another machine, transfer it, install it, then rerun this installer.</text>
+</svg>

@@ -17,7 +17,7 @@
 ## Compliance
 
 - [ ] No upstream app binary or `app.asar` is tracked.
-- [ ] No trademarked icon asset is tracked.
+- [ ] Any tracked DeepSeek visual asset has a source note and visibility decision; replace before public release if rights are unclear.
 - [ ] README states this is not affiliated with upstream vendors.
 - [ ] License posture is intentionally chosen before public visibility.
 

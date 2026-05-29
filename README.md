@@ -1,3 +1,11 @@
+<p align="center">
+  <img src="assets/brand/deepseek-app-icon.png" alt="DeepSeek blue whale app icon" width="156">
+</p>
+
+<p align="center">
+  <img src="assets/brand/deepcodex-logo.svg" alt="DeepCodeX" width="560">
+</p>
+
 # DeepCodeX
 
 中文文档：[README.zh-CN.md](README.zh-CN.md)
@@ -6,7 +14,15 @@ DeepCodeX is a safety-focused wrapper and maintenance toolkit for rebuilding a l
 
 This repository is prepared as a private review candidate. It intentionally does not contain a built `.app`, `app.asar`, upstream Codex assets, API keys, auth files, logs, caches, sessions, SQLite databases, or third-party binary payloads.
 
+The visual identity uses the public DeepSeek app icon style. See [assets/brand/SOURCES.md](assets/brand/SOURCES.md) and [docs/COMPLIANCE.md](docs/COMPLIANCE.md) for source and trademark boundaries.
+
 ## Scope
+
+![DeepCodeX routing architecture](assets/brand/routing-architecture.svg)
+
+![DeepCodeX install detection flow](assets/brand/install-detection-flow.svg)
+
+![DeepCodeX safety scorecard](assets/brand/safety-scorecard.svg)
 
 Included:
 
@@ -23,12 +39,12 @@ Not included:
 - `app.asar` or extracted upstream frontend bundles.
 - Real `secrets.env`, `auth.json`, `ccx/.config/config.json`, sessions, logs, memories, caches, or SQLite state.
 - The local `ccx` binary.
-- DeepSeek or Codex trademarked image assets.
+- OpenAI Codex trademarked image assets.
 
 ## Requirements
 
 - macOS.
-- Official Codex desktop app installed at `/Applications/Codex.app`, or set `CODEX_APP`.
+- Official Codex desktop app installed at `/Applications/Codex.app`, or set `CODEX_APP`. The private installer checks this first and points missing users to the [official Codex page](https://openai.com/codex/).
 - A local DeepCodeX home directory, defaulting to `~/.codex-deepseek`, or set `DEEPCODEX_HOME`.
 - A local `ccx` compatible service if you use the DeepSeek route expected by the current scripts.
 - Python 3.10+ recommended.
@@ -75,7 +91,7 @@ The audit checks Python syntax, the image-strip self-test, high-confidence secre
 
 ## Compliance Boundary
 
-This project is a patcher and local maintenance toolkit. It does not redistribute Codex desktop, OpenAI assets, DeepSeek assets, or third-party binaries. See [docs/COMPLIANCE.md](docs/COMPLIANCE.md) before changing the repository visibility from private to public.
+This project is a patcher and local maintenance toolkit. It does not redistribute Codex desktop, OpenAI assets, or third-party binaries. DeepSeek visual assets are tracked only for this private preview and are not covered by the project license. See [docs/COMPLIANCE.md](docs/COMPLIANCE.md) before changing the repository visibility from private to public.
 
 ## Current Release Status
 

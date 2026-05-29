@@ -1,19 +1,20 @@
 # 私有成品包计划
 
-目标：让没有安装 Codex、没有代理、没有外网环境的普通 Mac 用户，也能通过一个私有成品包安装 DeepCodeX，并清楚知道如何填写 DeepSeek base URL 和 API key。
+目标：让普通 Mac 用户通过一个统一私有成品包安装 DeepCodeX。安装器自己检测是否存在官方 Codex；缺失时明确引导用户先安装 Codex，而不是让用户在“有 Codex 版”和“无 Codex 版”之间选择。
 
 ## 当前状态
 
 源码仓库不包含成品 app，也不包含官方 Codex 二进制。这是为了降低泄露风险和合规风险。
 
-因此当前 private 仓库适合维护者，不适合直接给普通用户下载使用。
+因此当前 private 仓库适合维护者，不适合直接给普通用户下载源码使用。普通用户应使用私有 Release 里的统一成品包。
 
 ## 普通用户成品包应包含
 
 - `Deepcodex.app`
 - `Install-DeepCodeX.command`
+- 极简蓝鲸视觉资产和说明图
 - 首次启动配置窗口
-- 安装前环境检测输出：已装 Codex、已装 DeepCodeX、两者都没有三类情况要说清楚
+- 安装前环境检测输出：已装 Codex、缺少 Codex、已装 DeepCodeX 等状态要说清楚
 - 清晰的中文说明
 - 离线新用户快速指南
 - 校验值
@@ -26,6 +27,8 @@
 - 维护者的 `auth.json`
 - 维护者的日志、会话、缓存、SQLite 数据库
 - 维护者的用户目录路径
+- 官方 Codex 安装包或 OpenAI/Codex 官方商标素材
+- 未记录来源和使用边界的 DeepSeek 官方视觉素材
 
 ## 成品包发布前门禁
 
@@ -35,7 +38,7 @@
 scripts/audit-release.sh
 "$DEEPCODEX_HOME/bin/deepcodex-doctor.py"
 codesign --verify --deep --strict "$DEEPCODEX_APP"
-scripts/package-private-release.sh
+scripts/package-private-release.sh --bundle-runtime
 ```
 
 还需要手动检查：
@@ -43,60 +46,66 @@ scripts/package-private-release.sh
 - 首次启动时缺配置会弹出 DeepSeek 配置窗口。
 - API key 输入框不会明文显示。
 - 保存后不会把 API key 打印到日志或终端。
+- 缺少 Codex 时安装器停止，并指向官方 Codex 页面。
 - 模型菜单只出现 DeepSeek 相关模型。
 - 没有 ChatGPT OAuth token。
 - 成品包不包含维护者的运行态目录。
 - 成品包内 `Info.plist` 不包含维护者的 `CCX_PROXY_ACCESS_KEY`、`CODEX_HOME` 或 `CODEX_ELECTRON_USER_DATA_PATH`。
 - 成品包内 `app.asar` 不包含维护者本机路径。
+- `assets/brand/SOURCES.md` 已记录 DeepSeek 视觉素材来源；公开前已确认是否继续使用。
 
 ## 打包命令
 
-默认不包含本地 `ccx` 二进制：
+面向普通用户的私有预览包：
+
+```bash
+scripts/package-private-release.sh --bundle-runtime
+```
+
+输出文件名包含 `runtime-bundled`。这是默认推荐给普通用户的统一包。
+
+默认命令仍会生成 `runtime-external` 包：
 
 ```bash
 scripts/package-private-release.sh
 ```
 
-输出文件名包含 `no-ccx`。这种包适合保守分发，但普通用户还需要另外取得兼容的 `ccx` runtime。
-
-如果是在 private 分发环境，且已经确认 `ccx` 二进制的再分发边界，可以显式包含：
-
-```bash
-scripts/package-private-release.sh --include-local-ccx
-```
-
-输出文件名包含 `with-local-ccx`。这种包才更接近“没装 Codex 的用户解压后直接安装使用”，但不要在公开 release 中默认分发。
+这种包不包含本地 `ccx` runtime，只适合维护者或已经有兼容 runtime 的机器，不作为普通用户推荐下载项。
 
 如果要从 staged app 打包，而不是从 `/Applications/Deepcodex.app` 打包：
 
 ```bash
-DEEPCODEX_APP=/Applications/Deepcodex.app.tmp-controlled-upgrade-YYYYMMDD-HHMMSS scripts/package-private-release.sh
+DEEPCODEX_APP=/Applications/Deepcodex.app.tmp-controlled-upgrade-YYYYMMDD-HHMMSS scripts/package-private-release.sh --bundle-runtime
 ```
 
 打包脚本会调用 `scripts/audit-package.sh`。如果当前 app 里还残留维护者路径或真实本机 key，打包会失败。
 
-分享 `with-local-ccx` 直用包前，额外运行：
+分享 `runtime-bundled` 统一包前，额外运行：
 
 ```bash
-scripts/smoke-offline-package.sh dist/private/DeepCodeX-private-with-local-ccx-*.zip
+scripts/smoke-offline-package.sh dist/private/DeepCodeX-private-runtime-bundled-*.zip
 ```
 
-这个 smoke test 会解压包、模拟没有 Codex 的新机器、检查 runtime、用假的 base URL/API key 配置临时 app，并确认输出不泄露 key。
+这个 smoke test 会解压包、模拟没有 Codex 的新机器、检查安装器缺 Codex 时会停止、检查 runtime、用假的 base URL/API key 配置临时 app，并确认输出不泄露 key。
 
 ## 上传私有 GitHub Release
 
 确认本地包和校验文件存在后：
 
 ```bash
-scripts/publish-private-release.sh --include-with-local-ccx
+scripts/publish-private-release.sh --include-runtime-bundled
 ```
 
-这个脚本会先确认 GitHub 仓库是 private，再运行源码审计、包审计和 SHA256 校验，然后创建或更新 prerelease。不要把 `with-local-ccx` 上传到公开仓库。
+这个脚本会先确认 GitHub 仓库是 private，再运行源码审计、包审计和 SHA256 校验，然后创建或更新 prerelease。不要把 runtime-bundled 成品包上传到公开仓库。
 
 `.sha256` 文件只能包含 zip 文件名，不能包含维护者本机绝对路径。`scripts/publish-private-release.sh` 会拒绝带维护者路径或用户名的校验文件。
 
 ## 无外网用户怎么使用
 
-无外网用户不能从 GitHub 下载，也不能访问官方 DeepSeek。需要通过内网、U 盘或其他离线方式获得成品包，并填写内网可访问的 DeepSeek 兼容网关 base URL。
+无外网用户不能从 GitHub 下载，也不能访问官方 DeepSeek。需要通过内网、U 盘或其他离线方式获得：
+
+1. 官方 Codex 安装包。
+2. DeepCodeX 统一成品包。
+3. 内网可访问的 DeepSeek 兼容网关 base URL。
 
 如果没有可访问的模型服务，应用只能启动，不能完成推理请求。

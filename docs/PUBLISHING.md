@@ -34,12 +34,14 @@ Do not change visibility to public until `docs/COMPLIANCE.md` is complete and th
 
 If a private binary package is needed, build it locally and upload it as a private release asset only after `scripts/audit-package.sh` passes.
 
-Use `with-local-ccx` only for private, reviewed distribution where the runtime boundary is acceptable. Use `no-ccx` for conservative sharing, but document that ordinary new users still need a compatible runtime.
+Use `runtime-bundled` for the single ordinary-user package after the private runtime boundary is reviewed. The installer detects whether `/Applications/Codex.app` exists and points missing users to the official Codex page; do not publish separate "has Codex" and "no Codex" user-facing packages.
+
+`runtime-external` is a maintainer-only package for machines that already have a compatible runtime.
 
 Recommended private preview command:
 
 ```bash
-scripts/publish-private-release.sh --include-with-local-ccx
+scripts/publish-private-release.sh --include-runtime-bundled
 ```
 
 The publish script refuses to upload assets unless the GitHub repository is private. It audits source, audits every zip package, verifies `.sha256`, then creates or updates a prerelease and uploads the selected assets.
@@ -47,10 +49,10 @@ The publish script refuses to upload assets unless the GitHub repository is priv
 Before sharing a direct-use asset, run:
 
 ```bash
-scripts/smoke-offline-package.sh dist/private/DeepCodeX-private-with-local-ccx-*.zip
+scripts/smoke-offline-package.sh dist/private/DeepCodeX-private-runtime-bundled-*.zip
 ```
 
-The smoke test unzips the package, simulates a machine with no Codex/DeepCodeX app, checks the bundled runtime, configures a temporary extracted app with a fake base URL/API key, and verifies the key is not printed.
+The smoke test unzips the package, simulates a machine with no Codex/DeepCodeX app, checks that the installer blocks on missing Codex with clear guidance, checks the bundled runtime, configures a temporary extracted app with a fake base URL/API key, and verifies the key is not printed.
 
 ## Optional GitHub Actions
 

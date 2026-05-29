@@ -7,7 +7,8 @@ This repository should stay private until these boundaries are reviewed.
 - No built `Deepcodex.app`.
 - No copied `/Applications/Codex.app`.
 - No `app.asar`, extracted upstream bundle, or generated app package.
-- No OpenAI, Codex, DeepSeek, or third-party trademarked image assets.
+- No OpenAI, Codex, or third-party trademarked image assets.
+- DeepSeek app icon assets are included only as private-preview compatibility visuals; see `assets/brand/SOURCES.md`. They are not covered by this repository's license.
 - No `ccx` binary.
 - No real local configuration, keys, auth state, sessions, logs, caches, memories, or SQLite databases.
 
@@ -23,7 +24,7 @@ Before public release, review whether this patching model is acceptable under th
 
 DeepCodeX, Codex, OpenAI, DeepSeek, and related marks may belong to their respective owners. This repository should not imply endorsement, affiliation, or official support.
 
-The first private preview intentionally excludes branded icon assets. If a public icon is added later, use an original asset that does not copy protected marks.
+The private preview uses DeepSeek official app icon assets as a compatibility signal because DeepCodeX routes to DeepSeek-compatible services. Keep the attribution and rights note in `assets/brand/SOURCES.md`. Before public visibility, either confirm this usage is acceptable or replace those files with a fully original DeepCodeX mark.
 
 ## License Boundary
 
@@ -36,7 +37,8 @@ Do not choose a public license until the upstream binary and trademark boundarie
 - `scripts/audit-release.sh` passes.
 - `git ls-files` contains only expected source, docs, templates, and audit scripts.
 - No `.app`, `.asar`, `.dmg`, `.pkg`, `.sqlite`, `.db`, `.log`, `.env`, `auth.json`, or session files are tracked.
-- README clearly distinguishes source-build users from private-package users who do not have Codex installed.
+- README clearly says the private package checks for official Codex and guides missing users to install it.
 - README clearly says real DeepSeek API keys are user-provided and never committed.
+- DeepSeek visual assets are either approved for the intended visibility or replaced with original assets.
 - License decision is intentional.
 - GitHub repository is private until the maintainer completes review.

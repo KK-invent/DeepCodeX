@@ -39,16 +39,28 @@ detect_out="$(
   DEEPCODEX_APP="${WORK}/missing-Deepcodex.app" \
   "${DETECT}"
 )"
-printf '%s\n' "${detect_out}" | rg -q '\[MODE\] first-time-no-codex'
+printf '%s\n' "${detect_out}" | rg -q '\[MODE\] codex-required'
+
+installer_out="$(
+  HOME="${WORK}/installer-home" \
+  CODEX_APP="${WORK}/missing-Codex.app" \
+  DEEPCODEX_APP="${WORK}/installer-app/Deepcodex.app" \
+  "${INSTALLER}" 2>&1 || true
+)"
+printf '%s\n' "${installer_out}" | rg -q '\[ACTION REQUIRED\].*Codex'
+if [ -d "${WORK}/installer-app/Deepcodex.app" ]; then
+  echo "[FAIL] installer copied Deepcodex.app even though Codex.app was missing" >&2
+  exit 1
+fi
 
 case "$(basename "${ZIP}")" in
-  *with-local-ccx*)
+  *runtime-bundled*)
     test -x "${PKG_ROOT}/runtime/ccx/ccx"
     (cd "${PKG_ROOT}/runtime/ccx" && shasum -a 256 -c SHA256SUMS)
     ;;
-  *no-ccx*)
+  *runtime-external*)
     if [ -e "${PKG_ROOT}/runtime/ccx/ccx" ]; then
-      echo "[FAIL] no-ccx package unexpectedly contains runtime/ccx/ccx" >&2
+      echo "[FAIL] runtime-external package unexpectedly contains runtime/ccx/ccx" >&2
       exit 1
     fi
     ;;

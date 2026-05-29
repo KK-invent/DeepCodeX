@@ -7,15 +7,15 @@ REPO="${GITHUB_REPOSITORY:-}"
 TAG=""
 TITLE=""
 NOTES_FILE="${ROOT}/docs/PRIVATE_RELEASE_NOTES.zh-CN.md"
-INCLUDE_NO_CCX=1
-INCLUDE_WITH_LOCAL_CCX=0
+INCLUDE_RUNTIME_EXTERNAL=0
+INCLUDE_RUNTIME_BUNDLED=0
 DRAFT=0
 DRY_RUN=0
 
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/publish-private-release.sh --include-with-local-ccx [options]
+  scripts/publish-private-release.sh --include-runtime-bundled [options]
 
 Creates or updates a GitHub prerelease in the private repository and uploads
 audited DeepCodeX package assets from dist/private.
@@ -25,13 +25,13 @@ Options:
   --tag TAG                      Release tag. Defaults to private-preview-YYYYMMDD-HHMMSS.
   --title TITLE                  Release title. Defaults to the tag.
   --notes-file FILE              Release notes markdown.
-  --include-with-local-ccx       Upload the direct-use private package with bundled runtime.
-  --no-no-ccx                    Do not upload the conservative no-ccx package.
+  --include-runtime-bundled      Upload the package with bundled local runtime.
+  --include-runtime-external     Also upload the conservative package without bundled runtime.
   --draft                        Create the release as a draft.
   --dry-run                      Print the planned release and asset list, but do not upload.
 
 The script refuses to run unless the GitHub repository is PRIVATE. Use
---include-with-local-ccx only after reviewing the private runtime boundary.
+--include-runtime-bundled only after reviewing the private runtime boundary.
 EOF
 }
 
@@ -41,8 +41,8 @@ while [ "$#" -gt 0 ]; do
     --tag) TAG="$2"; shift ;;
     --title) TITLE="$2"; shift ;;
     --notes-file) NOTES_FILE="$2"; shift ;;
-    --include-with-local-ccx) INCLUDE_WITH_LOCAL_CCX=1 ;;
-    --no-no-ccx) INCLUDE_NO_CCX=0 ;;
+    --include-runtime-bundled) INCLUDE_RUNTIME_BUNDLED=1 ;;
+    --include-runtime-external) INCLUDE_RUNTIME_EXTERNAL=1 ;;
     --draft) DRAFT=1 ;;
     --dry-run) DRY_RUN=1 ;;
     -h|--help) usage; exit 0 ;;
@@ -60,9 +60,9 @@ fi
 if [ -z "${TITLE}" ]; then
   TITLE="${TAG}"
 fi
-if [ "${INCLUDE_WITH_LOCAL_CCX}" -ne 1 ]; then
-  echo "[FAIL] Refusing to publish a direct-use private release without --include-with-local-ccx." >&2
-  echo "Use --no-no-ccx only to omit the conservative package, not the direct-use package." >&2
+if [ "${INCLUDE_RUNTIME_BUNDLED}" -ne 1 ]; then
+  echo "[FAIL] Refusing to publish a private release without --include-runtime-bundled." >&2
+  echo "Use --include-runtime-external only when you also want to publish the package without bundled runtime." >&2
   exit 2
 fi
 if [ ! -f "${NOTES_FILE}" ]; then
@@ -82,21 +82,21 @@ latest_matching() {
 }
 
 assets=()
-if [ "${INCLUDE_NO_CCX}" -eq 1 ]; then
-  no_ccx="$(latest_matching 'DeepCodeX-private-no-ccx-*.zip')"
-  if [ -z "${no_ccx}" ] || [ ! -f "${no_ccx}.sha256" ]; then
-    echo "[FAIL] missing no-ccx package or checksum in ${OUT_DIR}" >&2
+if [ "${INCLUDE_RUNTIME_EXTERNAL}" -eq 1 ]; then
+  external_pkg="$(latest_matching 'DeepCodeX-private-runtime-external-*.zip')"
+  if [ -z "${external_pkg}" ] || [ ! -f "${external_pkg}.sha256" ]; then
+    echo "[FAIL] missing runtime-external package or checksum in ${OUT_DIR}" >&2
     exit 2
   fi
-  assets+=("${no_ccx}" "${no_ccx}.sha256")
+  assets+=("${external_pkg}" "${external_pkg}.sha256")
 fi
 
-with_ccx="$(latest_matching 'DeepCodeX-private-with-local-ccx-*.zip')"
-if [ -z "${with_ccx}" ] || [ ! -f "${with_ccx}.sha256" ]; then
-  echo "[FAIL] missing with-local-ccx package or checksum in ${OUT_DIR}" >&2
+bundled_pkg="$(latest_matching 'DeepCodeX-private-runtime-bundled-*.zip')"
+if [ -z "${bundled_pkg}" ] || [ ! -f "${bundled_pkg}.sha256" ]; then
+  echo "[FAIL] missing runtime-bundled package or checksum in ${OUT_DIR}" >&2
   exit 2
 fi
-assets+=("${with_ccx}" "${with_ccx}.sha256")
+assets+=("${bundled_pkg}" "${bundled_pkg}.sha256")
 
 echo "== Release preflight =="
 "${ROOT}/scripts/audit-release.sh"
