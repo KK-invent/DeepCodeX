@@ -1,5 +1,7 @@
 # DeepCodeX
 
+中文文档：[README.zh-CN.md](README.zh-CN.md)
+
 DeepCodeX is a safety-focused wrapper and maintenance toolkit for rebuilding a local DeepCodex app from an already installed Codex desktop app, then routing it through DeepSeek-compatible local services.
 
 This repository is prepared as a private review candidate. It intentionally does not contain a built `.app`, `app.asar`, upstream Codex assets, API keys, auth files, logs, caches, sessions, SQLite databases, or third-party binary payloads.
@@ -42,8 +44,11 @@ export DEEPCODEX_LAUNCHD_DOMAIN="com.deepcodex"
 
 ## Local Setup
 
+For Chinese first-time installation guidance, see [docs/INSTALL.zh-CN.md](docs/INSTALL.zh-CN.md).
+
 ```bash
 scripts/install-local.sh
+scripts/preflight-mac.sh
 cp config/secrets.env.example "$DEEPCODEX_HOME/secrets.env"
 "$DEEPCODEX_HOME/bin/deepcodex-configure-deepseek.py"
 "$DEEPCODEX_HOME/bin/deepcodex-sync-upstream.py" --stage

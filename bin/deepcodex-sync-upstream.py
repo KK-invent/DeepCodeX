@@ -1032,7 +1032,16 @@ def main() -> int:
     if args.dry_run:
         return 0
     if not source:
-        raise SystemExit(f"missing upstream app: {CODEX_APP}")
+        raise SystemExit(
+            "\n".join(
+                [
+                    f"missing upstream app: {CODEX_APP}",
+                    "DeepCodeX source mode rebuilds from a local Codex.app and cannot create a full app without it.",
+                    "普通用户：请下载维护者提供的 DeepCodeX 成品包，然后首次启动时填写 DeepSeek base URL 和 API key。",
+                    "维护者：请先安装官方 Codex desktop app，或在合规允许的私有环境中准备成品包。",
+                ]
+            )
+        )
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
     if args.apply_staged:
         staged = Path(args.apply_staged)

@@ -13,4 +13,9 @@ if [ ! -f "${DEEPCODEX_HOME}/secrets.env" ]; then
 fi
 
 echo "Installed DeepCodeX scripts to ${DEEPCODEX_HOME}"
-echo "Next: ${DEEPCODEX_HOME}/bin/deepcodex-configure-deepseek.py"
+echo ""
+"${ROOT}/scripts/detect-install-mode.sh" || true
+echo ""
+echo "Next:"
+echo "  普通用户：安装 DeepCodeX 成品包后打开应用，填写 DeepSeek base URL 和 API key。"
+echo "  维护者：${DEEPCODEX_HOME}/bin/deepcodex-configure-deepseek.py"
