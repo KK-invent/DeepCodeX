@@ -271,7 +271,7 @@ echo "[package] auditing staged package"
 zip_path="${OUT_DIR}/${name}.zip"
 echo "[package] creating ${zip_path}"
 (cd "${work}" && /usr/bin/zip -qry "${zip_path}" "${name}")
-shasum -a 256 "${zip_path}" > "${zip_path}.sha256"
+(cd "$(dirname "${zip_path}")" && shasum -a 256 "$(basename "${zip_path}")" > "$(basename "${zip_path}").sha256")
 "${ROOT}/scripts/audit-package.sh" "${zip_path}"
 
 echo "Package: ${zip_path}"

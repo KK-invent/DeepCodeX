@@ -103,7 +103,14 @@ echo "== Release preflight =="
 for asset in "${assets[@]}"; do
   case "${asset}" in
     *.zip) "${ROOT}/scripts/audit-package.sh" "${asset}" ;;
-    *.sha256) shasum -a 256 -c "${asset}" ;;
+    *.sha256)
+      current_user="$(id -un 2>/dev/null || true)"
+      if [ -n "${current_user}" ] && rg -q -e "/Users/${current_user}" -e "${current_user}" "${asset}"; then
+        echo "[FAIL] checksum leaks a maintainer path or username: ${asset}" >&2
+        exit 1
+      fi
+      (cd "$(dirname "${asset}")" && shasum -a 256 -c "$(basename "${asset}")")
+      ;;
   esac
 done
 

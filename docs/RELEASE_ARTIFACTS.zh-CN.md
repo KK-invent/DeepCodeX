@@ -85,6 +85,8 @@ scripts/publish-private-release.sh --include-with-local-ccx
 
 这个脚本会先确认 GitHub 仓库是 private，再运行源码审计、包审计和 SHA256 校验，然后创建或更新 prerelease。不要把 `with-local-ccx` 上传到公开仓库。
 
+`.sha256` 文件只能包含 zip 文件名，不能包含维护者本机绝对路径。`scripts/publish-private-release.sh` 会拒绝带维护者路径或用户名的校验文件。
+
 ## 无外网用户怎么使用
 
 无外网用户不能从 GitHub 下载，也不能访问官方 DeepSeek。需要通过内网、U 盘或其他离线方式获得成品包，并填写内网可访问的 DeepSeek 兼容网关 base URL。
