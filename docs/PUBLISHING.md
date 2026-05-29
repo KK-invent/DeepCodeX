@@ -44,6 +44,14 @@ scripts/publish-private-release.sh --include-with-local-ccx
 
 The publish script refuses to upload assets unless the GitHub repository is private. It audits source, audits every zip package, verifies `.sha256`, then creates or updates a prerelease and uploads the selected assets.
 
+Before sharing a direct-use asset, run:
+
+```bash
+scripts/smoke-offline-package.sh dist/private/DeepCodeX-private-with-local-ccx-*.zip
+```
+
+The smoke test unzips the package, simulates a machine with no Codex/DeepCodeX app, checks the bundled runtime, configures a temporary extracted app with a fake base URL/API key, and verifies the key is not printed.
+
 ## Optional GitHub Actions
 
 The local audit script is intentionally committed as `scripts/audit-release.sh`. A GitHub Actions workflow can be added later, but pushing workflow files requires a GitHub token with the `workflow` scope. Keep CI out of the initial private push unless that scope is available.

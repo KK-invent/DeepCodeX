@@ -75,6 +75,14 @@ DEEPCODEX_APP=/Applications/Deepcodex.app.tmp-controlled-upgrade-YYYYMMDD-HHMMSS
 
 打包脚本会调用 `scripts/audit-package.sh`。如果当前 app 里还残留维护者路径或真实本机 key，打包会失败。
 
+分享 `with-local-ccx` 直用包前，额外运行：
+
+```bash
+scripts/smoke-offline-package.sh dist/private/DeepCodeX-private-with-local-ccx-*.zip
+```
+
+这个 smoke test 会解压包、模拟没有 Codex 的新机器、检查 runtime、用假的 base URL/API key 配置临时 app，并确认输出不泄露 key。
+
 ## 上传私有 GitHub Release
 
 确认本地包和校验文件存在后：
