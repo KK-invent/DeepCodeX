@@ -34,13 +34,13 @@ elif [ "${has_deepcodex}" -eq 1 ]; then
 EOF
 elif [ "${has_codex}" -eq 1 ]; then
   cat <<EOF
-[MODE] maintainer-build
+[MODE] codex-installed-no-deepcodex
 当前电脑安装了 Codex，但还没有 DeepCodeX。
 
-这是维护者构建路径：
-  1. 先配置 DeepSeek base URL 和 API key。
-  2. 运行 deepcodex-sync-upstream.py --stage。
-  3. 预构建通过后再运行 --apply。
+建议下一步：
+  1. 普通用户可以继续安装 DeepCodeX 成品包。
+  2. DeepCodeX 使用独立的 ~/.codex-deepseek 和 /Applications/Deepcodex.app，不覆盖原 Codex。
+  3. 维护者如需从源码构建，再运行 deepcodex-sync-upstream.py --stage。
 EOF
 else
   cat <<EOF

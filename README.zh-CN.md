@@ -58,7 +58,7 @@ scripts/preflight-mac.sh
 
 分两种情况：
 
-- 有成品包：可以。下载维护者提供的 DeepCodeX 成品包，拖到 `/Applications`，首次启动填写 DeepSeek base URL 和 API key。
+- 有成品包：可以。下载维护者提供的 DeepCodeX 成品包，运行 `Install-DeepCodeX.command`，按提示填写 DeepSeek base URL 和 API key。
 - 只有源码仓库：不可以直接生成完整应用。源码仓库出于合规和隐私原因，不包含官方 Codex app、`app.asar` 或可执行成品。
 
 所以公开前的目标是同时保留两条路径：

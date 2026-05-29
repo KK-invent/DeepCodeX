@@ -60,3 +60,5 @@ venv/
 # Local release cache
 .omc/
 .codegraph/
+dist/
+release-work/

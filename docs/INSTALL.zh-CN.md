@@ -46,12 +46,15 @@ scripts/detect-install-mode.sh
 
 1. 下载成品包。
 2. 打开或解压。
-3. 将 `Deepcodex.app` 拖到 `/Applications`。
-4. 首次打开时，在配置窗口填写：
+3. 双击 `Install-DeepCodeX.command`。
+4. 先看安装脚本输出的环境检测结果：
+   - 已安装 Codex：可以继续安装，DeepCodeX 使用独立目录，不覆盖原 Codex。
+   - 未安装 Codex：也可以继续安装成品包，不需要先理解或安装 Codex。
+5. 按安装脚本提示填写：
    - `DeepSeek base URL`
    - `DeepSeek API key`
-5. 点击保存并重启。
-6. 进入应用后确认模型菜单只出现 DeepSeek 相关模型。
+6. 安装完成后打开 `/Applications/Deepcodex.app`。
+7. 进入应用后确认模型菜单只出现 DeepSeek 相关模型。
 
 如果 macOS 提示应用来自未知开发者，先不要绕过。请确认成品包来源、校验值和维护者说明。
 
