@@ -75,6 +75,16 @@ DEEPCODEX_APP=/Applications/Deepcodex.app.tmp-controlled-upgrade-YYYYMMDD-HHMMSS
 
 打包脚本会调用 `scripts/audit-package.sh`。如果当前 app 里还残留维护者路径或真实本机 key，打包会失败。
 
+## 上传私有 GitHub Release
+
+确认本地包和校验文件存在后：
+
+```bash
+scripts/publish-private-release.sh --include-with-local-ccx
+```
+
+这个脚本会先确认 GitHub 仓库是 private，再运行源码审计、包审计和 SHA256 校验，然后创建或更新 prerelease。不要把 `with-local-ccx` 上传到公开仓库。
+
 ## 无外网用户怎么使用
 
 无外网用户不能从 GitHub 下载，也不能访问官方 DeepSeek。需要通过内网、U 盘或其他离线方式获得成品包，并填写内网可访问的 DeepSeek 兼容网关 base URL。
