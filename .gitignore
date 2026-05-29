@@ -1,0 +1,62 @@
+.DS_Store
+
+# Secrets and auth state
+.env
+*.env
+!config/secrets.env.example
+secrets.env
+auth.json
+*.pem
+*.key
+*.p12
+*.mobileprovision
+
+# Runtime state
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.log
+logs/
+log/
+sessions/
+archived_sessions/
+session_index.jsonl
+state_*.sqlite*
+goals_*.sqlite*
+logs_*.sqlite*
+cache/
+cache-backups/
+app-backups/
+backups/
+shell_snapshots/
+node_repl/
+tmp/
+.tmp/
+
+# Upstream or generated app/binary payloads
+*.app/
+*.asar
+*.asar.*
+*.dmg
+*.zip
+*.pkg
+ccx/ccx
+vendor_imports/
+plugins/
+computer-use/
+
+# Brand/trademark-sensitive assets are intentionally not included by default.
+assets/*.icns
+assets/*.png
+!assets/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local release cache
+.omc/
+.codegraph/
