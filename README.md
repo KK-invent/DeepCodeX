@@ -111,7 +111,7 @@ scripts/audit-public-release.sh --repo KK-invent/DeepCodeX
 git status --short
 ```
 
-The audit checks Python syntax, the image-strip self-test, high-confidence secret patterns, and banned runtime/binary filenames.
+The audit checks Python syntax, the image-strip self-test, high-confidence secret patterns, banned runtime/binary filenames outside local release caches, and tracked source payload filenames.
 
 ## Compliance Boundary
 

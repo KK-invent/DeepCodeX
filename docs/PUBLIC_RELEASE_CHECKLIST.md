@@ -31,6 +31,8 @@ Run the normal source gate:
 scripts/audit-release.sh
 ```
 
+This gate allows ignored local release caches such as `dist/`, but fails if app bundles, zip packages, runtime state, logs, auth files, caches, or private config become tracked source files.
+
 Run the public-release gate:
 
 ```bash
