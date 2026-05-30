@@ -52,6 +52,26 @@ If binary distribution is explicitly approved, the approval file must contain:
 public-binary-release: approved
 ```
 
+To prepare the source-only public path without changing visibility, run:
+
+```bash
+scripts/prepare-public-source-release.sh \
+  --repo KK-invent/DeepCodeX \
+  --private-release-tag private-preview-YYYYMMDD-HHMMSS \
+  --dry-run
+```
+
+If the approval file says `public-binary-release: private-only`, remove private preview binary assets before switching visibility:
+
+```bash
+scripts/prepare-public-source-release.sh \
+  --repo KK-invent/DeepCodeX \
+  --private-release-tag private-preview-YYYYMMDD-HHMMSS \
+  --delete-binary-assets
+```
+
+The preparation script does not make the repository public. After it passes, review the GitHub UI and then change visibility manually.
+
 ## Private Binary Assets
 
 If a private binary package is needed, build it locally and upload it as a private release asset only after `scripts/audit-package.sh` passes.
