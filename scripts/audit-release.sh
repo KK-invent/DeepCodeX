@@ -21,6 +21,9 @@ python3 scripts/verify-doc-links.py --root "${ROOT}"
 echo "== Image-strip self-test =="
 python3 bin/deepcodex-image-strip-proxy.py --selftest
 
+echo "== Install mode detection self-test =="
+scripts/detect-install-mode.sh --selftest
+
 echo "== Banned source/runtime filenames =="
 if find . \
   -path ./.git -prune -o \
