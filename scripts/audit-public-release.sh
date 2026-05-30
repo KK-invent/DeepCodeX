@@ -60,6 +60,23 @@ ok() {
   echo "[OK] $*"
 }
 
+retry_stdout() {
+  local output="$1"
+  shift
+  local attempt=1
+  local max_attempts=3
+  until "$@" > "${output}.tmp"; do
+    rm -f "${output}.tmp"
+    if [ "${attempt}" -ge "${max_attempts}" ]; then
+      return 1
+    fi
+    echo "[retry] command failed; retrying $((attempt + 1))/${max_attempts}: $*" >&2
+    sleep "${attempt}"
+    attempt=$((attempt + 1))
+  done
+  mv "${output}.tmp" "${output}"
+}
+
 public_binary_release_approved() {
   [ "${DEEPCODEX_PUBLIC_BINARY_RELEASE_APPROVED:-}" = "1" ] ||
     { [ -f "${UPSTREAM_APPROVAL_FILE}" ] &&
@@ -204,8 +221,15 @@ if [ -n "${RELEASE_TAG}" ]; then
   echo "== Release asset names =="
   "${ROOT}/scripts/verify-release-assets.sh" --repo "${REPO}" --tag "${RELEASE_TAG}"
 
-  release_assets="$(gh release view "${RELEASE_TAG}" --repo "${REPO}" --json assets -q '.assets[].name' 2>/dev/null || true)"
-  if printf '%s\n' "${release_assets}" | grep -Eq '\.(app|asar|dmg|pkg|zip|tar|tar\.gz|tgz|7z|rar)(\.sha256)?$'; then
+  release_assets_file="$(mktemp)"
+  if ! retry_stdout "${release_assets_file}" gh release view "${RELEASE_TAG}" --repo "${REPO}" --json assets -q '.assets[].name'; then
+    block "could not inspect release assets for ${RELEASE_TAG}"
+    release_assets=""
+  else
+    release_assets="$(cat "${release_assets_file}")"
+  fi
+  rm -f "${release_assets_file}" "${release_assets_file}.tmp"
+  if [ -n "${release_assets:-}" ] && printf '%s\n' "${release_assets}" | grep -Eq '\.(app|asar|dmg|pkg|zip|tar|tar\.gz|tgz|7z|rar)(\.sha256)?$'; then
     if public_binary_release_approved; then
       ok "public binary release assets are explicitly approved"
     else

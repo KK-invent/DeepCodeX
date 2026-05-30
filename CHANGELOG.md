@@ -18,6 +18,8 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Switched the transparent SVG wordmark text to a purple-to-blue gradient for clearer rendering across GitHub themes.
 - Enabled GitHub Actions audit CI for pushes and pull requests targeting `main`.
 - Hardened the public release audit so private preview zip assets block public readiness unless public binary distribution is explicitly approved.
+- Added retries to release asset verification so transient GitHub API or asset-download failures do not immediately fail the release gate.
+- Made release asset inspection failures explicit blockers instead of treating failed GitHub queries as empty releases.
 - Public release remains gated on upstream terms approval.
 
 ## private-preview-20260530-074240

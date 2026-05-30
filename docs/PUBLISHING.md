@@ -126,6 +126,8 @@ To verify an existing release manually:
 scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS
 ```
 
+The verifier retries transient GitHub API and checksum-asset download failures before failing the gate.
+
 Before sharing a direct-use asset, run:
 
 ```bash

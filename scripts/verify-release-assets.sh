@@ -50,6 +50,41 @@ cleanup() {
 }
 trap cleanup EXIT
 
+retry() {
+  local attempt=1
+  local max_attempts=3
+  until "$@"; do
+    if [ "${attempt}" -ge "${max_attempts}" ]; then
+      return 1
+    fi
+    echo "[retry] command failed; retrying $((attempt + 1))/${max_attempts}: $*" >&2
+    sleep "${attempt}"
+    attempt=$((attempt + 1))
+  done
+}
+
+retry_stdout() {
+  local output="$1"
+  shift
+  local attempt=1
+  local max_attempts=3
+  until "$@" > "${output}.tmp"; do
+    rm -f "${output}.tmp"
+    if [ "${attempt}" -ge "${max_attempts}" ]; then
+      return 1
+    fi
+    echo "[retry] command failed; retrying $((attempt + 1))/${max_attempts}: $*" >&2
+    sleep "${attempt}"
+    attempt=$((attempt + 1))
+  done
+  mv "${output}.tmp" "${output}"
+}
+
+download_checksums() {
+  rm -f "${checksums}"/*.sha256
+  gh release download "${TAG}" --repo "${REPO}" --pattern '*.sha256' --dir "${checksums}" >/dev/null
+}
+
 expected="${tmp}/expected.txt"
 actual="${tmp}/actual.txt"
 
@@ -66,7 +101,8 @@ EOF
 fi
 
 LC_ALL=C sort -o "${expected}" "${expected}"
-gh release view "${TAG}" --repo "${REPO}" --json assets -q '.assets[].name' | LC_ALL=C sort > "${actual}"
+retry_stdout "${actual}.unsorted" gh release view "${TAG}" --repo "${REPO}" --json assets -q '.assets[].name'
+LC_ALL=C sort "${actual}.unsorted" > "${actual}"
 
 if ! cmp -s "${expected}" "${actual}"; then
   echo "[FAIL] release asset names do not match the expected public surface." >&2
@@ -79,7 +115,7 @@ fi
 
 checksums="${tmp}/checksums"
 mkdir -p "${checksums}"
-gh release download "${TAG}" --repo "${REPO}" --pattern '*.sha256' --dir "${checksums}" >/dev/null
+retry download_checksums
 
 for checksum in "${checksums}"/*.sha256; do
   [ -e "${checksum}" ] || continue

@@ -48,6 +48,42 @@ if [ -z "${REPO}" ]; then
   REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
 fi
 
+tmp="$(mktemp -d)"
+cleanup() {
+  rm -rf "${tmp}"
+}
+trap cleanup EXIT
+
+retry() {
+  local attempt=1
+  local max_attempts=3
+  until "$@"; do
+    if [ "${attempt}" -ge "${max_attempts}" ]; then
+      return 1
+    fi
+    echo "[retry] command failed; retrying $((attempt + 1))/${max_attempts}: $*" >&2
+    sleep "${attempt}"
+    attempt=$((attempt + 1))
+  done
+}
+
+retry_stdout() {
+  local output="$1"
+  shift
+  local attempt=1
+  local max_attempts=3
+  until "$@" > "${output}.tmp"; do
+    rm -f "${output}.tmp"
+    if [ "${attempt}" -ge "${max_attempts}" ]; then
+      return 1
+    fi
+    echo "[retry] command failed; retrying $((attempt + 1))/${max_attempts}: $*" >&2
+    sleep "${attempt}"
+    attempt=$((attempt + 1))
+  done
+  mv "${output}.tmp" "${output}"
+}
+
 approval_value() {
   local key="$1"
   awk -F: -v key="${key}" '
@@ -74,16 +110,18 @@ is_binary_release_asset() {
 
 collect_binary_assets_for_release() {
   local tag="$1"
+  local assets="${tmp}/assets-${tag//[^A-Za-z0-9_.-]/_}.txt"
+  retry_stdout "${assets}" gh release view "${tag}" --repo "${REPO}" --json assets -q '.assets[] | "\(.id)\t\(.name)"' || return 1
   while IFS=$'\t' read -r asset_id asset_name; do
     [ -n "${asset_id:-}" ] || continue
     if is_binary_release_asset "${asset_name}"; then
       printf '%s\t%s\t%s\n' "${tag}" "${asset_id}" "${asset_name}"
     fi
-  done < <(gh release view "${tag}" --repo "${REPO}" --json assets -q '.assets[] | "\(.id)\t\(.name)"')
+  done < "${assets}"
 }
 
 release_exists() {
-  gh release view "$1" --repo "${REPO}" --json tagName >/dev/null 2>&1
+  retry gh release view "$1" --repo "${REPO}" --json tagName >/dev/null
 }
 
 failures=0
@@ -156,12 +194,16 @@ elif [ "${DELETE_BINARY_ASSETS}" -eq 1 ] && [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq
   block "--delete-binary-assets requires --private-release-tag"
 elif [ -n "${PRIVATE_RELEASE_TAG}" ]; then
   if ! release_exists "${PRIVATE_RELEASE_TAG}"; then
-    block "private release tag not found: ${PRIVATE_RELEASE_TAG}"
+    block "private release tag not found or could not be inspected: ${PRIVATE_RELEASE_TAG}"
   else
+    if ! binary_asset_rows="$(collect_binary_assets_for_release "${PRIVATE_RELEASE_TAG}")"; then
+      block "could not inspect binary assets for release ${PRIVATE_RELEASE_TAG}"
+      binary_asset_rows=""
+    fi
     while IFS=$'\t' read -r release_tag asset_id asset_name; do
       [ -n "${asset_id:-}" ] || continue
       binary_assets+=("${asset_id}"$'\t'"${asset_name}")
-    done < <(collect_binary_assets_for_release "${PRIVATE_RELEASE_TAG}")
+    done <<< "${binary_asset_rows}"
 
     if [ "${#binary_assets[@]}" -eq 0 ]; then
       ok "no binary/checksum assets are attached to ${PRIVATE_RELEASE_TAG}"
@@ -190,17 +232,28 @@ elif [ -n "${PRIVATE_RELEASE_TAG}" ]; then
     fi
   fi
 elif [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq 1 ]; then
-  while IFS= read -r release_tag; do
-    [ -n "${release_tag:-}" ] || continue
-    while IFS=$'\t' read -r found_tag asset_id asset_name; do
-      [ -n "${asset_id:-}" ] || continue
-      all_release_binary_assets+=("${found_tag}"$'\t'"${asset_id}"$'\t'"${asset_name}")
-    done < <(collect_binary_assets_for_release "${release_tag}")
-  done < <(gh release list --repo "${REPO}" --limit 100 --json tagName -q '.[].tagName')
-
-  if [ "${#all_release_binary_assets[@]}" -eq 0 ]; then
-    ok "no binary/checksum assets found across GitHub releases"
+  release_tags="${tmp}/release-tags.txt"
+  release_list_ready=1
+  if ! retry_stdout "${release_tags}" gh release list --repo "${REPO}" --limit 100 --json tagName -q '.[].tagName'; then
+    block "could not list GitHub releases for ${REPO}"
+    release_list_ready=0
   else
+    while IFS= read -r release_tag; do
+      [ -n "${release_tag:-}" ] || continue
+      if ! binary_asset_rows="$(collect_binary_assets_for_release "${release_tag}")"; then
+        block "could not inspect binary assets for release ${release_tag}"
+        binary_asset_rows=""
+      fi
+      while IFS=$'\t' read -r found_tag asset_id asset_name; do
+        [ -n "${asset_id:-}" ] || continue
+        all_release_binary_assets+=("${found_tag}"$'\t'"${asset_id}"$'\t'"${asset_name}")
+      done <<< "${binary_asset_rows}"
+    done < "${release_tags}"
+  fi
+
+  if [ "${release_list_ready}" -eq 1 ] && [ "${#all_release_binary_assets[@]}" -eq 0 ]; then
+    ok "no binary/checksum assets found across GitHub releases"
+  elif [ "${#all_release_binary_assets[@]}" -gt 0 ]; then
     block "--no-private-release-assets was supplied, but binary/checksum assets exist on GitHub releases"
     printf '%s\n' "${all_release_binary_assets[@]}" | awk -F '\t' '{ print "  - " $1 ": " $3 }' >&2
   fi
