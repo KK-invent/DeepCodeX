@@ -56,6 +56,8 @@ scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run --
 
 Do not omit `--private-release-tag` while a private preview release exists. If there has never been a private binary release, pass `--no-private-release-assets`; the script will scan GitHub releases and fail if any binary or checksum assets exist.
 
+The supplied private preview tag must exist on GitHub; a typo or deleted release is a public-release blocker.
+
 After resolving the blockers and switching visibility to public, run:
 
 ```bash

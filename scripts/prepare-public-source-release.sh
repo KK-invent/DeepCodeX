@@ -82,6 +82,10 @@ collect_binary_assets_for_release() {
   done < <(gh release view "${tag}" --repo "${REPO}" --json assets -q '.assets[] | "\(.id)\t\(.name)"')
 }
 
+release_exists() {
+  gh release view "$1" --repo "${REPO}" --json tagName >/dev/null 2>&1
+}
+
 failures=0
 SOURCE_APPROVAL_READY=0
 
@@ -151,35 +155,39 @@ if [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq 1 ] && [ -n "${PRIVATE_RELEASE_TAG}" ]; 
 elif [ "${DELETE_BINARY_ASSETS}" -eq 1 ] && [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq 1 ]; then
   block "--delete-binary-assets requires --private-release-tag"
 elif [ -n "${PRIVATE_RELEASE_TAG}" ]; then
-  while IFS=$'\t' read -r release_tag asset_id asset_name; do
-    [ -n "${asset_id:-}" ] || continue
-    binary_assets+=("${asset_id}"$'\t'"${asset_name}")
-  done < <(collect_binary_assets_for_release "${PRIVATE_RELEASE_TAG}")
-
-  if [ "${#binary_assets[@]}" -eq 0 ]; then
-    ok "no binary/checksum assets are attached to ${PRIVATE_RELEASE_TAG}"
-  elif [ "${binary_status:-}" = "approved" ]; then
-    ok "binary release assets are present and public-binary-release is approved"
-  elif [ "${DELETE_BINARY_ASSETS}" -eq 1 ]; then
-    if [ "${SOURCE_APPROVAL_READY}" -ne 1 ]; then
-      block "refusing to delete release assets before docs/UPSTREAM_TERMS_APPROVAL.md is completed"
-    elif [ "${binary_status:-}" != "private-only" ]; then
-      block "refusing to delete release assets unless public-binary-release is private-only"
-    else
-      for entry in "${binary_assets[@]}"; do
-        asset_id="${entry%%$'\t'*}"
-        asset_name="${entry#*$'\t'}"
-        if [ "${DRY_RUN}" -eq 1 ]; then
-          echo "[DRY-RUN] would delete ${asset_name} (${asset_id})"
-        else
-          echo "[delete] ${asset_name} (${asset_id})"
-          gh api -X DELETE "repos/${REPO}/releases/assets/${asset_id}" >/dev/null
-        fi
-      done
-    fi
+  if ! release_exists "${PRIVATE_RELEASE_TAG}"; then
+    block "private release tag not found: ${PRIVATE_RELEASE_TAG}"
   else
-    block "release ${PRIVATE_RELEASE_TAG} still has binary/checksum assets; rerun with --delete-binary-assets after approval, or keep the repo private"
-    printf '%s\n' "${binary_assets[@]}" | cut -f2 | sed 's/^/  - /' >&2
+    while IFS=$'\t' read -r release_tag asset_id asset_name; do
+      [ -n "${asset_id:-}" ] || continue
+      binary_assets+=("${asset_id}"$'\t'"${asset_name}")
+    done < <(collect_binary_assets_for_release "${PRIVATE_RELEASE_TAG}")
+
+    if [ "${#binary_assets[@]}" -eq 0 ]; then
+      ok "no binary/checksum assets are attached to ${PRIVATE_RELEASE_TAG}"
+    elif [ "${binary_status:-}" = "approved" ]; then
+      ok "binary release assets are present and public-binary-release is approved"
+    elif [ "${DELETE_BINARY_ASSETS}" -eq 1 ]; then
+      if [ "${SOURCE_APPROVAL_READY}" -ne 1 ]; then
+        block "refusing to delete release assets before docs/UPSTREAM_TERMS_APPROVAL.md is completed"
+      elif [ "${binary_status:-}" != "private-only" ]; then
+        block "refusing to delete release assets unless public-binary-release is private-only"
+      else
+        for entry in "${binary_assets[@]}"; do
+          asset_id="${entry%%$'\t'*}"
+          asset_name="${entry#*$'\t'}"
+          if [ "${DRY_RUN}" -eq 1 ]; then
+            echo "[DRY-RUN] would delete ${asset_name} (${asset_id})"
+          else
+            echo "[delete] ${asset_name} (${asset_id})"
+            gh api -X DELETE "repos/${REPO}/releases/assets/${asset_id}" >/dev/null
+          fi
+        done
+      fi
+    else
+      block "release ${PRIVATE_RELEASE_TAG} still has binary/checksum assets; rerun with --delete-binary-assets after approval, or keep the repo private"
+      printf '%s\n' "${binary_assets[@]}" | cut -f2 | sed 's/^/  - /' >&2
+    fi
   fi
 elif [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq 1 ]; then
   while IFS= read -r release_tag; do

@@ -73,6 +73,8 @@ scripts/publish-public-source-release.sh \
 
 Do not omit `--private-release-tag` while a private preview release exists. If there has never been a private binary release, pass `--no-private-release-assets`; the script will scan GitHub releases and fail if any binary or checksum assets exist instead of silently skipping asset inspection.
 
+The supplied private preview tag must already exist on GitHub. The preparation script treats a missing tag as a blocker instead of interpreting it as an empty release.
+
 If the approval file says `public-binary-release: private-only`, remove private preview binary assets before switching visibility:
 
 ```bash
