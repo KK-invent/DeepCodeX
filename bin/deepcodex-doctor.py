@@ -505,31 +505,11 @@ def check_deepseek_api_entry(results: list[CheckResult], info: dict, auth: dict)
         missing.append("auth.json:OPENAI_API_KEY")
     if not info.get("LSEnvironment", {}).get("CCX_PROXY_ACCESS_KEY"):
         missing.append("Info.plist:LSEnvironment:CCX_PROXY_ACCESS_KEY")
-    try:
-        ccx_config = json.loads(CCX_CONFIG.read_text(encoding="utf-8"))
-        upstreams = ccx_config.get("responsesUpstream", [])
-        deepseek = next(
-            (
-                item
-                for item in upstreams
-                if isinstance(item, dict)
-                and (
-                    "deepseek-v4-flash" in (item.get("supportedModels") or [])
-                    or "deepseek-v4-pro" in (item.get("supportedModels") or [])
-                    or item.get("name") == "DeepSeek Chat"
-                )
-            ),
-            None,
-        )
-        if not deepseek:
-            missing.append("ccx/.config/config.json:DeepSeek upstream")
-        else:
-            if not deepseek.get("baseUrl"):
-                missing.append("ccx/.config/config.json:baseUrl")
-            if not deepseek.get("apiKeys"):
-                missing.append("ccx/.config/config.json:apiKeys")
-    except (OSError, json.JSONDecodeError):
-        missing.append("ccx/.config/config.json")
+    # Bridge reads API key from secrets.env (not ccx config)
+    if not env_secret_present(SECRETS, "DEEPSEEK_API_KEY"):
+        missing.append("secrets.env:DEEPSEEK_API_KEY")
+    if not env_secret_present(SECRETS, "DEEPSEEK_BASE_URL"):
+        missing.append("secrets.env:DEEPSEEK_BASE_URL")
 
     if missing:
         results.append(
@@ -559,9 +539,15 @@ def check_launchd(results: list[CheckResult], config_text: str) -> None:
     if re.search(re.escape(CCX_LABEL), launchctl):
         results.append(CheckResult("OK", "ccx-service", "launchd entry present"))
     else:
-        results.append(CheckResult("WARN", "ccx-service", "launchd entry not found; DeepSeek route may fail"))
+        results.append(CheckResult("WARN", "ccx-service", "launchd entry not found (OK if using new python bridge)"))
 
     # 剥图中转 (image-strip shim)：DeepSeek 纯文本，shim 把请求里的图片剥掉，防止手滑发图整轮崩。
+
+    # DeepSeek Bridge (replaces ccx)
+    if re.search(re.escape(BRIDGE_LABEL), launchctl):
+        results.append(CheckResult("OK", "deepseek-bridge", "launchd entry present (Python bridge)"))
+    else:
+        results.append(CheckResult("WARN", "deepseek-bridge", "launchd entry not found"))
     shim_loaded = bool(re.search(re.escape(IMAGE_STRIP_LABEL), launchctl))
     base_url_match = re.search(r'base_url\s*=\s*"([^"]+)"', config_text)
     base_url = base_url_match.group(1) if base_url_match else ""

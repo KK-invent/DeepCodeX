@@ -1,0 +1,21 @@
+{
+  "method": "POST",
+  "path": "/v1/responses",
+  "body": {
+    "model": "deepseek-v4-flash",
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "What is 2+2? Just answer with the number."
+          }
+        ]
+      }
+    ],
+    "instructions": "You are a helpful assistant.",
+    "stream": false,
+    "store": false
+  }
+}

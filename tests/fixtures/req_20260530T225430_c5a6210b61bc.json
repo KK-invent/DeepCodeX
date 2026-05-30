@@ -1,0 +1,24 @@
+{
+  "method": "POST",
+  "path": "/v1/responses",
+  "body": {
+    "model": "deepseek-v4-pro",
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Explain why the sky is blue in 2 sentences."
+          }
+        ]
+      }
+    ],
+    "instructions": "You are a helpful assistant.",
+    "reasoning": {
+      "effort": "high"
+    },
+    "stream": true,
+    "store": false
+  }
+}

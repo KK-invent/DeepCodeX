@@ -106,6 +106,10 @@ def current_deepseek_base_url() -> str | None:
 
 
 def current_deepseek_api_key() -> str | None:
+    # First try secrets.env (new location), then ccx config (backward compat)
+    key = read_env_value(SECRETS, "DEEPSEEK_API_KEY")
+    if key:
+        return key
     upstream = current_deepseek_entry()
     if upstream:
         keys = upstream.get("apiKeys") or []
@@ -211,7 +215,7 @@ def choose_proxy_key(args: argparse.Namespace) -> str:
     return "dcx-" + secrets.token_urlsafe(32)
 
 
-def write_secrets(proxy_key: str, base_url: str, tag: str) -> list[str]:
+def write_secrets(proxy_key: str, base_url: str, deepseek_key: str, tag: str) -> list[str]:
     actions: list[str] = []
     DEEPCODEX_HOME.mkdir(parents=True, exist_ok=True)
     backup = backup_file(SECRETS, tag)
@@ -222,15 +226,16 @@ def write_secrets(proxy_key: str, base_url: str, tag: str) -> list[str]:
     for name, value in (
         ("CCX_PROXY_ACCESS_KEY", proxy_key),
         ("DEEPSEEK_BASE_URL", base_url),
+        ("DEEPSEEK_API_KEY", deepseek_key),
     ):
         lines, changed = set_env_value(lines, name, value)
         changed_any = changed_any or changed
     if changed_any or not SECRETS.exists():
         SECRETS.write_text("\n".join(lines) + "\n", encoding="utf-8")
         os.chmod(SECRETS, stat.S_IRUSR | stat.S_IWUSR)
-        actions.append("wrote local proxy key and DeepSeek base URL to secrets.env")
+        actions.append("wrote proxy key, base URL, and API key to secrets.env")
     else:
-        actions.append("secrets.env already contains local proxy key and DeepSeek base URL")
+        actions.append("secrets.env already contains proxy key, base URL, and API key")
     return actions
 
 
@@ -450,6 +455,8 @@ def status_info() -> dict:
         missing.append("secrets.env:CCX_PROXY_ACCESS_KEY")
     if not read_env_presence(SECRETS, "DEEPSEEK_BASE_URL"):
         missing.append("secrets.env:DEEPSEEK_BASE_URL")
+    if not read_env_presence(SECRETS, "DEEPSEEK_API_KEY"):
+        missing.append("secrets.env:DEEPSEEK_API_KEY")
     if not AUTH.exists():
         missing.append("auth.json")
     else:
@@ -485,6 +492,7 @@ def status_info() -> dict:
         "base_url": base_url,
         "upstream_api_key_present": upstream_key_present,
         "local_proxy_key_present": proxy_present,
+        "deepseek_api_key_present": read_env_presence(SECRETS, "DEEPSEEK_API_KEY"),
         "base_url_secret_present": base_url_secret_present,
     }
 
@@ -535,7 +543,7 @@ def main() -> int:
         proxy_key = choose_proxy_key(args)
         actions: list[str] = []
         actions.extend(write_ccx_config(api_key, base_url, tag))
-        actions.extend(write_secrets(proxy_key, base_url, tag))
+        actions.extend(write_secrets(proxy_key, base_url, api_key, tag))
         actions.extend(write_auth(proxy_key, tag))
         actions.extend(update_info_plist(proxy_key, tag))
         actions.extend(resign_app())

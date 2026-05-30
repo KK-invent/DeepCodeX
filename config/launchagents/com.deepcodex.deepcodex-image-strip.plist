@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>DEEPCODEX_HOME</key>
+		<string>__DEEPCODEX_HOME__</string>
+		<key>PATH</key>
+		<string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+	</dict>
+	<key>KeepAlive</key>
+	<true/>
+	<key>Label</key>
+	<string>__LAUNCHD_DOMAIN__.deepcodex-image-strip</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/bin/python3</string>
+		<string>__DEEPCODEX_HOME__/bin/deepcodex-image-strip-proxy.py</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>__DEEPCODEX_HOME__/logs/image-strip.err.log</string>
+	<key>StandardOutPath</key>
+	<string>__DEEPCODEX_HOME__/logs/image-strip.out.log</string>
+	<key>WorkingDirectory</key>
+	<string>__DEEPCODEX_HOME__</string>
+</dict>
+</plist>

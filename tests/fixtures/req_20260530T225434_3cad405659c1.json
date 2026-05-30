@@ -1,0 +1,41 @@
+{
+  "method": "POST",
+  "path": "/v1/responses",
+  "body": {
+    "model": "deepseek-v4-flash",
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "What is the weather? Use get_weather tool."
+          }
+        ]
+      }
+    ],
+    "instructions": "You are a helpful assistant with tools.",
+    "tools": [
+      {
+        "type": "function",
+        "name": "get_weather",
+        "description": "Get weather for a location",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string",
+              "description": "City name"
+            }
+          },
+          "required": [
+            "location"
+          ]
+        }
+      }
+    ],
+    "tool_choice": "auto",
+    "stream": false,
+    "store": false
+  }
+}
