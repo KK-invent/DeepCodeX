@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/deepcodex-icon.svg" alt="DeepCodeX original route icon" width="156">
+  <img src="assets/brand/deepcodex-icon.svg" alt="DeepCodeX gradient X icon" width="156">
 </p>
 
 <p align="center">

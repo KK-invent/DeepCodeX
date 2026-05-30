@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/deepcodex-icon.svg" alt="DeepCodeX 原创路由图标" width="156">
+  <img src="assets/brand/deepcodex-icon.svg" alt="DeepCodeX 渐变 X 图标" width="156">
 </p>
 
 <p align="center">

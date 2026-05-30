@@ -15,6 +15,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Made the no-private-assets path scan GitHub releases for binary/checksum assets instead of relying on maintainer assertion alone.
 - Validated supplied private preview release tags before inspecting assets so typos cannot pass as empty releases.
 - Simplified the project logo into a standalone uppercase `X` with a Codex-style purple-to-blue gradient.
+- Switched the transparent SVG wordmark text to a purple-to-blue gradient for clearer rendering across GitHub themes.
 - Public release remains gated on upstream terms approval and GitHub Actions audit CI.
 
 ## private-preview-20260530-074240
