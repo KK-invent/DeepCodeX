@@ -101,6 +101,9 @@ echo "== Source release preflight =="
 if ! "${ROOT}/scripts/verify-github-public-metadata.sh" --repo "${REPO}"; then
   exit 1
 fi
+if ! "${ROOT}/scripts/verify-public-release-git-state.sh"; then
+  exit 1
+fi
 
 if ! git -C "${ROOT}" diff --quiet || ! git -C "${ROOT}" diff --cached --quiet; then
   echo "[FAIL] git worktree is dirty; commit or discard changes before release" >&2

@@ -145,6 +145,11 @@ if git -C "${ROOT}" diff --quiet && git -C "${ROOT}" diff --cached --quiet; then
 else
   block "git worktree is dirty; commit or discard changes before public visibility"
 fi
+if "${ROOT}/scripts/verify-public-release-git-state.sh"; then
+  ok "public release git state is synchronized with origin/main"
+else
+  block "public release must run from synchronized main branch"
+fi
 
 echo "== GitHub repository =="
 visibility="$(gh repo view "${REPO}" --json visibility -q .visibility)"

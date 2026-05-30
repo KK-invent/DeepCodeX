@@ -31,6 +31,7 @@ Run the normal source gate:
 
 ```bash
 scripts/audit-release.sh
+scripts/verify-public-release-git-state.sh
 ```
 
 This gate allows ignored local release caches such as `dist/`, but fails if app bundles, zip packages, runtime state, logs, auth files, caches, or private config become tracked source files.
@@ -101,6 +102,7 @@ scripts/verify-public-source-release.sh --repo KK-invent/DeepCodeX --tag v$(cat 
 - `CONTRIBUTING.md`, `SUPPORT.md`, issue templates, and the pull request template are present.
 - Source-only release helper scripts are present: `scripts/publish-public-source-release.sh` and `scripts/verify-public-source-release.sh`.
 - GitHub labels used by issue templates exist: `bug`, `documentation`, `release`.
+- `scripts/verify-public-release-git-state.sh` confirms local `main` matches `origin/main`.
 - `scripts/verify-github-actions-audit.sh --repo KK-invent/DeepCodeX --commit $(git rev-parse HEAD)` passes for the exact release commit.
 
 ## Release Asset Rules

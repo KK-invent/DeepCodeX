@@ -92,6 +92,11 @@ if git -C "${ROOT}" diff --quiet && git -C "${ROOT}" diff --cached --quiet; then
 else
   block "git worktree is dirty; commit or discard local changes before a public release"
 fi
+if "${ROOT}/scripts/verify-public-release-git-state.sh"; then
+  ok "public release git state is synchronized with origin/main"
+else
+  block "public release must run from synchronized main branch"
+fi
 
 echo "== License posture =="
 if grep -Eq 'No public open-source license is granted yet|Private Preview Notice' "${ROOT}/LICENSE.md"; then
@@ -168,6 +173,7 @@ required_public_files=(
   ".github/ISSUE_TEMPLATE/docs.yml"
   ".github/ISSUE_TEMPLATE/release_readiness.yml"
   ".github/PULL_REQUEST_TEMPLATE.md"
+  "scripts/verify-public-release-git-state.sh"
   "scripts/verify-github-actions-audit.sh"
   "scripts/publish-public-source-release.sh"
   "scripts/verify-public-source-release.sh"

@@ -14,6 +14,7 @@ Target flow:
 
 ```bash
 scripts/audit-release.sh
+scripts/verify-public-release-git-state.sh
 git status --short
 git ls-files
 ```
@@ -60,6 +61,7 @@ public-binary-release: approved
 To prepare the source-only public path without changing visibility, run:
 
 ```bash
+scripts/verify-public-release-git-state.sh
 scripts/prepare-public-source-release.sh \
   --repo KK-invent/DeepCodeX \
   --private-release-tag private-preview-YYYYMMDD-HHMMSS \

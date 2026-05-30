@@ -24,6 +24,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Hardened public source release publishing so existing local or remote tags must already point at the intended release commit.
 - Added a GitHub Actions verifier so public release gates require a successful `Audit` workflow run for the exact release commit.
 - Added shell syntax checks to the release audit so CI catches broken release, packaging, and install scripts.
+- Added a public release git-state verifier so source releases must run from synchronized `main` and `origin/main`.
 - Public release remains gated on upstream terms approval.
 
 ## private-preview-20260530-074240
