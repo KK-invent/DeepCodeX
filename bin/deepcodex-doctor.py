@@ -35,6 +35,7 @@ LAUNCHD_DOMAIN = os.environ.get("DEEPCODEX_LAUNCHD_DOMAIN", os.environ.get("DEEP
 HYBRID_ROUTER_LABEL = os.environ.get("DEEPCODEX_HYBRID_ROUTER_LABEL", f"{LAUNCHD_DOMAIN}.deepcodex-hybrid-router")
 CCX_LABEL = os.environ.get("DEEPCODEX_CCX_LABEL", f"{LAUNCHD_DOMAIN}.ccx-deepseek")
 IMAGE_STRIP_LABEL = os.environ.get("DEEPCODEX_IMAGE_STRIP_LABEL", f"{LAUNCHD_DOMAIN}.deepcodex-image-strip")
+BRIDGE_LABEL = os.environ.get("DEEPCODEX_BRIDGE_LABEL", f"{LAUNCHD_DOMAIN}.deepseek-bridge")
 BACKUP_LABEL = os.environ.get("DEEPCODEX_BACKUP_LABEL", f"{LAUNCHD_DOMAIN}.deepcodex-backup")
 CCX_PLIST = LAUNCH_AGENTS / f"{CCX_LABEL}.plist"
 IMAGE_STRIP_PLIST = LAUNCH_AGENTS / f"{IMAGE_STRIP_LABEL}.plist"
