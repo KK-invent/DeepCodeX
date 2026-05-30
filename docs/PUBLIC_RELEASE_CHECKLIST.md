@@ -21,8 +21,9 @@ Do not make the repository public until every blocker here has a clear owner and
 - Decide the release-asset posture before changing repository visibility:
   - Public source release with no uploaded app/binary assets, or
   - Public binary release only after explicit `public-binary-release: approved` signoff.
-- Enable GitHub Actions audit CI by copying `docs/GITHUB_ACTIONS_AUDIT_TEMPLATE.yml` to `.github/workflows/audit.yml` with a GitHub token that has `workflow` scope.
-  - If `gh auth status -h github.com` does not list `workflow`, run `gh auth refresh -h github.com -s workflow`, then run `scripts/enable-github-actions-audit.sh`.
+- Confirm GitHub Actions audit CI is active from `.github/workflows/audit.yml`.
+  - If it needs to be recreated from `docs/GITHUB_ACTIONS_AUDIT_TEMPLATE.yml`, use a GitHub token with `workflow` scope and run `scripts/enable-github-actions-audit.sh`.
+  - Confirm the latest `Audit` workflow run passed on `main`.
 
 ## Required Commands
 
@@ -44,6 +45,13 @@ Run the GitHub public metadata gate:
 
 ```bash
 scripts/verify-github-public-metadata.sh --repo KK-invent/DeepCodeX
+```
+
+Confirm GitHub Actions audit CI:
+
+```bash
+gh workflow list --repo KK-invent/DeepCodeX
+gh run list --repo KK-invent/DeepCodeX --workflow Audit --limit 5
 ```
 
 Before the visibility switch, run the public-release gate without `--require-public`; it should pass after all decision blockers are resolved:

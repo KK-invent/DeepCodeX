@@ -134,14 +134,20 @@ The smoke test unzips the package, simulates a machine with no Codex/DeepCodeX a
 
 Private preview binary assets must remain private. If the repository is changed to public, GitHub release assets attached to that repository become public too. Remove private preview zip assets first unless `docs/UPSTREAM_TERMS_APPROVAL.md` explicitly approves public binary release distribution.
 
-## Optional GitHub Actions
+## GitHub Actions Audit
 
-The local audit script is intentionally committed as `scripts/audit-release.sh`. A GitHub Actions workflow should be enabled before public release, but pushing workflow files requires a GitHub token with the `workflow` scope.
+The local audit script is intentionally committed as `scripts/audit-release.sh`. The GitHub Actions workflow is committed at `.github/workflows/audit.yml` and runs the same audit on pushes and pull requests targeting `main`.
 
-Until that scope is available, keep the template at `docs/GITHUB_ACTIONS_AUDIT_TEMPLATE.yml`. When ready, refresh the GitHub token with `workflow` scope, then run:
+If the workflow must be recreated from the template, refresh the GitHub token with `workflow` scope, then run:
 
 ```bash
+gh auth refresh -h github.com -s workflow
 scripts/enable-github-actions-audit.sh
 ```
 
-Commit the created `.github/workflows/audit.yml` file and confirm GitHub Actions runs on `main`.
+Confirm the workflow is active and the latest run passed:
+
+```bash
+gh workflow list --repo KK-invent/DeepCodeX
+gh run list --repo KK-invent/DeepCodeX --workflow Audit --limit 5
+```
