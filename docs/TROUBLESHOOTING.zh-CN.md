@@ -1,6 +1,22 @@
 # DeepCodeX 中文排障指南
 
-## 启动前先跑预检
+## 启动前先确认路径
+
+普通用户如果拿到的是 `DeepCodeX-mac.zip`，先解压并双击 `Install-DeepCodeX.command`。安装器会自动检测 Codex、DeepCodeX 和 runtime 状态。
+
+如果你想在成品包解压目录里手动看检测结果，运行：
+
+```bash
+./support/scripts/detect-install-mode.sh
+```
+
+安装完成后再做预检，运行：
+
+```bash
+"$HOME/.codex-deepseek/bin/preflight-mac.sh"
+```
+
+只有从源码仓库构建或维护的人，才在仓库根目录运行：
 
 ```bash
 scripts/detect-install-mode.sh

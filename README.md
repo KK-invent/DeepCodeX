@@ -16,6 +16,25 @@ This repository is prepared as a private review candidate. It intentionally does
 
 The visual identity uses the public DeepSeek app icon style. See [assets/brand/SOURCES.md](assets/brand/SOURCES.md) and [docs/COMPLIANCE.md](docs/COMPLIANCE.md) for source and trademark boundaries.
 
+## Private Preview Download
+
+If you received a private GitHub Release, use the ordinary-user package:
+
+```text
+DeepCodeX-mac.zip
+DeepCodeX-mac.zip.sha256
+```
+
+Verify it before opening:
+
+```bash
+shasum -a 256 -c DeepCodeX-mac.zip.sha256
+```
+
+Then unzip `DeepCodeX-mac.zip` and run `Install-DeepCodeX.command`. The installer checks whether `/Applications/Codex.app` exists. If Codex is missing, install the official Codex desktop app first, then rerun the installer.
+
+Do not use the source checkout as a direct app download. The repository is a maintainer toolkit and intentionally does not include the built app or upstream Codex binaries.
+
 ## Scope
 
 ![DeepCodeX routing architecture](assets/brand/routing-architecture.svg)
