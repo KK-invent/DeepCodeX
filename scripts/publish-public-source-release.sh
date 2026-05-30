@@ -26,6 +26,27 @@ Options:
 EOF
 }
 
+local_tag_commit() {
+  if git -C "${ROOT}" rev-parse -q --verify "refs/tags/$1" >/dev/null; then
+    git -C "${ROOT}" rev-list -n 1 "$1"
+  fi
+}
+
+remote_tag_commit() {
+  git -C "${ROOT}" ls-remote --tags origin "refs/tags/$1" "refs/tags/$1^{}" |
+    awk -v tag="$1" '
+      $2 == "refs/tags/" tag "^{}" { peeled = $1 }
+      $2 == "refs/tags/" tag { direct = $1 }
+      END {
+        if (peeled != "") {
+          print peeled
+        } else if (direct != "") {
+          print direct
+        }
+      }
+    '
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --repo) REPO="$2"; shift ;;
@@ -87,9 +108,25 @@ if ! git -C "${ROOT}" diff --quiet || ! git -C "${ROOT}" diff --cached --quiet; 
 fi
 
 target="$(git -C "${ROOT}" rev-parse HEAD)"
+local_existing="$(local_tag_commit "${TAG}")"
+remote_existing="$(remote_tag_commit "${TAG}")"
+if [ -n "${local_existing}" ] && [ "${local_existing}" != "${target}" ]; then
+  echo "[FAIL] local tag ${TAG} points at ${local_existing}, expected ${target}" >&2
+  exit 1
+fi
+if [ -n "${remote_existing}" ] && [ "${remote_existing}" != "${target}" ]; then
+  echo "[FAIL] remote tag ${TAG} points at ${remote_existing}, expected ${target}" >&2
+  exit 1
+fi
+
 echo "Repository: ${REPO} (${visibility})"
 echo "Tag:        ${TAG}"
 echo "Target:     ${target}"
+if [ -n "${local_existing}" ] || [ -n "${remote_existing}" ]; then
+  echo "Tag status: existing tag already points at target"
+else
+  echo "Tag status: will create annotated tag"
+fi
 echo "Title:      ${TITLE}"
 echo "Notes:      ${NOTES_FILE}"
 echo "Assets:     none"
@@ -99,10 +136,16 @@ if [ "${DRY_RUN}" -eq 1 ]; then
   exit 0
 fi
 
-if ! git -C "${ROOT}" rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+if [ -z "${local_existing}" ] && [ -z "${remote_existing}" ]; then
   git -C "${ROOT}" tag -a "${TAG}" -m "${TAG}"
 fi
-git -C "${ROOT}" push origin "${TAG}"
+if [ -n "${remote_existing}" ] && [ -z "${local_existing}" ]; then
+  git -C "${ROOT}" fetch origin "refs/tags/${TAG}:refs/tags/${TAG}"
+elif [ -z "${remote_existing}" ]; then
+  git -C "${ROOT}" push origin "${TAG}"
+else
+  echo "[release] remote tag ${TAG} already points at target"
+fi
 
 if gh release view "${TAG}" --repo "${REPO}" >/dev/null 2>&1; then
   gh release edit "${TAG}" --repo "${REPO}" --title "${TITLE}" --notes-file "${NOTES_FILE}" --target "${target}" --latest
@@ -110,4 +153,4 @@ else
   gh release create "${TAG}" --repo "${REPO}" --title "${TITLE}" --notes-file "${NOTES_FILE}" --target "${target}" --latest
 fi
 
-"${ROOT}/scripts/verify-public-source-release.sh" --repo "${REPO}" --tag "${TAG}"
+"${ROOT}/scripts/verify-public-source-release.sh" --repo "${REPO}" --tag "${TAG}" --expected-target "${target}"

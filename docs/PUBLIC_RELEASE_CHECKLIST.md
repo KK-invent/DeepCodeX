@@ -85,7 +85,7 @@ After the repository is public, create and verify the source-only release:
 
 ```bash
 scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX
-scripts/verify-public-source-release.sh --repo KK-invent/DeepCodeX --tag v$(cat VERSION)
+scripts/verify-public-source-release.sh --repo KK-invent/DeepCodeX --tag v$(cat VERSION) --expected-target $(git rev-parse HEAD)
 ```
 
 ## GitHub Metadata
