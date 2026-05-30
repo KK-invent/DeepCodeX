@@ -75,6 +75,15 @@ scripts/prepare-public-source-release.sh \
 
 The preparation script does not make the repository public. After it passes, review the GitHub UI and then change visibility manually.
 
+After the repository is public, create the source-only GitHub Release:
+
+```bash
+scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX
+scripts/verify-public-source-release.sh --repo KK-invent/DeepCodeX --tag v$(cat VERSION)
+```
+
+The public source release script refuses to upload binary assets. It creates or updates the `vX.Y.Z` GitHub Release using `docs/PUBLIC_SOURCE_RELEASE_NOTES.md`.
+
 ## Private Binary Assets
 
 If a private binary package is needed, build it locally and upload it as a private release asset only after `scripts/audit-package.sh` passes.

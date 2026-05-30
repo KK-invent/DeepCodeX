@@ -47,6 +47,7 @@ After resolving the blockers and switching visibility to public, run:
 
 ```bash
 scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --require-public
+scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run
 ```
 
 Before the visibility switch, run the same command without `--require-public`; it should pass after all decision blockers are resolved.
@@ -63,6 +64,13 @@ If `docs/UPSTREAM_TERMS_APPROVAL.md` says `public-binary-release: private-only`,
 scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --delete-binary-assets
 ```
 
+After the repository is public, create and verify the source-only release:
+
+```bash
+scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX
+scripts/verify-public-source-release.sh --repo KK-invent/DeepCodeX --tag v$(cat VERSION)
+```
+
 ## GitHub Metadata
 
 - Description is set.
@@ -73,6 +81,7 @@ scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-re
 - GitHub detects the MIT License.
 - `VERSION` and `docs/PUBLIC_SOURCE_RELEASE_NOTES.md` are present.
 - `CONTRIBUTING.md`, `SUPPORT.md`, issue templates, and the pull request template are present.
+- Source-only release helper scripts are present: `scripts/publish-public-source-release.sh` and `scripts/verify-public-source-release.sh`.
 - GitHub labels used by issue templates exist: `bug`, `documentation`, `release`.
 
 ## Release Asset Rules

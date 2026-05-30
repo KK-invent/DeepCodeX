@@ -5,6 +5,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 ## v0.1.0
 
 - Prepared the first planned public source release identity with `VERSION` and public source release notes.
+- Added source-only public release publish and verification scripts that refuse uploaded binary assets.
 - Public release remains gated on upstream terms approval and GitHub Actions audit CI.
 
 ## private-preview-20260530-074240

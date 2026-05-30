@@ -138,6 +138,8 @@ required_public_files=(
   ".github/ISSUE_TEMPLATE/docs.yml"
   ".github/ISSUE_TEMPLATE/release_readiness.yml"
   ".github/PULL_REQUEST_TEMPLATE.md"
+  "scripts/publish-public-source-release.sh"
+  "scripts/verify-public-source-release.sh"
 )
 for public_file in "${required_public_files[@]}"; do
   if [ -s "${ROOT}/${public_file}" ]; then

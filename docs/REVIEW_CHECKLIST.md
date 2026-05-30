@@ -23,6 +23,7 @@
 - [ ] `VERSION` and `docs/PUBLIC_SOURCE_RELEASE_NOTES.md` describe the public source release.
 - [ ] `CONTRIBUTING.md`, `SUPPORT.md`, and GitHub issue/PR templates are present for public repository operations.
 - [ ] `scripts/verify-github-public-metadata.sh --repo KK-invent/DeepCodeX` passes.
+- [ ] `scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run` passes before creating `v$(cat VERSION)`.
 - [ ] GitHub detects the committed MIT License before public visibility.
 - [ ] Upstream patching terms are reviewed and recorded in `docs/UPSTREAM_TERMS_REVIEW.md`.
 - [ ] `docs/UPSTREAM_TERMS_APPROVAL.md` exists only after real approval and records whether public binary release assets are approved or private-only.
