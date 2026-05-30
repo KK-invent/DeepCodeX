@@ -63,7 +63,7 @@ Before the visibility switch, run the public-release gate without `--require-pub
 ```bash
 scripts/audit-public-release.sh --repo KK-invent/DeepCodeX
 scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run
-scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run --skip-public-check
+scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run --skip-public-check
 ```
 
 Do not omit `--private-release-tag` while a private preview release exists. If there has never been a private binary release, pass `--no-private-release-assets`; the script will scan GitHub releases and fail if any binary or checksum assets exist.
@@ -80,8 +80,10 @@ scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --private-re
 If `docs/UPSTREAM_TERMS_APPROVAL.md` says `public-binary-release: private-only`, remove the private preview zip assets before changing visibility:
 
 ```bash
-scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --delete-binary-assets
+scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --delete-binary-assets --hide-private-release
 ```
+
+`--hide-private-release` marks the old private preview Release as a draft after its binary/checksum assets are removed, so the public repository does not expose a confusing empty private-preview prerelease.
 
 After the repository is public, create and verify the source-only release:
 

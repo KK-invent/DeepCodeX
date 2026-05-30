@@ -6,13 +6,14 @@ REPO="${GITHUB_REPOSITORY:-}"
 PRIVATE_RELEASE_TAG=""
 NO_PRIVATE_RELEASE_ASSETS=0
 DELETE_BINARY_ASSETS=0
+HIDE_PRIVATE_RELEASE=0
 DRY_RUN=0
 APPROVAL_FILE="${ROOT}/docs/UPSTREAM_TERMS_APPROVAL.md"
 
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/prepare-public-source-release.sh [--repo OWNER/REPO] --private-release-tag TAG [--delete-binary-assets] [--dry-run]
+  scripts/prepare-public-source-release.sh [--repo OWNER/REPO] --private-release-tag TAG [--delete-binary-assets] [--hide-private-release] [--dry-run]
   scripts/prepare-public-source-release.sh [--repo OWNER/REPO] --no-private-release-assets [--dry-run]
 
 Preflights the final source-only public release path.
@@ -27,6 +28,7 @@ Options:
   --private-release-tag TAG    Existing private preview release to inspect.
   --no-private-release-assets  Explicitly assert there is no private binary release to inspect.
   --delete-binary-assets       Delete binary/checksum assets from that release when public-binary-release is private-only.
+  --hide-private-release       Mark the inspected private preview release as draft after binary assets are removed.
   --dry-run                    Print what would be deleted, but do not delete assets.
 EOF
 }
@@ -37,6 +39,7 @@ while [ "$#" -gt 0 ]; do
     --private-release-tag) PRIVATE_RELEASE_TAG="$2"; shift ;;
     --no-private-release-assets) NO_PRIVATE_RELEASE_ASSETS=1 ;;
     --delete-binary-assets) DELETE_BINARY_ASSETS=1 ;;
+    --hide-private-release) HIDE_PRIVATE_RELEASE=1 ;;
     --dry-run) DRY_RUN=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
@@ -120,8 +123,39 @@ collect_binary_assets_for_release() {
   done < "${assets}"
 }
 
+release_is_draft() {
+  local tag="$1"
+  local draft_file="${tmp}/draft-${tag//[^A-Za-z0-9_.-]/_}.txt"
+  retry_stdout "${draft_file}" gh release view "${tag}" --repo "${REPO}" --json isDraft -q '.isDraft' || return 1
+  [ "$(tr '[:upper:]' '[:lower:]' < "${draft_file}")" = "true" ]
+}
+
 release_exists() {
   retry gh release view "$1" --repo "${REPO}" --json tagName >/dev/null
+}
+
+mark_private_release_draft() {
+  local tag="$1"
+  if [ "${HIDE_PRIVATE_RELEASE}" -ne 1 ]; then
+    return 0
+  fi
+  if [ "${SOURCE_APPROVAL_READY}" -ne 1 ]; then
+    block "refusing to hide private release before docs/UPSTREAM_TERMS_APPROVAL.md is completed"
+  elif [ "${binary_status:-}" != "private-only" ]; then
+    block "refusing to hide private release unless public-binary-release is private-only"
+  elif [ "${DRY_RUN}" -eq 1 ]; then
+    echo "[DRY-RUN] would mark ${tag} as draft"
+  elif release_is_draft "${tag}"; then
+    ok "release ${tag} is already draft"
+  else
+    echo "[draft] ${tag}"
+    gh release edit "${tag}" --repo "${REPO}" --draft >/dev/null
+    if release_is_draft "${tag}"; then
+      ok "release ${tag} is draft"
+    else
+      block "release ${tag} was not marked draft"
+    fi
+  fi
 }
 
 failures=0
@@ -202,6 +236,10 @@ if [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq 1 ] && [ -n "${PRIVATE_RELEASE_TAG}" ]; 
   block "use either --private-release-tag or --no-private-release-assets, not both"
 elif [ "${DELETE_BINARY_ASSETS}" -eq 1 ] && [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq 1 ]; then
   block "--delete-binary-assets requires --private-release-tag"
+elif [ "${HIDE_PRIVATE_RELEASE}" -eq 1 ] && [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq 1 ]; then
+  block "--hide-private-release requires --private-release-tag"
+elif [ "${HIDE_PRIVATE_RELEASE}" -eq 1 ] && [ "${DELETE_BINARY_ASSETS}" -ne 1 ]; then
+  block "--hide-private-release requires --delete-binary-assets"
 elif [ -n "${PRIVATE_RELEASE_TAG}" ]; then
   if ! release_exists "${PRIVATE_RELEASE_TAG}"; then
     block "private release tag not found or could not be inspected: ${PRIVATE_RELEASE_TAG}"
@@ -217,6 +255,7 @@ elif [ -n "${PRIVATE_RELEASE_TAG}" ]; then
 
     if [ "${#binary_assets[@]}" -eq 0 ]; then
       ok "no binary/checksum assets are attached to ${PRIVATE_RELEASE_TAG}"
+      mark_private_release_draft "${PRIVATE_RELEASE_TAG}"
     elif [ "${binary_status:-}" = "approved" ]; then
       ok "binary release assets are present and public-binary-release is approved"
     elif [ "${DELETE_BINARY_ASSETS}" -eq 1 ]; then
@@ -235,6 +274,7 @@ elif [ -n "${PRIVATE_RELEASE_TAG}" ]; then
             gh api -X DELETE "repos/${REPO}/releases/assets/${asset_id}" >/dev/null
           fi
         done
+        mark_private_release_draft "${PRIVATE_RELEASE_TAG}"
       fi
     else
       block "release ${PRIVATE_RELEASE_TAG} still has binary/checksum assets; rerun with --delete-binary-assets after approval, or keep the repo private"

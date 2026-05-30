@@ -69,6 +69,7 @@ scripts/prepare-public-source-release.sh \
 
 scripts/publish-public-source-release.sh \
   --repo KK-invent/DeepCodeX \
+  --private-release-tag private-preview-YYYYMMDD-HHMMSS \
   --dry-run \
   --skip-public-check
 ```
@@ -85,10 +86,11 @@ If the approval file says `public-binary-release: private-only`, remove private 
 scripts/prepare-public-source-release.sh \
   --repo KK-invent/DeepCodeX \
   --private-release-tag private-preview-YYYYMMDD-HHMMSS \
-  --delete-binary-assets
+  --delete-binary-assets \
+  --hide-private-release
 ```
 
-The preparation script does not make the repository public. After it passes, review the GitHub UI and then change visibility manually.
+`--hide-private-release` marks the old private preview Release as a draft after its binary/checksum assets are removed. The preparation script does not make the repository public. After it passes, review the GitHub UI and then change visibility manually.
 
 After the repository is public, create the source-only GitHub Release:
 
