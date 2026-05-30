@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/deepseek-app-icon.png" alt="DeepSeek blue whale app icon" width="156">
+  <img src="assets/brand/deepcodex-icon.svg" alt="DeepCodeX original route icon" width="156">
 </p>
 
 <p align="center">
@@ -14,7 +14,7 @@ DeepCodeX is a safety-focused wrapper and maintenance toolkit for rebuilding a l
 
 This repository is prepared as a private review candidate. It intentionally does not contain a built `.app`, `app.asar`, upstream Codex assets, API keys, auth files, logs, caches, sessions, SQLite databases, or third-party binary payloads.
 
-The visual identity uses the public DeepSeek app icon style. See [assets/brand/SOURCES.md](assets/brand/SOURCES.md) and [docs/COMPLIANCE.md](docs/COMPLIANCE.md) for source and trademark boundaries.
+The visual identity uses original DeepCodeX artwork. See [assets/brand/SOURCES.md](assets/brand/SOURCES.md) and [docs/COMPLIANCE.md](docs/COMPLIANCE.md) for source and trademark boundaries.
 
 DeepCodeX is an unofficial private-preview project. It is not affiliated with, endorsed by, or supported by OpenAI, Codex, DeepSeek, or their respective owners.
 
@@ -113,7 +113,7 @@ The audit checks Python syntax, the image-strip self-test, high-confidence secre
 
 ## Compliance Boundary
 
-This project is a patcher and local maintenance toolkit. It does not redistribute Codex desktop, OpenAI assets, or third-party binaries. DeepSeek visual assets are tracked only for this private preview and are not covered by the project license. See [docs/COMPLIANCE.md](docs/COMPLIANCE.md) before changing the repository visibility from private to public.
+This project is a patcher and local maintenance toolkit. It does not redistribute Codex desktop, OpenAI assets, DeepSeek assets, or third-party binaries. See [docs/COMPLIANCE.md](docs/COMPLIANCE.md) before changing the repository visibility from private to public.
 
 Release history is tracked in [CHANGELOG.md](CHANGELOG.md).
 

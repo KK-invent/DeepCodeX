@@ -9,9 +9,9 @@ Do not make the repository public until every blocker here has a clear owner and
 - Choose the public license posture:
   - Replace `LICENSE.md` with a real public license, or
   - Keep a source-available private notice and state that reuse rights are not granted.
-- Decide the DeepSeek visual-asset posture:
-  - Keep official/derived DeepSeek-style assets only with explicit approval for public visibility, or
-  - Replace `deepseek-app-icon.png`, `deepseek-official-favicon.svg`, `deepcodex-hero.png`, `deepcodex-icon.svg`, and both `deepcodex-logo*.svg` files with original DeepCodeX artwork.
+- Decide the visual-asset posture:
+  - Keep only original DeepCodeX artwork in `assets/brand`, or
+  - Track third-party official or derived assets only with explicit approval for public visibility.
 - Review the upstream Codex patching model against applicable app terms before presenting the project as public.
 - Enable GitHub Actions audit CI by copying `docs/GITHUB_ACTIONS_AUDIT_TEMPLATE.yml` to `.github/workflows/audit.yml` with a GitHub token that has `workflow` scope.
 

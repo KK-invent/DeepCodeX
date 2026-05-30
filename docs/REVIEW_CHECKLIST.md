@@ -18,7 +18,7 @@
 ## Compliance
 
 - [ ] No upstream app binary or `app.asar` is tracked.
-- [ ] Any tracked DeepSeek visual asset has a source note and visibility decision; replace before public release if rights are unclear.
+- [ ] Any tracked third-party visual asset has a source note and visibility decision; replace before public release if rights are unclear.
 - [ ] README states this is not affiliated with upstream vendors.
 - [ ] License posture is intentionally chosen before public visibility.
 - [ ] GitHub Actions audit CI is enabled before public visibility.

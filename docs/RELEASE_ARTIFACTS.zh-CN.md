@@ -28,7 +28,7 @@
 - 维护者的日志、会话、缓存、SQLite 数据库
 - 维护者的用户目录路径
 - 官方 Codex 安装包或 OpenAI/Codex 官方商标素材
-- 未记录来源和使用边界的 DeepSeek 官方视觉素材
+- 未记录来源和使用边界的第三方官方视觉素材
 
 ## 成品包发布前门禁
 
@@ -52,7 +52,7 @@ scripts/package-private-release.sh --bundle-runtime
 - 成品包不包含维护者的运行态目录。
 - 成品包内 `Info.plist` 不包含维护者的 `CCX_PROXY_ACCESS_KEY`、`CODEX_HOME` 或 `CODEX_ELECTRON_USER_DATA_PATH`。
 - 成品包内 `app.asar` 不包含维护者本机路径。
-- `assets/brand/SOURCES.md` 已记录 DeepSeek 视觉素材来源；公开前已确认是否继续使用。
+- `assets/brand/SOURCES.md` 已记录视觉素材来源；公开前确认默认素材均为原创或已有授权。
 
 ## 打包命令
 

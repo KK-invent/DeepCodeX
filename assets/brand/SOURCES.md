@@ -1,16 +1,14 @@
 # Brand Asset Sources
 
-DeepCodeX private preview uses a DeepSeek-compatible visual language because the app routes Codex-style work through DeepSeek-compatible services.
+DeepCodeX uses an original blue route mark for the public-facing repository.
 
-## Official DeepSeek Assets
+## Original DeepCodeX Assets
 
-- `deepseek-app-icon.png`: downloaded from `https://cdn.deepseek.com/chat/icon.png`, linked as `apple-touch-icon` by `https://download.deepseek.com/app/`.
-- `deepcodex-hero.png`: same source as `deepseek-app-icon.png`, kept for package README compatibility.
-- `deepseek-official-favicon.svg`: downloaded from `https://download.deepseek.com/favicon.svg`.
-- `deepcodex-icon.svg`: composed from the official DeepSeek favicon vector path with a white app-tile background.
-- `deepcodex-logo.svg`: composed from the same icon path plus a DeepCodeX wordmark.
+- `deepcodex-icon.svg`: original vector icon drawn for this repository. It uses a local-route loop and an `X` crossing mark.
+- `deepcodex-logo.svg`: original wordmark composition using `deepcodex-icon.svg`.
+- `deepcodex-logo.zh-CN.svg`: Chinese-localized original wordmark composition using `deepcodex-icon.svg`.
 
-DeepSeek marks and graphics belong to their respective owner. These files are included for private preview and compatibility signaling only; they are not covered by this repository's license. Before public release, either confirm the intended use is acceptable or replace them with a fully original DeepCodeX mark.
+No DeepSeek official image asset is tracked in the public-facing asset set. DeepSeek marks and graphics belong to their respective owner.
 
 ## Local Diagrams
 
@@ -20,6 +18,5 @@ DeepSeek marks and graphics belong to their respective owner. These files are in
 - `routing-architecture.zh-CN.svg`
 - `safety-scorecard.svg`
 - `safety-scorecard.zh-CN.svg`
-- `deepcodex-logo.zh-CN.svg`
 
-These diagrams were authored for this repository and use the DeepSeek blue palette (`#4D6BFE`) to match the official app icon style.
+These diagrams were authored for this repository and use the DeepCodeX blue palette (`#4D6BFE`).
