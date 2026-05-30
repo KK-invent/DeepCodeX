@@ -33,6 +33,8 @@ CONFIGURE="${PKG_ROOT}/support/bin/deepcodex-configure-deepseek.py"
 DETECT="${PKG_ROOT}/support/scripts/detect-install-mode.sh"
 
 bash -n "${INSTALLER}"
+bash -n "${DETECT}"
+"${DETECT}" --selftest
 
 detect_out="$(
   CODEX_APP="${WORK}/missing-Codex.app" \

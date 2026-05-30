@@ -36,6 +36,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Removed the environment-variable brand approval bypass from public release audits.
 - Made public source preparation verify the private preview target before asset cleanup, then verify binary assets are actually gone afterward.
 - Added a release-audit self-test for all four Codex/DeepCodeX install detection modes.
+- Made private package smoke tests run the packaged install detection self-test.
 - Public release remains gated on upstream terms approval.
 
 ## private-preview-20260530-074240
