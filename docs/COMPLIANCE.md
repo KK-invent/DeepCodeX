@@ -16,7 +16,7 @@ This repository should stay private until the remaining upstream terms and CI bo
 
 The scripts expect users to install the official Codex desktop app themselves. The patcher reads that local installation and builds a local private derivative on the user's own machine.
 
-Private binary packages are a separate distribution path. They must stay out of git and must be reviewed before sharing, especially if they include an app bundle or local `ccx` runtime.
+Private binary packages are a separate distribution path. They must stay out of git and must be reviewed before sharing, especially if they include an app bundle or local `ccx` runtime. They must not become public release assets unless public binary distribution is explicitly approved in `docs/UPSTREAM_TERMS_APPROVAL.md`.
 
 Before public release, review whether this patching model is acceptable under the upstream app's terms and any applicable distribution rules. If the answer is unclear, keep the repository private.
 
@@ -51,4 +51,5 @@ Do not present the project as public-ready until the upstream patching model has
 - Public-facing visual assets are original, or any third-party visual assets have explicit approval for the intended visibility.
 - GitHub detects the MIT License after the license commit is pushed.
 - GitHub Actions audit CI is enabled before public visibility.
+- Private preview binary release assets are removed before public visibility unless public binary distribution is explicitly approved.
 - GitHub repository is private until the maintainer completes review.

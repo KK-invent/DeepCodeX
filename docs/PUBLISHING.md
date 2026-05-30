@@ -26,7 +26,7 @@ gh repo create DeepCodeX --private --source=. --remote=origin --push
 
 If the name already exists, create a private repository with a dated suffix and keep the local remote explicit.
 
-## Public Release Gate
+## Public Source Release Gate
 
 Do not change visibility to public until `docs/COMPLIANCE.md` and `docs/PUBLIC_RELEASE_CHECKLIST.md` are complete and the maintainer has manually reviewed the GitHub file list.
 
@@ -37,6 +37,20 @@ scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --release-tag private
 ```
 
 This audit intentionally fails while the project still has unresolved public-release blockers, such as missing GitHub MIT license detection, DeepSeek-style brand assets without public approval, unreviewed upstream patching terms, or missing GitHub Actions CI.
+
+Before switching repository visibility, complete `docs/UPSTREAM_TERMS_APPROVAL.md` from `docs/UPSTREAM_TERMS_APPROVAL_TEMPLATE.md`.
+
+If binary distribution is not approved, run the final public gate without a private preview binary release attached to the public repository:
+
+```bash
+scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --require-public
+```
+
+If binary distribution is explicitly approved, the approval file must contain:
+
+```text
+public-binary-release: approved
+```
 
 ## Private Binary Assets
 
@@ -74,6 +88,8 @@ scripts/smoke-offline-package.sh dist/private/DeepCodeX-mac.zip
 ```
 
 The smoke test unzips the package, simulates a machine with no Codex/DeepCodeX app, checks that the installer blocks on missing Codex with clear guidance, checks the bundled runtime, configures a temporary extracted app with a fake base URL/API key, and verifies the key is not printed.
+
+Private preview binary assets must remain private. If the repository is changed to public, GitHub release assets attached to that repository become public too. Remove private preview zip assets first unless `docs/UPSTREAM_TERMS_APPROVAL.md` explicitly approves public binary release distribution.
 
 ## Optional GitHub Actions
 

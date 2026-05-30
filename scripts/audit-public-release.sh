@@ -5,6 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO="${GITHUB_REPOSITORY:-}"
 RELEASE_TAG=""
 REQUIRE_PUBLIC=0
+UPSTREAM_APPROVAL_FILE="${ROOT}/docs/UPSTREAM_TERMS_APPROVAL.md"
 
 usage() {
   cat <<'EOF'
@@ -26,6 +27,10 @@ Options:
 Human decision acknowledgements:
   DEEPCODEX_PUBLIC_BRAND_APPROVED=1
   DEEPCODEX_PUBLIC_UPSTREAM_TERMS_APPROVED=1
+  DEEPCODEX_PUBLIC_BINARY_RELEASE_APPROVED=1
+
+Durable approval file:
+  docs/UPSTREAM_TERMS_APPROVAL.md
 EOF
 }
 
@@ -86,8 +91,12 @@ fi
 echo "== Upstream terms posture =="
 if [ "${DEEPCODEX_PUBLIC_UPSTREAM_TERMS_APPROVED:-}" = "1" ]; then
   ok "upstream Codex patching/distribution terms were explicitly approved"
+elif [ -f "${UPSTREAM_APPROVAL_FILE}" ] &&
+  grep -Eq '^approval-status:[[:space:]]*approved[[:space:]]*$' "${UPSTREAM_APPROVAL_FILE}" &&
+  grep -Eq '^public-source-release:[[:space:]]*approved[[:space:]]*$' "${UPSTREAM_APPROVAL_FILE}"; then
+  ok "upstream Codex patching/distribution terms approval file is present"
 else
-  block "upstream Codex patching/distribution terms are not approved; keep the repository private until reviewed"
+  block "upstream Codex patching/distribution terms are not approved; keep the repository private until docs/UPSTREAM_TERMS_APPROVAL.md is completed"
 fi
 
 echo "== CI posture =="
@@ -142,6 +151,19 @@ fi
 if [ -n "${RELEASE_TAG}" ]; then
   echo "== Release asset names =="
   "${ROOT}/scripts/verify-release-assets.sh" --repo "${REPO}" --tag "${RELEASE_TAG}"
+
+  if [ "${REQUIRE_PUBLIC}" -eq 1 ]; then
+    release_assets="$(gh release view "${RELEASE_TAG}" --repo "${REPO}" --json assets -q '.assets[].name' 2>/dev/null || true)"
+    if printf '%s\n' "${release_assets}" | grep -Eq '\.(app|asar|dmg|pkg|zip)$'; then
+      if [ "${DEEPCODEX_PUBLIC_BINARY_RELEASE_APPROVED:-}" = "1" ] ||
+        { [ -f "${UPSTREAM_APPROVAL_FILE}" ] &&
+          grep -Eq '^public-binary-release:[[:space:]]*approved[[:space:]]*$' "${UPSTREAM_APPROVAL_FILE}"; }; then
+        ok "public binary release assets are explicitly approved"
+      else
+        block "release ${RELEASE_TAG} contains binary assets; remove them or complete public-binary-release approval before public visibility"
+      fi
+    fi
+  fi
 fi
 
 if [ "${failures}" -gt 0 ]; then

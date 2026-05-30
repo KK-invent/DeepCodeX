@@ -10,6 +10,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Replaced DeepSeek official/derived icon assets with an original gradient `X` mark for public-facing artwork.
 - Replaced the private-preview license notice with the MIT License for original DeepCodeX source, documentation, scripts, and original artwork.
 - Added upstream-terms review tracking and a helper for enabling GitHub Actions audit CI once the token has `workflow` scope.
+- Split public source release readiness from private binary preview distribution, with an approval template and audit guard for public binary assets.
 - Added release asset verification to keep GitHub Release downloads concise and predictable.
 - Added a public-release readiness audit and checklist for license, brand, upstream-terms, CI, and GitHub metadata blockers.
 - Hardened the source audit against generated Python caches and local desktop metadata.

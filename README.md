@@ -18,7 +18,9 @@ The visual identity uses original DeepCodeX artwork. See [assets/brand/SOURCES.m
 
 DeepCodeX is an unofficial project. It is not affiliated with, endorsed by, or supported by OpenAI, Codex, DeepSeek, or their respective owners.
 
-## Private Preview Download
+## Public Source And Private Binary Preview
+
+The source repository is the public-ready surface. Binary preview packages are a separate private distribution path until upstream terms review explicitly approves public binary release assets.
 
 If you received a private GitHub Release, use the ordinary-user package:
 
@@ -126,4 +128,5 @@ The source license is now chosen. Do not make the repository public until:
 - The committed file list is manually reviewed.
 - The legal/compliance notes are accepted.
 - GitHub detects the committed MIT License.
+- Private binary release assets are removed, or public binary distribution is explicitly approved in `docs/UPSTREAM_TERMS_APPROVAL.md`.
 - A fresh local `--stage` and `doctor` verification pass on the target Codex version.

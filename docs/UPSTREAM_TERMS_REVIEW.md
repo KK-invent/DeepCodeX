@@ -22,6 +22,30 @@ Last checked: 2026-05-30.
 
 Use the currently applicable agreement for the account, distribution channel, and Codex desktop build involved. These pages can change, so refresh this review before changing GitHub visibility.
 
+## Official Source Snapshot
+
+Observed on 2026-05-30:
+
+- OpenAI Terms of Use were published and effective on 2026-01-01. They state that the services include associated software applications and websites.
+- The Terms of Use prohibit modifying, copying, leasing, selling, or distributing OpenAI services, and prohibit attempting or assisting reverse engineering, decompiling, or discovering source code or underlying components except where prohibited by law.
+- The Terms of Use say downloaded software may update automatically and may include open source software governed by its own licenses.
+- The Terms of Use reserve OpenAI IP rights in the services and require use of OpenAI name and logo only according to OpenAI brand guidelines.
+- OpenAI Service Terms were updated on 2026-01-09 and govern service-specific use alongside the applicable agreement.
+- OpenAI Services Agreement defines services for business/developer use as including associated software, tools, developer services, documentation, and websites, and defines reverse engineering broadly.
+- OpenAI's Codex product page identifies Codex as an OpenAI coding agent and says the app is available on macOS and Windows.
+
+These notes are evidence for review, not legal approval.
+
+## Public Release Posture
+
+Default posture before approval:
+
+- Public source repository: not approved.
+- Public binary release assets: not approved.
+- Private preview binary assets: allowed only while the GitHub repository and release remain private.
+
+If the repository is changed to public before binary distribution is approved, remove private preview binary assets first. A public GitHub repository makes attached release assets public too.
+
 ## Decision Checklist
 
 - [ ] Identify which OpenAI/Codex terms apply to the maintainer account and the intended users.
@@ -29,7 +53,7 @@ Use the currently applicable agreement for the account, distribution channel, an
 - [ ] Confirm whether naming, screenshots, README language, and release assets avoid implying OpenAI/Codex endorsement.
 - [ ] Confirm that DeepCodeX does not distribute upstream Codex binaries or protected assets in git or public release assets.
 - [ ] Decide whether binary releases remain private-only even if the source repository becomes public.
-- [ ] Record the reviewer, date, terms version, and conclusion before setting `DEEPCODEX_PUBLIC_UPSTREAM_TERMS_APPROVED=1`.
+- [ ] Record the reviewer, date, terms version, and conclusion in `docs/UPSTREAM_TERMS_APPROVAL.md` before treating the upstream blocker as resolved.
 
 ## Current Conclusion
 

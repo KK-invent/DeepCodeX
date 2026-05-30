@@ -22,6 +22,8 @@
 - [ ] README states this is not affiliated with upstream vendors.
 - [ ] GitHub detects the committed MIT License before public visibility.
 - [ ] Upstream patching terms are reviewed and recorded in `docs/UPSTREAM_TERMS_REVIEW.md`.
+- [ ] `docs/UPSTREAM_TERMS_APPROVAL.md` exists only after real approval and records whether public binary release assets are approved or private-only.
+- [ ] Private preview binary release assets are removed before public visibility unless public binary distribution is approved.
 - [ ] GitHub Actions audit CI is enabled before public visibility.
 
 ## Runtime Validation

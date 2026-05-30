@@ -14,6 +14,10 @@ Do not make the repository public until every blocker here has a clear owner and
   - Keep only original DeepCodeX artwork in `assets/brand`, or
   - Track third-party official or derived assets only with explicit approval for public visibility.
 - Review the upstream Codex patching model against applicable app terms before presenting the project as public. Track evidence in `docs/UPSTREAM_TERMS_REVIEW.md`.
+- Complete `docs/UPSTREAM_TERMS_APPROVAL.md` from `docs/UPSTREAM_TERMS_APPROVAL_TEMPLATE.md` before treating the upstream blocker as resolved.
+- Decide the release-asset posture before changing repository visibility:
+  - Public source release with no uploaded app/binary assets, or
+  - Public binary release only after explicit `public-binary-release: approved` signoff.
 - Enable GitHub Actions audit CI by copying `docs/GITHUB_ACTIONS_AUDIT_TEMPLATE.yml` to `.github/workflows/audit.yml` with a GitHub token that has `workflow` scope.
 
 ## Required Commands
@@ -49,7 +53,7 @@ Before the visibility switch, run the same command without `--require-public`; i
 
 ## Release Asset Rules
 
-The ordinary-user release should expose exactly:
+The private-preview ordinary-user release should expose exactly:
 
 ```text
 DeepCodeX-mac.zip
@@ -57,3 +61,5 @@ DeepCodeX-mac.zip.sha256
 ```
 
 Do not publish maintainer-only or runtime-variant packages as default public downloads.
+
+For public repository visibility, do not expose uploaded app or binary release assets unless `docs/UPSTREAM_TERMS_APPROVAL.md` explicitly approves public binary distribution. If the approval says `public-binary-release: private-only`, delete private preview binary assets or keep the repository private.
