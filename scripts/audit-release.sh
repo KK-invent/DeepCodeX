@@ -10,7 +10,10 @@ cleanup() {
   rm -rf "${pycache_root}"
 }
 trap cleanup EXIT
-PYTHONPYCACHEPREFIX="${pycache_root}" python3 -m py_compile bin/*.py
+PYTHONPYCACHEPREFIX="${pycache_root}" python3 -m py_compile bin/*.py scripts/*.py
+
+echo "== Documentation links and assets =="
+python3 scripts/verify-doc-links.py --root "${ROOT}"
 
 echo "== Image-strip self-test =="
 python3 bin/deepcodex-image-strip-proxy.py --selftest
