@@ -29,6 +29,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Fixed public audit repository visibility parsing after retry-backed metadata lookup.
 - Made real public source publishing rerun the full public audit and private asset preparation gates before creating `v0.1.0`.
 - Added an optional public-release preparation step to hide the old private preview Release as a draft after private binary assets are removed.
+- Aligned README and public source release notes with the stricter private-preview asset inspection gates.
 - Public release remains gated on upstream terms approval.
 
 ## private-preview-20260530-074240

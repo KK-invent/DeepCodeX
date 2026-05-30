@@ -107,7 +107,9 @@ Before pushing or making the repository public, run:
 
 ```bash
 scripts/audit-release.sh
-scripts/audit-public-release.sh --repo KK-invent/DeepCodeX
+scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --release-tag private-preview-YYYYMMDD-HHMMSS
+scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run
+scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run --skip-public-check
 git status --short
 ```
 

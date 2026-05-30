@@ -25,13 +25,14 @@ DeepCodeX v0.1.0 is the first planned public source release.
 Before publishing this release publicly:
 
 - `scripts/audit-release.sh` passes.
-- `scripts/audit-public-release.sh --repo KK-invent/DeepCodeX` passes.
+- `scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --release-tag private-preview-YYYYMMDD-HHMMSS` passes.
 - `scripts/verify-github-public-metadata.sh --repo KK-invent/DeepCodeX` passes.
 - GitHub Actions audit CI is enabled.
 - `docs/UPSTREAM_TERMS_APPROVAL.md` records public source approval.
 - Private preview binary assets are removed unless public binary distribution is explicitly approved.
-- `scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run --skip-public-check` passes for private preflight planning.
-- `scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run` passes after the repository is public and before creating the public source release.
+- `scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run` passes for private preflight planning.
+- `scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run --skip-public-check` passes for private preflight planning.
+- `scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run` passes after the repository is public and before creating the public source release.
 
 ## Install Notes
 
