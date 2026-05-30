@@ -129,7 +129,7 @@ If updating an existing `private-preview-*` release whose git tag points at an o
 scripts/publish-private-release.sh --include-runtime-bundled --retarget-tag
 ```
 
-The publish script refuses to upload assets unless the GitHub repository is private. It audits source, audits every zip package, verifies `.sha256`, makes the release tag match the release commit, then creates or updates a prerelease and uploads the selected assets.
+The publish script refuses to upload assets unless the GitHub repository is private. It audits source, runs the full offline smoke test for every zip package, verifies `.sha256`, makes the release tag match the release commit, then creates or updates a prerelease and uploads the selected assets.
 
 The publish script also verifies the final release asset surface after upload. The ordinary-user release must expose exactly:
 
@@ -146,7 +146,7 @@ scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS --expecte
 
 The verifier checks the release target commit and the matching remote git tag, retries transient GitHub API and checksum-asset download failures, and then fails the gate if the remote asset surface is not exactly the expected package set.
 
-Before sharing a direct-use asset, run:
+Before sharing a direct-use asset, you can rerun the same smoke test manually:
 
 ```bash
 scripts/smoke-offline-package.sh dist/private/DeepCodeX-mac.zip

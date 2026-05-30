@@ -120,7 +120,7 @@ echo "== Release preflight =="
 "${ROOT}/scripts/audit-release.sh"
 for asset in "${assets[@]}"; do
   case "${asset}" in
-    *.zip) "${ROOT}/scripts/audit-package.sh" "${asset}" ;;
+    *.zip) "${ROOT}/scripts/smoke-offline-package.sh" "${asset}" ;;
     *.sha256)
       current_user="$(id -un 2>/dev/null || true)"
       if [ -n "${current_user}" ] && rg -q -e "/Users/${current_user}" -e "${current_user}" "${asset}"; then
