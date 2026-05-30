@@ -71,6 +71,8 @@ scripts/publish-public-source-release.sh \
 
 `--skip-public-check` is for dry-run planning only. The publish script refuses to create a real public source release while the repository is still private.
 
+Do not omit `--private-release-tag` while a private preview release exists. If there has never been a private binary release, pass `--no-private-release-assets` so the script records that decision explicitly instead of silently skipping asset inspection.
+
 If the approval file says `public-binary-release: private-only`, remove private preview binary assets before switching visibility:
 
 ```bash

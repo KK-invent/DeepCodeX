@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO="${GITHUB_REPOSITORY:-}"
 PRIVATE_RELEASE_TAG=""
+NO_PRIVATE_RELEASE_ASSETS=0
 DELETE_BINARY_ASSETS=0
 DRY_RUN=0
 APPROVAL_FILE="${ROOT}/docs/UPSTREAM_TERMS_APPROVAL.md"
@@ -11,7 +12,8 @@ APPROVAL_FILE="${ROOT}/docs/UPSTREAM_TERMS_APPROVAL.md"
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/prepare-public-source-release.sh [--repo OWNER/REPO] [--private-release-tag TAG] [--delete-binary-assets] [--dry-run]
+  scripts/prepare-public-source-release.sh [--repo OWNER/REPO] --private-release-tag TAG [--delete-binary-assets] [--dry-run]
+  scripts/prepare-public-source-release.sh [--repo OWNER/REPO] --no-private-release-assets [--dry-run]
 
 Preflights the final source-only public release path.
 
@@ -23,6 +25,7 @@ the script can remove private preview binary assets before visibility changes.
 Options:
   --repo OWNER/REPO            GitHub repository. Defaults to current gh repo.
   --private-release-tag TAG    Existing private preview release to inspect.
+  --no-private-release-assets  Explicitly assert there is no private binary release to inspect.
   --delete-binary-assets       Delete binary/checksum assets from that release when public-binary-release is private-only.
   --dry-run                    Print what would be deleted, but do not delete assets.
 EOF
@@ -32,6 +35,7 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --repo) REPO="$2"; shift ;;
     --private-release-tag) PRIVATE_RELEASE_TAG="$2"; shift ;;
+    --no-private-release-assets) NO_PRIVATE_RELEASE_ASSETS=1 ;;
     --delete-binary-assets) DELETE_BINARY_ASSETS=1 ;;
     --dry-run) DRY_RUN=1 ;;
     -h|--help) usage; exit 0 ;;
@@ -131,7 +135,11 @@ fi
 echo "== Private preview release assets =="
 binary_status="${binary_status:-$(approval_value public-binary-release)}"
 binary_assets=()
-if [ -n "${PRIVATE_RELEASE_TAG}" ]; then
+if [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq 1 ] && [ -n "${PRIVATE_RELEASE_TAG}" ]; then
+  block "use either --private-release-tag or --no-private-release-assets, not both"
+elif [ "${DELETE_BINARY_ASSETS}" -eq 1 ] && [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq 1 ]; then
+  block "--delete-binary-assets requires --private-release-tag"
+elif [ -n "${PRIVATE_RELEASE_TAG}" ]; then
   while IFS=$'\t' read -r asset_id asset_name; do
     [ -n "${asset_id:-}" ] || continue
     if is_binary_release_asset "${asset_name}"; then
@@ -164,8 +172,10 @@ if [ -n "${PRIVATE_RELEASE_TAG}" ]; then
     block "release ${PRIVATE_RELEASE_TAG} still has binary/checksum assets; rerun with --delete-binary-assets after approval, or keep the repo private"
     printf '%s\n' "${binary_assets[@]}" | cut -f2 | sed 's/^/  - /' >&2
   fi
+elif [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq 1 ]; then
+  ok "maintainer asserted there are no private binary release assets to inspect"
 else
-  ok "no private release tag supplied; skipping release asset cleanup"
+  block "supply --private-release-tag TAG to inspect private preview release assets, or pass --no-private-release-assets if none exist"
 fi
 
 if [ "${failures}" -gt 0 ]; then

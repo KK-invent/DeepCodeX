@@ -29,7 +29,7 @@
 - [ ] Upstream patching terms are reviewed and recorded in `docs/UPSTREAM_TERMS_REVIEW.md`.
 - [ ] `docs/UPSTREAM_TERMS_APPROVAL.md` exists only after real approval and records whether public binary release assets are approved or private-only.
 - [ ] Private preview binary release assets are removed before public visibility unless public binary distribution is approved.
-- [ ] `scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run` passes.
+- [ ] `scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run` passes, or `--no-private-release-assets` is used only when no private binary release exists.
 - [ ] GitHub Actions audit CI is enabled before public visibility.
 
 ## Runtime Validation
