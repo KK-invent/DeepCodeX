@@ -22,7 +22,7 @@ Options:
   --repo OWNER/REPO      GitHub repository. Defaults to current gh repo.
   --tag vX.Y.Z           Release tag. Defaults to v$(cat VERSION).
   --dry-run              Print the planned tag/release actions only.
-  --skip-public-check    Allow running while the repository is still private.
+  --skip-public-check    Allow dry-run planning while the repository is still private.
 EOF
 }
 
@@ -64,10 +64,15 @@ if [ ! -s "${NOTES_FILE}" ]; then
 fi
 
 visibility="$(gh repo view "${REPO}" --json visibility -q .visibility)"
-if [ "${visibility}" != "PUBLIC" ] && [ "${SKIP_PUBLIC_CHECK}" -ne 1 ]; then
-  echo "[FAIL] refusing to publish a public source release while repo is ${visibility}" >&2
-  echo "Run scripts/prepare-public-source-release.sh first, then make the repo public." >&2
-  exit 2
+if [ "${visibility}" != "PUBLIC" ]; then
+  if [ "${SKIP_PUBLIC_CHECK}" -eq 1 ] && [ "${DRY_RUN}" -eq 1 ]; then
+    echo "[WARN] repository is ${visibility}; continuing because this is a dry-run plan."
+  else
+    echo "[FAIL] refusing to publish a public source release while repo is ${visibility}" >&2
+    echo "Run scripts/prepare-public-source-release.sh first, then make the repo public." >&2
+    echo "Use --dry-run --skip-public-check only for private preflight planning." >&2
+    exit 2
+  fi
 fi
 
 echo "== Source release preflight =="

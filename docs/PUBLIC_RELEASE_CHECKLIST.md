@@ -46,19 +46,19 @@ Run the GitHub public metadata gate:
 scripts/verify-github-public-metadata.sh --repo KK-invent/DeepCodeX
 ```
 
+Before the visibility switch, run the public-release gate without `--require-public`; it should pass after all decision blockers are resolved:
+
+```bash
+scripts/audit-public-release.sh --repo KK-invent/DeepCodeX
+scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run
+scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run --skip-public-check
+```
+
 After resolving the blockers and switching visibility to public, run:
 
 ```bash
 scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --require-public
 scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run
-```
-
-Before the visibility switch, run the same command without `--require-public`; it should pass after all decision blockers are resolved.
-
-For the source-only public path, also run:
-
-```bash
-scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run
 ```
 
 If `docs/UPSTREAM_TERMS_APPROVAL.md` says `public-binary-release: private-only`, remove the private preview zip assets before changing visibility:

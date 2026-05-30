@@ -30,7 +30,8 @@ Before publishing this release publicly:
 - GitHub Actions audit CI is enabled.
 - `docs/UPSTREAM_TERMS_APPROVAL.md` records public source approval.
 - Private preview binary assets are removed unless public binary distribution is explicitly approved.
-- `scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run` passes before creating the public source release.
+- `scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run --skip-public-check` passes for private preflight planning.
+- `scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run` passes after the repository is public and before creating the public source release.
 
 ## Install Notes
 

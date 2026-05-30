@@ -62,7 +62,14 @@ scripts/prepare-public-source-release.sh \
   --repo KK-invent/DeepCodeX \
   --private-release-tag private-preview-YYYYMMDD-HHMMSS \
   --dry-run
+
+scripts/publish-public-source-release.sh \
+  --repo KK-invent/DeepCodeX \
+  --dry-run \
+  --skip-public-check
 ```
+
+`--skip-public-check` is for dry-run planning only. The publish script refuses to create a real public source release while the repository is still private.
 
 If the approval file says `public-binary-release: private-only`, remove private preview binary assets before switching visibility:
 
