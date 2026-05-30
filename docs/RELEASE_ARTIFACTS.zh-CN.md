@@ -117,7 +117,7 @@ DeepCodeX-mac.zip.sha256
 scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS --expected-target $(git rev-parse HEAD)
 ```
 
-`.sha256` 文件只能包含 zip 文件名，不能包含维护者本机绝对路径。`scripts/publish-private-release.sh` 会拒绝带维护者路径或用户名的校验文件。
+`.sha256` 文件只能包含 zip 文件名，不能包含维护者本机绝对路径。`scripts/publish-private-release.sh` 会拒绝带维护者路径或用户名的校验文件。`scripts/verify-release-assets.sh` 还会比对 GitHub 返回的 zip asset digest 和 `.sha256` 内容，避免远端 zip 与校验文件不一致。
 
 ## 无外网用户怎么使用
 

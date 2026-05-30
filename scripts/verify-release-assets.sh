@@ -13,7 +13,8 @@ Usage:
   scripts/verify-release-assets.sh --tag TAG [--repo OWNER/REPO] [--allow-no-runtime] [--expected-target COMMIT]
 
 Verifies that a GitHub release exposes only the expected concise DeepCodeX
-asset names and that each .sha256 file references a bare zip filename.
+asset names, that each .sha256 file references a bare zip filename, and that
+GitHub's zip asset digest matches the published checksum.
 
 Expected ordinary-user assets:
   DeepCodeX-mac.zip
@@ -123,6 +124,8 @@ fi
 LC_ALL=C sort -o "${expected}" "${expected}"
 retry_stdout "${actual}.unsorted" gh release view "${TAG}" --repo "${REPO}" --json assets -q '.assets[].name'
 LC_ALL=C sort "${actual}.unsorted" > "${actual}"
+asset_digests="${tmp}/asset-digests.tsv"
+retry_stdout "${asset_digests}" gh release view "${TAG}" --repo "${REPO}" --json assets -q '.assets[] | "\(.name)\t\(.digest // "")"'
 
 if [ -n "${EXPECTED_TARGET}" ]; then
   target_file="${tmp}/target.txt"
@@ -175,6 +178,17 @@ for checksum in "${checksums}"/*.sha256; do
       exit 1
       ;;
   esac
+  github_digest="$(awk -F '\t' -v name="${base}" '$1 == name { print $2; exit }' "${asset_digests}")"
+  if [ -z "${github_digest}" ]; then
+    echo "[FAIL] GitHub asset digest is missing for ${base}" >&2
+    exit 1
+  fi
+  if [ "${github_digest}" != "sha256:${digest}" ]; then
+    echo "[FAIL] GitHub asset digest does not match checksum for ${base}" >&2
+    echo "Checksum file: sha256:${digest}" >&2
+    echo "GitHub asset:  ${github_digest}" >&2
+    exit 1
+  fi
 done
 
 echo "Release assets verified: ${REPO} ${TAG}"

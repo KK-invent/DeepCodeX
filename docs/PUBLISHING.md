@@ -146,7 +146,7 @@ To verify an existing release manually:
 scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS --expected-target $(git rev-parse HEAD)
 ```
 
-The verifier checks the release target commit and the matching remote git tag, retries transient GitHub API and checksum-asset download failures, and then fails the gate if the remote asset surface is not exactly the expected package set.
+The verifier checks the release target commit and the matching remote git tag, retries transient GitHub API and checksum-asset download failures, compares GitHub's zip asset digest with the published checksum, and then fails the gate if the remote asset surface is not exactly the expected package set.
 
 Before sharing a direct-use asset, you can rerun the same smoke test manually:
 
