@@ -200,8 +200,6 @@ fi
 
 if [ -n "${RELEASE_TAG}" ]; then
   echo "== Release asset names =="
-  "${ROOT}/scripts/verify-release-assets.sh" --repo "${REPO}" --tag "${RELEASE_TAG}" --expected-target "$(git -C "${ROOT}" rev-parse HEAD)"
-
   release_assets_file="$(mktemp)"
   if ! retry_stdout "${release_assets_file}" gh release view "${RELEASE_TAG}" --repo "${REPO}" --json assets -q '.assets[].name'; then
     block "could not inspect release assets for ${RELEASE_TAG}"
@@ -210,11 +208,16 @@ if [ -n "${RELEASE_TAG}" ]; then
     release_assets="$(cat "${release_assets_file}")"
   fi
   rm -f "${release_assets_file}" "${release_assets_file}.tmp"
-  if [ -n "${release_assets:-}" ] && printf '%s\n' "${release_assets}" | grep -Eq '\.(app|asar|dmg|pkg|zip|tar|tar\.gz|tgz|7z|rar)(\.sha256)?$'; then
-    if public_binary_release_approved; then
-      ok "public binary release assets are explicitly approved"
-    else
-      block "release ${RELEASE_TAG} contains binary assets; remove them or complete public-binary-release approval before public visibility"
+  if [ -z "${release_assets:-}" ]; then
+    ok "release ${RELEASE_TAG} has no assets attached"
+  else
+    "${ROOT}/scripts/verify-release-assets.sh" --repo "${REPO}" --tag "${RELEASE_TAG}" --expected-target "$(git -C "${ROOT}" rev-parse HEAD)"
+    if printf '%s\n' "${release_assets}" | grep -Eq '\.(app|asar|dmg|pkg|zip|tar|tar\.gz|tgz|7z|rar)(\.sha256)?$'; then
+      if public_binary_release_approved; then
+        ok "public binary release assets are explicitly approved"
+      else
+        block "release ${RELEASE_TAG} contains binary assets; remove them or complete public-binary-release approval before public visibility"
+      fi
     fi
   fi
 fi
