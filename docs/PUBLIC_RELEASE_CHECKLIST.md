@@ -107,7 +107,7 @@ scripts/verify-public-source-release.sh --repo KK-invent/DeepCodeX --tag v$(cat 
 - GitHub labels used by issue templates exist: `bug`, `documentation`, `release`.
 - `scripts/verify-public-release-git-state.sh` confirms local `main` matches `origin/main`.
 - `scripts/verify-github-actions-audit.sh --repo KK-invent/DeepCodeX --commit $(git rev-parse HEAD)` passes for the exact release commit.
-- `scripts/verify-upstream-terms-approval.sh` confirms reviewer, review date, reviewed terms, and public binary posture before any public visibility change.
+- `scripts/verify-upstream-terms-approval.sh` confirms reviewer, review date, reviewed terms, public binary posture, and that the approval date is current with `docs/UPSTREAM_TERMS_REVIEW.md` before any public visibility change.
 
 ## Release Asset Rules
 

@@ -52,6 +52,8 @@ The approval file must pass:
 scripts/verify-upstream-terms-approval.sh
 ```
 
+The approval `review-date` must not be in the future, and it must be on or after the `Last checked` date in `docs/UPSTREAM_TERMS_REVIEW.md`.
+
 If binary distribution is not approved, run the final public gate without a private preview binary release attached to the public repository:
 
 ```bash

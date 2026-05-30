@@ -3,12 +3,13 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APPROVAL_FILE="${ROOT}/docs/UPSTREAM_TERMS_APPROVAL.md"
+TERMS_REVIEW_FILE="${ROOT}/docs/UPSTREAM_TERMS_REVIEW.md"
 REQUIRE_BINARY_APPROVED=0
 
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/verify-upstream-terms-approval.sh [--file FILE] [--require-binary-approved]
+  scripts/verify-upstream-terms-approval.sh [--file FILE] [--terms-review FILE] [--require-binary-approved]
 
 Verifies that the durable upstream terms approval file is complete enough to
 unlock public release gates. This does not grant legal approval; it only checks
@@ -16,6 +17,7 @@ that a real approval record is present and not a mostly blank template.
 
 Options:
   --file FILE                  Approval file to verify. Defaults to docs/UPSTREAM_TERMS_APPROVAL.md.
+  --terms-review FILE          Terms review file to compare against. Defaults to docs/UPSTREAM_TERMS_REVIEW.md.
   --require-binary-approved    Require public-binary-release: approved.
 EOF
 }
@@ -23,6 +25,7 @@ EOF
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --file) APPROVAL_FILE="$2"; shift ;;
+    --terms-review) TERMS_REVIEW_FILE="$2"; shift ;;
     --require-binary-approved) REQUIRE_BINARY_APPROVED=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
@@ -54,6 +57,23 @@ approval_value() {
   ' "${APPROVAL_FILE}" 2>/dev/null || true
 }
 
+date_number() {
+  printf '%s\n' "$1" | tr -d '-'
+}
+
+terms_review_last_checked() {
+  awk -F: '
+    $1 == "Last checked" {
+      value = $0
+      sub("^[^:]*:[[:space:]]*", "", value)
+      sub("[.][[:space:]]*$", "", value)
+      sub("[[:space:]]*$", "", value)
+      print value
+      exit
+    }
+  ' "${TERMS_REVIEW_FILE}" 2>/dev/null || true
+}
+
 require_exact_value() {
   local key="$1"
   local expected="$2"
@@ -82,6 +102,18 @@ else
   review_date="$(approval_value review-date)"
   if printf '%s\n' "${review_date}" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
     ok "review-date is ${review_date}"
+    today="$(date '+%Y-%m-%d')"
+    if [ "$(date_number "${review_date}")" -gt "$(date_number "${today}")" ]; then
+      fail "review-date cannot be in the future; got ${review_date}, today is ${today}"
+    fi
+    terms_checked="$(terms_review_last_checked)"
+    if ! printf '%s\n' "${terms_checked}" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+      fail "terms review file must record 'Last checked: YYYY-MM-DD.'; got '${terms_checked:-empty}'"
+    elif [ "$(date_number "${review_date}")" -lt "$(date_number "${terms_checked}")" ]; then
+      fail "review-date ${review_date} is older than ${TERMS_REVIEW_FILE} Last checked: ${terms_checked}"
+    else
+      ok "review-date is current with terms review checked on ${terms_checked}"
+    fi
   else
     fail "review-date must use YYYY-MM-DD; got '${review_date:-empty}'"
   fi

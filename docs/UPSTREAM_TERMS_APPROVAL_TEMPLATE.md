@@ -3,7 +3,7 @@
 Copy this file to `docs/UPSTREAM_TERMS_APPROVAL.md` only after the maintainer or legal reviewer has approved the public release posture.
 
 Do not fill this as a placeholder. The public release audit treats exact approval markers as a release gate.
-After completing the file, run `scripts/verify-upstream-terms-approval.sh`.
+After completing the file, run `scripts/verify-upstream-terms-approval.sh`. The `review-date` must not be in the future and must be on or after the `Last checked` date in `docs/UPSTREAM_TERMS_REVIEW.md`.
 
 ```text
 approval-status: approved

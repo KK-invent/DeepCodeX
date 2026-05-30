@@ -38,6 +38,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Added a release-audit self-test for all four Codex/DeepCodeX install detection modes.
 - Made private package smoke tests run the packaged install detection self-test.
 - Made private release publishing run full offline package smoke tests before uploading zip assets.
+- Required upstream approval dates to be current with the tracked upstream terms review and not in the future.
 - Public release remains gated on upstream terms approval.
 
 ## private-preview-20260530-074240
