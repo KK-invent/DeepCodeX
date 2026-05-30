@@ -24,7 +24,7 @@ Before public release, review whether this patching model is acceptable under th
 
 DeepCodeX, Codex, OpenAI, DeepSeek, and related marks may belong to their respective owners. This repository should not imply endorsement, affiliation, or official support.
 
-The public-facing repository should use original DeepCodeX artwork and should not imply visual endorsement by DeepSeek. Keep the source note in `assets/brand/SOURCES.md`. If official or derived third-party marks are reintroduced, public visibility requires explicit approval.
+The public-facing repository should use original DeepCodeX artwork and should not imply visual endorsement by DeepSeek. Keep the source note in `assets/brand/SOURCES.md`. Official or derived third-party marks are not part of the public source release surface.
 
 ## License Boundary
 
@@ -48,7 +48,7 @@ Do not present the project as public-ready until the upstream patching model has
 - README clearly says the private package checks for official Codex and guides missing users to install it.
 - README clearly says real DeepSeek API keys are user-provided and never committed.
 - README clearly states this is unofficial and not affiliated with upstream vendors.
-- Public-facing visual assets are original, or any third-party visual assets have explicit approval for the intended visibility.
+- Public-facing visual assets are original DeepCodeX artwork.
 - GitHub detects the MIT License after the license commit is pushed.
 - GitHub Actions audit CI is enabled before public visibility.
 - Private preview binary release assets are removed before public visibility unless public binary distribution is explicitly approved.

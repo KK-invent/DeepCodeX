@@ -52,7 +52,7 @@ scripts/package-private-release.sh --bundle-runtime
 - 成品包不包含维护者的运行态目录。
 - 成品包内 `Info.plist` 不包含维护者的 `CCX_PROXY_ACCESS_KEY`、`CODEX_HOME` 或 `CODEX_ELECTRON_USER_DATA_PATH`。
 - 成品包内 `app.asar` 不包含维护者本机路径。
-- `assets/brand/SOURCES.md` 已记录视觉素材来源；公开前确认默认素材均为原创或已有授权。
+- `assets/brand/SOURCES.md` 已记录视觉素材来源；公开源码默认只保留原创 DeepCodeX 视觉素材。
 
 ## 打包命令
 

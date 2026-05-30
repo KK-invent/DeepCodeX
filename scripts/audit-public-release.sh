@@ -114,11 +114,7 @@ fi
 
 echo "== Brand and trademark posture =="
 if git -C "${ROOT}" ls-files | grep -Eq '(^assets/brand/deepseek-|^assets/brand/deepcodex-hero\.png$)' || grep -Eiq 'Official DeepSeek Assets|downloaded from https://(cdn|download)\.deepseek\.com|official DeepSeek favicon|DeepSeek whale mark' "${ROOT}/assets/brand/SOURCES.md"; then
-  if [ "${DEEPCODEX_PUBLIC_BRAND_APPROVED:-}" = "1" ]; then
-    ok "third-party DeepSeek brand assets are tracked and were explicitly approved for public visibility"
-  else
-    block "third-party DeepSeek official/derived assets are still tracked or documented; replace them or set DEEPCODEX_PUBLIC_BRAND_APPROVED=1 after approval"
-  fi
+  block "third-party DeepSeek official/derived assets are still tracked or documented; replace them with original artwork before public visibility"
 else
   ok "no DeepSeek official/derived brand assets are tracked"
 fi

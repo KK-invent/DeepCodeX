@@ -14,8 +14,8 @@ Do not make the repository public until every blocker here has a clear owner and
   - `VERSION` contains the semver version.
   - `docs/PUBLIC_SOURCE_RELEASE_NOTES.md` describes what is included, not included, and still gated.
 - Decide the visual-asset posture:
-  - Keep only original DeepCodeX artwork in `assets/brand`, or
-  - Track third-party official or derived assets only with explicit approval for public visibility.
+  - Keep only original DeepCodeX artwork in `assets/brand`.
+  - Do not track third-party official or derived marks in the public source release.
 - Review the upstream Codex patching model against applicable app terms before presenting the project as public. Track evidence in `docs/UPSTREAM_TERMS_REVIEW.md`.
 - Complete `docs/UPSTREAM_TERMS_APPROVAL.md` from `docs/UPSTREAM_TERMS_APPROVAL_TEMPLATE.md` before treating the upstream blocker as resolved.
 - Decide the release-asset posture before changing repository visibility:
