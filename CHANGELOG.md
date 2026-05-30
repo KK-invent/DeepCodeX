@@ -27,6 +27,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Added a public release git-state verifier so source releases must run from synchronized `main` and `origin/main`.
 - Added retries around GitHub metadata and remote branch checks to reduce transient network failures in release gates.
 - Fixed public audit repository visibility parsing after retry-backed metadata lookup.
+- Made real public source publishing rerun the full public audit and private asset preparation gates before creating `v0.1.0`.
 - Public release remains gated on upstream terms approval.
 
 ## private-preview-20260530-074240

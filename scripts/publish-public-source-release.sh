@@ -9,11 +9,13 @@ TAG=""
 TITLE=""
 DRY_RUN=0
 SKIP_PUBLIC_CHECK=0
+PRIVATE_RELEASE_TAG=""
+NO_PRIVATE_RELEASE_ASSETS=0
 
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/publish-public-source-release.sh [--repo OWNER/REPO] [--tag vX.Y.Z] [--dry-run] [--skip-public-check]
+  scripts/publish-public-source-release.sh [--repo OWNER/REPO] [--tag vX.Y.Z] [--private-release-tag TAG | --no-private-release-assets] [--dry-run] [--skip-public-check]
 
 Creates a source-only GitHub Release for the public source version. It never
 uploads binary assets. GitHub will still show the standard source archive links.
@@ -21,6 +23,10 @@ uploads binary assets. GitHub will still show the standard source archive links.
 Options:
   --repo OWNER/REPO      GitHub repository. Defaults to current gh repo.
   --tag vX.Y.Z           Release tag. Defaults to v$(cat VERSION).
+  --private-release-tag TAG
+                         Existing private preview release to inspect before real publishing.
+  --no-private-release-assets
+                         Assert there are no private binary release assets to inspect.
   --dry-run              Print the planned tag/release actions only.
   --skip-public-check    Allow dry-run planning while the repository is still private.
 EOF
@@ -51,6 +57,8 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --repo) REPO="$2"; shift ;;
     --tag) TAG="$2"; shift ;;
+    --private-release-tag) PRIVATE_RELEASE_TAG="$2"; shift ;;
+    --no-private-release-assets) NO_PRIVATE_RELEASE_ASSETS=1 ;;
     --dry-run) DRY_RUN=1 ;;
     --skip-public-check) SKIP_PUBLIC_CHECK=1 ;;
     -h|--help) usage; exit 0 ;;
@@ -78,6 +86,10 @@ if [ "${TAG}" != "v${version}" ]; then
   echo "[FAIL] tag ${TAG} does not match VERSION ${version}" >&2
   exit 2
 fi
+if [ -n "${PRIVATE_RELEASE_TAG}" ] && [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq 1 ]; then
+  echo "[FAIL] use either --private-release-tag or --no-private-release-assets, not both" >&2
+  exit 2
+fi
 TITLE="DeepCodeX ${TAG} public source release"
 if [ ! -s "${NOTES_FILE}" ]; then
   echo "[FAIL] missing public source release notes: ${NOTES_FILE}" >&2
@@ -103,6 +115,27 @@ if ! "${ROOT}/scripts/verify-github-public-metadata.sh" --repo "${REPO}"; then
 fi
 if ! "${ROOT}/scripts/verify-public-release-git-state.sh"; then
   exit 1
+fi
+
+if [ "${DRY_RUN}" -eq 0 ]; then
+  if [ -z "${PRIVATE_RELEASE_TAG}" ] && [ "${NO_PRIVATE_RELEASE_ASSETS}" -ne 1 ]; then
+    echo "[FAIL] real public publishing requires --private-release-tag TAG or --no-private-release-assets" >&2
+    exit 2
+  fi
+
+  public_audit_args=(--repo "${REPO}" --require-public)
+  prepare_args=(--repo "${REPO}")
+  if [ -n "${PRIVATE_RELEASE_TAG}" ]; then
+    public_audit_args+=(--release-tag "${PRIVATE_RELEASE_TAG}")
+    prepare_args+=(--private-release-tag "${PRIVATE_RELEASE_TAG}")
+  else
+    prepare_args+=(--no-private-release-assets)
+  fi
+
+  "${ROOT}/scripts/audit-public-release.sh" "${public_audit_args[@]}"
+  "${ROOT}/scripts/prepare-public-source-release.sh" "${prepare_args[@]}" --dry-run
+elif [ -n "${PRIVATE_RELEASE_TAG}" ] || [ "${NO_PRIVATE_RELEASE_ASSETS}" -eq 1 ]; then
+  echo "[DRY-RUN] final public gate arguments were supplied, but real public gates are only enforced when publishing."
 fi
 
 if ! git -C "${ROOT}" diff --quiet || ! git -C "${ROOT}" diff --cached --quiet; then

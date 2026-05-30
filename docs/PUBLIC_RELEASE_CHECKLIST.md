@@ -74,7 +74,7 @@ After resolving the blockers and switching visibility to public, run:
 
 ```bash
 scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --require-public
-scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run
+scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run
 ```
 
 If `docs/UPSTREAM_TERMS_APPROVAL.md` says `public-binary-release: private-only`, remove the private preview zip assets before changing visibility:
@@ -86,7 +86,7 @@ scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-re
 After the repository is public, create and verify the source-only release:
 
 ```bash
-scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX
+scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS
 scripts/verify-public-source-release.sh --repo KK-invent/DeepCodeX --tag v$(cat VERSION) --expected-target $(git rev-parse HEAD)
 ```
 
