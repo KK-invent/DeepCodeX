@@ -5,21 +5,26 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT}"
 
 echo "== Python syntax =="
-python3 -m py_compile bin/*.py
+pycache_root="$(mktemp -d)"
+cleanup() {
+  rm -rf "${pycache_root}"
+}
+trap cleanup EXIT
+PYTHONPYCACHEPREFIX="${pycache_root}" python3 -m py_compile bin/*.py
 
 echo "== Image-strip self-test =="
 python3 bin/deepcodex-image-strip-proxy.py --selftest
 
-echo "== Banned tracked/runtime filenames =="
+echo "== Banned source/runtime filenames =="
 if find . \
   -path ./.git -prune -o \
-  \( -name '*.app' -o -name '*.asar' -o -name '*.dmg' -o -name '*.pkg' -o -name '*.sqlite' -o -name '*.db' -o -name '*.log' -o -name 'auth.json' -o -name 'secrets.env' -o -name 'config.json' -path './ccx/.config/*' \) \
+  \( -name '*.app' -o -name '*.asar' -o -name '*.dmg' -o -name '*.pkg' -o -name '*.sqlite' -o -name '*.db' -o -name '*.log' -o -name 'auth.json' -o -name 'secrets.env' -o \( -name 'config.json' -a -path './ccx/.config/*' \) -o -name '__pycache__' -o -name '*.pyc' -o -name '*.pyo' -o -name '.DS_Store' \) \
   -print | grep -q .; then
   find . \
     -path ./.git -prune -o \
-    \( -name '*.app' -o -name '*.asar' -o -name '*.dmg' -o -name '*.pkg' -o -name '*.sqlite' -o -name '*.db' -o -name '*.log' -o -name 'auth.json' -o -name 'secrets.env' -o -name 'config.json' -path './ccx/.config/*' \) \
+    \( -name '*.app' -o -name '*.asar' -o -name '*.dmg' -o -name '*.pkg' -o -name '*.sqlite' -o -name '*.db' -o -name '*.log' -o -name 'auth.json' -o -name 'secrets.env' -o \( -name 'config.json' -a -path './ccx/.config/*' \) -o -name '__pycache__' -o -name '*.pyc' -o -name '*.pyo' -o -name '.DS_Store' \) \
     -print
-  echo "Banned runtime or binary file detected." >&2
+  echo "Banned source, runtime, or binary file detected." >&2
   exit 1
 fi
 

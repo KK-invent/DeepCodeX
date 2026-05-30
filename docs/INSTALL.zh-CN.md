@@ -45,23 +45,26 @@ DeepCodeX-mac.zip.sha256
 
 DeepCodeX 不再区分“有 Codex 版”和“无 Codex 版”。同一个安装包会先检测 `/Applications/Codex.app`。如果没有检测到官方 Codex，安装器会停止，并引导你去 [OpenAI Codex 官方页面](https://openai.com/codex/) 下载 Codex。
 
-先识别当前电脑状态：
+下载后先校验文件：
 
 ```bash
-scripts/detect-install-mode.sh
+shasum -a 256 -c DeepCodeX-mac.zip.sha256
 ```
 
-1. 下载成品包。
-2. 打开或解压。
-3. 双击 `Install-DeepCodeX.command`。
-4. 先看安装脚本输出的环境检测结果：
+1. 下载 `DeepCodeX-mac.zip` 和 `DeepCodeX-mac.zip.sha256`。
+2. 在同一目录运行上面的校验命令，确认输出是 `OK`。
+3. 解压 `DeepCodeX-mac.zip`。
+4. 双击 `Install-DeepCodeX.command`。
+5. 先看安装脚本输出的环境检测结果：
    - 已安装 Codex：可以继续安装，DeepCodeX 使用独立目录，不覆盖原 Codex。
    - 未安装 Codex：先安装官方 Codex，再重新运行 `Install-DeepCodeX.command`。
-5. 按安装脚本提示填写：
+6. 按安装脚本提示填写：
    - `DeepSeek base URL`
    - `DeepSeek API key`
-6. 安装完成后打开 `/Applications/Deepcodex.app`。
-7. 进入应用后确认模型菜单只出现 DeepSeek 相关模型。
+7. 安装完成后打开 `/Applications/Deepcodex.app`。
+8. 进入应用后确认模型菜单只出现 DeepSeek 相关模型。
+
+`scripts/detect-install-mode.sh` 是源码仓库里的维护者辅助脚本。普通下载用户不需要手动运行它；成品包内的安装器会自动执行同等检测。
 
 如果 macOS 提示应用来自未知开发者，先不要绕过。请确认成品包来源、校验值和维护者说明。
 

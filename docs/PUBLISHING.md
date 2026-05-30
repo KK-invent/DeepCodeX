@@ -46,6 +46,19 @@ scripts/publish-private-release.sh --include-runtime-bundled
 
 The publish script refuses to upload assets unless the GitHub repository is private. It audits source, audits every zip package, verifies `.sha256`, then creates or updates a prerelease and uploads the selected assets.
 
+The publish script also verifies the final release asset surface after upload. The ordinary-user release must expose exactly:
+
+```text
+DeepCodeX-mac.zip
+DeepCodeX-mac.zip.sha256
+```
+
+To verify an existing release manually:
+
+```bash
+scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS
+```
+
 Before sharing a direct-use asset, run:
 
 ```bash

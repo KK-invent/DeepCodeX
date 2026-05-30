@@ -145,4 +145,9 @@ else
 fi
 
 gh release upload "${TAG}" "${assets[@]}" --repo "${REPO}" --clobber
+verify_flags=(--repo "${REPO}" --tag "${TAG}")
+if [ "${INCLUDE_RUNTIME_EXTERNAL}" -eq 1 ]; then
+  verify_flags+=(--allow-no-runtime)
+fi
+"${ROOT}/scripts/verify-release-assets.sh" "${verify_flags[@]}"
 gh release view "${TAG}" --repo "${REPO}" --json tagName,isDraft,isPrerelease,url,assets

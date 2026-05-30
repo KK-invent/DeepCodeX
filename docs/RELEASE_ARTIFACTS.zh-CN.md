@@ -98,6 +98,19 @@ scripts/publish-private-release.sh --include-runtime-bundled
 
 这个脚本会先确认 GitHub 仓库是 private，再运行源码审计、包审计和 SHA256 校验，然后创建或更新 prerelease。不要把 `DeepCodeX-mac.zip` 成品包上传到公开仓库。
 
+上传完成后脚本还会确认 Release 里只暴露预期的简洁资产名。普通用户 Release 应只有：
+
+```text
+DeepCodeX-mac.zip
+DeepCodeX-mac.zip.sha256
+```
+
+如果是复查已经存在的 Release，可以手动运行：
+
+```bash
+scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS
+```
+
 `.sha256` 文件只能包含 zip 文件名，不能包含维护者本机绝对路径。`scripts/publish-private-release.sh` 会拒绝带维护者路径或用户名的校验文件。
 
 ## 无外网用户怎么使用
