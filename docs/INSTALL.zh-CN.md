@@ -1,5 +1,9 @@
 # DeepCodeX 中文安装指南
 
+> **2026-05-30 更新**：DeepCodeX 翻译层已从私有 ccx 二进制替换为开源 Python bridge（`bin/deepcodex-deepseek-bridge.py`），零额外依赖。
+> 任何只要装了官方 Codex.app、有 DeepSeek API key 的人都能开箱即用，无需向维护者索要私有组件。
+> 详见 [README.zh-CN.md](../README.zh-CN.md) 的新安装流程。
+
 ## 先确认一个事实
 
 DeepCodeX 使用 DeepSeek 兼容接口，不需要 ChatGPT OAuth 登录。但它仍然需要能访问某个 DeepSeek / OpenAI-compatible 服务。

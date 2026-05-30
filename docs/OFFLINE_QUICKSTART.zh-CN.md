@@ -102,15 +102,11 @@ xattr -dr com.apple.quarantine DeepCodeX-mac
 
 DeepCodeX 统一包会主动检测，不需要你重新下载另一个“无 Codex 版”。
 
-## 看到 runtime 警告怎么办
+## 现在不需要私有运行时了
 
-如果安装器提示：
+DeepCodeX 已不再依赖私有 ccx 二进制。翻译层 `bin/deepcodex-deepseek-bridge.py` 是开源 Python 脚本，包含在仓库内。
 
-```text
-package does not contain ccx runtime
-```
-
-说明你拿到的是 `DeepCodeX-mac-no-runtime.zip`。它可以安装应用外壳，但普通新用户还不能直接发起模型请求。请向维护者索要 `DeepCodeX-mac.zip`，或让维护者补齐兼容 runtime。
+如果安装器提示任何 runtime 缺失，请确保已运行 `scripts/install-local.sh`，它会自动安装所有必需脚本和 launchd 服务。
 
 ## 安装后仍不可用
 
