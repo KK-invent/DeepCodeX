@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO="${GITHUB_REPOSITORY:-}"
 TAG=""
 EXPECTED_TARGET=""
@@ -35,6 +36,21 @@ if [ -z "${TAG}" ]; then
   exit 2
 fi
 
+remote_tag_commit() {
+  git -C "${ROOT}" ls-remote --tags origin "refs/tags/$1" "refs/tags/$1^{}" |
+    awk -v tag="$1" '
+      $2 == "refs/tags/" tag "^{}" { peeled = $1 }
+      $2 == "refs/tags/" tag { direct = $1 }
+      END {
+        if (peeled != "") {
+          print peeled
+        } else if (direct != "") {
+          print direct
+        }
+      }
+    '
+}
+
 release_json="$(gh release view "${TAG}" --repo "${REPO}" --json tagName,targetCommitish,isDraft,isPrerelease,assets)"
 target_commitish="$(printf '%s\n' "${release_json}" | python3 -c 'import json,sys; print(json.load(sys.stdin)["targetCommitish"])')"
 is_draft="$(printf '%s\n' "${release_json}" | python3 -c 'import json,sys; print(json.load(sys.stdin)["isDraft"])')"
@@ -58,6 +74,16 @@ fi
 if [ -n "${EXPECTED_TARGET}" ] && [ "${target_commitish}" != "${EXPECTED_TARGET}" ]; then
   echo "[BLOCK] release ${TAG} target is ${target_commitish}, expected ${EXPECTED_TARGET}" >&2
   failures=$((failures + 1))
+fi
+if [ -n "${EXPECTED_TARGET}" ]; then
+  tag_target="$(remote_tag_commit "${TAG}")"
+  if [ -z "${tag_target}" ]; then
+    echo "[BLOCK] remote git tag ${TAG} is missing" >&2
+    failures=$((failures + 1))
+  elif [ "${tag_target}" != "${EXPECTED_TARGET}" ]; then
+    echo "[BLOCK] remote git tag ${TAG} target is ${tag_target}, expected ${EXPECTED_TARGET}" >&2
+    failures=$((failures + 1))
+  fi
 fi
 
 if [ "${failures}" -gt 0 ]; then

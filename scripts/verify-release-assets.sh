@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPO="${GITHUB_REPOSITORY:-}"
 TAG=""
 ALLOW_NO_RUNTIME=0
@@ -84,6 +85,21 @@ retry_stdout() {
   mv "${output}.tmp" "${output}"
 }
 
+remote_tag_commit() {
+  git -C "${ROOT}" ls-remote --tags origin "refs/tags/$1" "refs/tags/$1^{}" |
+    awk -v tag="$1" '
+      $2 == "refs/tags/" tag "^{}" { peeled = $1 }
+      $2 == "refs/tags/" tag { direct = $1 }
+      END {
+        if (peeled != "") {
+          print peeled
+        } else if (direct != "") {
+          print direct
+        }
+      }
+    '
+}
+
 download_checksums() {
   rm -f "${checksums}"/*.sha256
   gh release download "${TAG}" --repo "${REPO}" --pattern '*.sha256' --dir "${checksums}" >/dev/null
@@ -116,6 +132,17 @@ if [ -n "${EXPECTED_TARGET}" ]; then
     echo "[FAIL] release target does not match expected commit." >&2
     echo "Expected: ${EXPECTED_TARGET}" >&2
     echo "Actual:   ${actual_target}" >&2
+    exit 1
+  fi
+  tag_target="$(remote_tag_commit "${TAG}")"
+  if [ -z "${tag_target}" ]; then
+    echo "[FAIL] remote git tag is missing: ${TAG}" >&2
+    exit 1
+  fi
+  if [ "${tag_target}" != "${EXPECTED_TARGET}" ]; then
+    echo "[FAIL] remote git tag does not match expected commit." >&2
+    echo "Expected: ${EXPECTED_TARGET}" >&2
+    echo "Actual:   ${tag_target}" >&2
     exit 1
   fi
 fi

@@ -11,6 +11,7 @@ INCLUDE_RUNTIME_EXTERNAL=0
 INCLUDE_RUNTIME_BUNDLED=0
 DRAFT=0
 DRY_RUN=0
+RETARGET_TAG=0
 
 usage() {
   cat <<'EOF'
@@ -29,6 +30,7 @@ Options:
   --include-runtime-external     Also upload the conservative package without bundled runtime.
   --draft                        Create the release as a draft.
   --dry-run                      Print the planned release and asset list, but do not upload.
+  --retarget-tag                 Move an existing private-preview git tag to the current commit.
 
 The script refuses to run unless the GitHub repository is PRIVATE. Use
 --include-runtime-bundled only after reviewing the private runtime boundary.
@@ -45,6 +47,7 @@ while [ "$#" -gt 0 ]; do
     --include-runtime-external) INCLUDE_RUNTIME_EXTERNAL=1 ;;
     --draft) DRAFT=1 ;;
     --dry-run) DRY_RUN=1 ;;
+    --retarget-tag) RETARGET_TAG=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -81,6 +84,21 @@ latest_matching() {
   find "${OUT_DIR}" -maxdepth 1 -type f -name "${pattern}" -print | sort | tail -n 1
 }
 
+remote_tag_commit() {
+  git -C "${ROOT}" ls-remote --tags origin "refs/tags/$1" "refs/tags/$1^{}" |
+    awk -v tag="$1" '
+      $2 == "refs/tags/" tag "^{}" { peeled = $1 }
+      $2 == "refs/tags/" tag { direct = $1 }
+      END {
+        if (peeled != "") {
+          print peeled
+        } else if (direct != "") {
+          print direct
+        }
+      }
+    '
+}
+
 assets=()
 if [ "${INCLUDE_RUNTIME_EXTERNAL}" -eq 1 ]; then
   external_pkg="$(latest_matching 'DeepCodeX-mac-no-runtime.zip')"
@@ -115,17 +133,45 @@ for asset in "${assets[@]}"; do
 done
 
 target="$(git -C "${ROOT}" rev-parse HEAD)"
+remote_target="$(remote_tag_commit "${TAG}")"
 echo "Repository: ${REPO} (${visibility})"
 echo "Tag:        ${TAG}"
 echo "Target:     ${target}"
+if [ -n "${remote_target}" ]; then
+  echo "Remote tag: ${remote_target}"
+else
+  echo "Remote tag: absent"
+fi
 echo "Title:      ${TITLE}"
 echo "Draft:      ${DRAFT}"
 echo "Assets:"
 printf '  %s\n' "${assets[@]}"
 
 if [ "${DRY_RUN}" -eq 1 ]; then
+  if [ -n "${remote_target}" ] && [ "${remote_target}" != "${target}" ]; then
+    if [ "${RETARGET_TAG}" -eq 1 ]; then
+      echo "[DRY-RUN] would move remote tag ${TAG} to ${target}"
+    else
+      echo "[DRY-RUN] remote tag ${TAG} points at ${remote_target}; pass --retarget-tag before uploading"
+    fi
+  elif [ -z "${remote_target}" ]; then
+    echo "[DRY-RUN] would create remote tag ${TAG} at ${target}"
+  fi
   echo "Dry run only; no release was created."
   exit 0
+fi
+
+if [ -n "${remote_target}" ] && [ "${remote_target}" != "${target}" ]; then
+  if [ "${RETARGET_TAG}" -ne 1 ]; then
+    echo "[FAIL] remote tag ${TAG} points at ${remote_target}, expected ${target}" >&2
+    echo "Rerun with --retarget-tag after confirming this private preview tag should move." >&2
+    exit 1
+  fi
+  git -C "${ROOT}" tag -f "${TAG}" "${target}"
+  git -C "${ROOT}" push --force origin "refs/tags/${TAG}:refs/tags/${TAG}"
+elif [ -z "${remote_target}" ]; then
+  git -C "${ROOT}" tag -f "${TAG}" "${target}"
+  git -C "${ROOT}" push origin "refs/tags/${TAG}:refs/tags/${TAG}"
 fi
 
 release_flags=(--repo "${REPO}" --title "${TITLE}" --notes-file "${NOTES_FILE}" --target "${target}" --prerelease)
@@ -151,4 +197,4 @@ if [ "${INCLUDE_RUNTIME_EXTERNAL}" -eq 1 ]; then
   verify_flags+=(--allow-no-runtime)
 fi
 "${ROOT}/scripts/verify-release-assets.sh" "${verify_flags[@]}"
-gh release view "${TAG}" --repo "${REPO}" --json tagName,isDraft,isPrerelease,url,assets
+gh release view "${TAG}" --repo "${REPO}" --json tagName,targetCommitish,isDraft,isPrerelease,url,assets

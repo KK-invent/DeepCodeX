@@ -31,6 +31,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Added an optional public-release preparation step to hide the old private preview Release as a draft after private binary assets are removed.
 - Aligned README and public source release notes with the stricter private-preview asset inspection gates.
 - Extended private release asset verification to fail when a GitHub Release points at the wrong source commit.
+- Made private release publishing explicitly retarget existing preview git tags before uploading refreshed assets.
 - Public release remains gated on upstream terms approval.
 
 ## private-preview-20260530-074240

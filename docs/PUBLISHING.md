@@ -117,7 +117,13 @@ Recommended private preview command:
 scripts/publish-private-release.sh --include-runtime-bundled
 ```
 
-The publish script refuses to upload assets unless the GitHub repository is private. It audits source, audits every zip package, verifies `.sha256`, then creates or updates a prerelease and uploads the selected assets.
+If updating an existing `private-preview-*` release whose git tag points at an older commit, pass `--retarget-tag` after confirming that preview tag should move:
+
+```bash
+scripts/publish-private-release.sh --include-runtime-bundled --retarget-tag
+```
+
+The publish script refuses to upload assets unless the GitHub repository is private. It audits source, audits every zip package, verifies `.sha256`, makes the release tag match the release commit, then creates or updates a prerelease and uploads the selected assets.
 
 The publish script also verifies the final release asset surface after upload. The ordinary-user release must expose exactly:
 
@@ -132,7 +138,7 @@ To verify an existing release manually:
 scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS --expected-target $(git rev-parse HEAD)
 ```
 
-The verifier checks the release target commit, retries transient GitHub API and checksum-asset download failures, and then fails the gate if the remote asset surface is not exactly the expected package set.
+The verifier checks the release target commit and the matching remote git tag, retries transient GitHub API and checksum-asset download failures, and then fails the gate if the remote asset surface is not exactly the expected package set.
 
 Before sharing a direct-use asset, run:
 

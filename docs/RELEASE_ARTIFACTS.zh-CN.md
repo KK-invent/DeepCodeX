@@ -96,7 +96,13 @@ scripts/smoke-offline-package.sh dist/private/DeepCodeX-mac.zip
 scripts/publish-private-release.sh --include-runtime-bundled
 ```
 
-这个脚本会先确认 GitHub 仓库是 private，再运行源码审计、包审计和 SHA256 校验，然后创建或更新 prerelease。不要把 `DeepCodeX-mac.zip` 成品包上传到公开仓库。
+如果是在更新已有的 `private-preview-*` Release，且同名 git tag 还指向旧 commit，确认这个私有预览 tag 应该移动后再加 `--retarget-tag`：
+
+```bash
+scripts/publish-private-release.sh --include-runtime-bundled --retarget-tag
+```
+
+这个脚本会先确认 GitHub 仓库是 private，再运行源码审计、包审计和 SHA256 校验，让 Release tag 对齐本次发布 commit，然后创建或更新 prerelease。不要把 `DeepCodeX-mac.zip` 成品包上传到公开仓库。
 
 上传完成后脚本还会确认 Release 里只暴露预期的简洁资产名。普通用户 Release 应只有：
 
