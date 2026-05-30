@@ -28,7 +28,15 @@ If the name already exists, create a private repository with a dated suffix and 
 
 ## Public Release Gate
 
-Do not change visibility to public until `docs/COMPLIANCE.md` is complete and the maintainer has manually reviewed the GitHub file list.
+Do not change visibility to public until `docs/COMPLIANCE.md` and `docs/PUBLIC_RELEASE_CHECKLIST.md` are complete and the maintainer has manually reviewed the GitHub file list.
+
+Run:
+
+```bash
+scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --release-tag private-preview-YYYYMMDD-HHMMSS
+```
+
+This audit intentionally fails while the project still has unresolved public-release blockers, such as the private-preview license notice, DeepSeek-style brand assets without public approval, unreviewed upstream patching terms, or missing GitHub Actions CI.
 
 ## Private Binary Assets
 
@@ -69,4 +77,6 @@ The smoke test unzips the package, simulates a machine with no Codex/DeepCodeX a
 
 ## Optional GitHub Actions
 
-The local audit script is intentionally committed as `scripts/audit-release.sh`. A GitHub Actions workflow can be added later, but pushing workflow files requires a GitHub token with the `workflow` scope. Keep CI out of the initial private push unless that scope is available.
+The local audit script is intentionally committed as `scripts/audit-release.sh`. A GitHub Actions workflow should be enabled before public release, but pushing workflow files requires a GitHub token with the `workflow` scope.
+
+Until that scope is available, keep the template at `docs/GITHUB_ACTIONS_AUDIT_TEMPLATE.yml`. When ready, copy it to `.github/workflows/audit.yml`, commit it, and confirm GitHub Actions runs on `main`.

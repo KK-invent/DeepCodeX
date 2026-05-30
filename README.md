@@ -16,6 +16,8 @@ This repository is prepared as a private review candidate. It intentionally does
 
 The visual identity uses the public DeepSeek app icon style. See [assets/brand/SOURCES.md](assets/brand/SOURCES.md) and [docs/COMPLIANCE.md](docs/COMPLIANCE.md) for source and trademark boundaries.
 
+DeepCodeX is an unofficial private-preview project. It is not affiliated with, endorsed by, or supported by OpenAI, Codex, DeepSeek, or their respective owners.
+
 ## Private Preview Download
 
 If you received a private GitHub Release, use the ordinary-user package:
@@ -103,6 +105,7 @@ Before pushing or making the repository public, run:
 
 ```bash
 scripts/audit-release.sh
+scripts/audit-public-release.sh --repo KK-invent/DeepCodeX
 git status --short
 ```
 
@@ -119,6 +122,7 @@ Release history is tracked in [CHANGELOG.md](CHANGELOG.md).
 This repository is intended to be reviewed privately first. Do not make it public until:
 
 - The audit script passes.
+- The public-release audit blockers are resolved.
 - The committed file list is manually reviewed.
 - The legal/compliance notes are accepted.
 - The license posture is intentionally chosen.

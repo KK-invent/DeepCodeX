@@ -3,6 +3,7 @@
 ## Security
 
 - [ ] `scripts/audit-release.sh` passes locally.
+- [ ] `scripts/audit-public-release.sh --repo KK-invent/DeepCodeX` passes before public visibility.
 - [ ] `git ls-files` contains no secrets, local state, logs, sessions, caches, app bundles, or upstream binaries.
 - [ ] `config/secrets.env.example` contains placeholders only.
 - [ ] CLI and GUI configuration paths do not print API keys.
@@ -20,6 +21,7 @@
 - [ ] Any tracked DeepSeek visual asset has a source note and visibility decision; replace before public release if rights are unclear.
 - [ ] README states this is not affiliated with upstream vendors.
 - [ ] License posture is intentionally chosen before public visibility.
+- [ ] GitHub Actions audit CI is enabled before public visibility.
 
 ## Runtime Validation
 

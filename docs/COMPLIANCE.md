@@ -35,10 +35,13 @@ Do not choose a public license until the upstream binary and trademark boundarie
 ## Public Release Checklist
 
 - `scripts/audit-release.sh` passes.
+- `scripts/audit-public-release.sh --repo KK-invent/DeepCodeX` passes, except for an intentional private-repository check before the final visibility switch.
 - `git ls-files` contains only expected source, docs, templates, and audit scripts.
 - No `.app`, `.asar`, `.dmg`, `.pkg`, `.sqlite`, `.db`, `.log`, `.env`, `auth.json`, or session files are tracked.
 - README clearly says the private package checks for official Codex and guides missing users to install it.
 - README clearly says real DeepSeek API keys are user-provided and never committed.
+- README clearly states this is unofficial and not affiliated with upstream vendors.
 - DeepSeek visual assets are either approved for the intended visibility or replaced with original assets.
 - License decision is intentional.
+- GitHub Actions audit CI is enabled before public visibility.
 - GitHub repository is private until the maintainer completes review.

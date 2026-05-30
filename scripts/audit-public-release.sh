@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO="${GITHUB_REPOSITORY:-}"
+RELEASE_TAG=""
+REQUIRE_PUBLIC=0
+
+usage() {
+  cat <<'EOF'
+Usage:
+  scripts/audit-public-release.sh [--repo OWNER/REPO] [--release-tag TAG] [--require-public]
+
+Runs the normal source audit, then checks public-release blockers that require
+maintainer/legal decisions before changing repository visibility.
+
+This script intentionally fails while the project is still in private-preview
+posture. Do not bypass failures for a public release; resolve them or keep the
+repository private.
+
+Options:
+  --repo OWNER/REPO       GitHub repository. Defaults to current gh repo.
+  --release-tag TAG       Optional release tag whose asset names must be checked.
+  --require-public        Also fail if the GitHub repository is still private.
+
+Human decision acknowledgements:
+  DEEPCODEX_PUBLIC_BRAND_APPROVED=1
+  DEEPCODEX_PUBLIC_UPSTREAM_TERMS_APPROVED=1
+EOF
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --repo) REPO="$2"; shift ;;
+    --release-tag) RELEASE_TAG="$2"; shift ;;
+    --require-public) REQUIRE_PUBLIC=1 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
+  esac
+  shift
+done
+
+if [ -z "${REPO}" ]; then
+  REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || true)"
+fi
+
+failures=0
+
+block() {
+  echo "[BLOCK] $*" >&2
+  failures=$((failures + 1))
+}
+
+ok() {
+  echo "[OK] $*"
+}
+
+echo "== Source release audit =="
+"${ROOT}/scripts/audit-release.sh"
+
+echo "== Git worktree =="
+if git -C "${ROOT}" diff --quiet && git -C "${ROOT}" diff --cached --quiet; then
+  ok "git worktree has no unstaged or staged changes"
+else
+  block "git worktree is dirty; commit or discard local changes before a public release"
+fi
+
+echo "== License posture =="
+if grep -Eq 'No public open-source license is granted yet|Private Preview Notice' "${ROOT}/LICENSE.md"; then
+  block "LICENSE.md is still a private-preview notice; choose a public license or keep source-available intentionally"
+else
+  ok "LICENSE.md no longer contains the private-preview notice"
+fi
+
+echo "== Brand and trademark posture =="
+if git -C "${ROOT}" ls-files | grep -Eq '(^assets/brand/deepseek-app-icon\.png$|^assets/brand/deepseek-official-favicon\.svg$|^assets/brand/deepcodex-hero\.png$|^assets/brand/deepcodex-icon\.svg$|^assets/brand/deepcodex-logo(\.zh-CN)?\.svg$)'; then
+  if [ "${DEEPCODEX_PUBLIC_BRAND_APPROVED:-}" = "1" ]; then
+    ok "DeepSeek-style brand assets are still tracked and were explicitly approved for public visibility"
+  else
+    block "DeepSeek-style official/derived assets are still tracked; replace them or set DEEPCODEX_PUBLIC_BRAND_APPROVED=1 after approval"
+  fi
+else
+  ok "no DeepSeek-style official/derived brand assets are tracked"
+fi
+
+echo "== Upstream terms posture =="
+if [ "${DEEPCODEX_PUBLIC_UPSTREAM_TERMS_APPROVED:-}" = "1" ]; then
+  ok "upstream Codex patching/distribution terms were explicitly approved"
+else
+  block "upstream Codex patching/distribution terms are not approved; keep the repository private until reviewed"
+fi
+
+echo "== CI posture =="
+if [ -f "${ROOT}/.github/workflows/audit.yml" ]; then
+  ok "GitHub Actions audit workflow is present"
+else
+  block "GitHub Actions audit workflow is missing; add .github/workflows/audit.yml before public release"
+  echo "       Template: docs/GITHUB_ACTIONS_AUDIT_TEMPLATE.yml" >&2
+fi
+
+echo "== README affiliation posture =="
+if grep -Eiq 'not affiliated|not endorsed|unofficial' "${ROOT}/README.md" && grep -Eq '非官方|不隶属|未获.*背书|不代表.*官方' "${ROOT}/README.zh-CN.md"; then
+  ok "English and Chinese README files state the unofficial/non-affiliation boundary"
+else
+  block "README files must state the unofficial/non-affiliation boundary in both languages"
+fi
+
+if [ -n "${REPO}" ]; then
+  echo "== GitHub repository metadata =="
+  description="$(gh repo view "${REPO}" --json description -q .description)"
+  homepage="$(gh repo view "${REPO}" --json homepageUrl -q .homepageUrl)"
+  visibility_private="$(gh repo view "${REPO}" --json isPrivate -q .isPrivate)"
+  license_key="$(gh repo view "${REPO}" --json licenseInfo -q '.licenseInfo.key // ""')"
+  topics="$(gh repo view "${REPO}" --json repositoryTopics -q '.repositoryTopics[].name' | sort | tr '\n' ' ')"
+
+  [ -n "${description}" ] && ok "repository description is set" || block "repository description is empty"
+  [ -n "${homepage}" ] && ok "repository homepage is set" || block "repository homepage is empty"
+
+  for topic in ai codex deepseek developer-tools macos; do
+    if printf '%s\n' "${topics}" | grep -Eq "(^| )${topic}( |$)"; then
+      ok "topic present: ${topic}"
+    else
+      block "missing GitHub topic: ${topic}"
+    fi
+  done
+
+  if [ "${license_key}" = "other" ] || [ -z "${license_key}" ]; then
+    block "GitHub license detection is '${license_key:-empty}'; choose an explicit public license before public release"
+  else
+    ok "GitHub detected license: ${license_key}"
+  fi
+
+  if [ "${REQUIRE_PUBLIC}" -eq 1 ] && [ "${visibility_private}" = "true" ]; then
+    block "repository is still private but --require-public was requested"
+  elif [ "${visibility_private}" = "true" ]; then
+    ok "repository is still private, which is correct until blockers are resolved"
+  else
+    ok "repository is public"
+  fi
+fi
+
+if [ -n "${RELEASE_TAG}" ]; then
+  echo "== Release asset names =="
+  "${ROOT}/scripts/verify-release-assets.sh" --repo "${REPO}" --tag "${RELEASE_TAG}"
+fi
+
+if [ "${failures}" -gt 0 ]; then
+  echo "Public release audit failed with ${failures} blocker(s)." >&2
+  exit 1
+fi
+
+echo "Public release audit passed."
