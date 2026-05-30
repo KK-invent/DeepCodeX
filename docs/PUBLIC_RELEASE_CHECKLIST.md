@@ -41,6 +41,8 @@ Run the public-release gate:
 scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --release-tag private-preview-YYYYMMDD-HHMMSS
 ```
 
+When the private preview release still has zip or checksum assets, this gate fails until public binary distribution is approved or those assets are removed before public visibility.
+
 Run the GitHub public metadata gate:
 
 ```bash

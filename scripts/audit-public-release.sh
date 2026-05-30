@@ -60,6 +60,12 @@ ok() {
   echo "[OK] $*"
 }
 
+public_binary_release_approved() {
+  [ "${DEEPCODEX_PUBLIC_BINARY_RELEASE_APPROVED:-}" = "1" ] ||
+    { [ -f "${UPSTREAM_APPROVAL_FILE}" ] &&
+      grep -Eq '^public-binary-release:[[:space:]]*approved[[:space:]]*$' "${UPSTREAM_APPROVAL_FILE}"; }
+}
+
 echo "== Source release audit =="
 "${ROOT}/scripts/audit-release.sh"
 
@@ -198,16 +204,12 @@ if [ -n "${RELEASE_TAG}" ]; then
   echo "== Release asset names =="
   "${ROOT}/scripts/verify-release-assets.sh" --repo "${REPO}" --tag "${RELEASE_TAG}"
 
-  if [ "${REQUIRE_PUBLIC}" -eq 1 ]; then
-    release_assets="$(gh release view "${RELEASE_TAG}" --repo "${REPO}" --json assets -q '.assets[].name' 2>/dev/null || true)"
-    if printf '%s\n' "${release_assets}" | grep -Eq '\.(app|asar|dmg|pkg|zip|tar|tar\.gz|tgz|7z|rar)(\.sha256)?$'; then
-      if [ "${DEEPCODEX_PUBLIC_BINARY_RELEASE_APPROVED:-}" = "1" ] ||
-        { [ -f "${UPSTREAM_APPROVAL_FILE}" ] &&
-          grep -Eq '^public-binary-release:[[:space:]]*approved[[:space:]]*$' "${UPSTREAM_APPROVAL_FILE}"; }; then
-        ok "public binary release assets are explicitly approved"
-      else
-        block "release ${RELEASE_TAG} contains binary assets; remove them or complete public-binary-release approval before public visibility"
-      fi
+  release_assets="$(gh release view "${RELEASE_TAG}" --repo "${REPO}" --json assets -q '.assets[].name' 2>/dev/null || true)"
+  if printf '%s\n' "${release_assets}" | grep -Eq '\.(app|asar|dmg|pkg|zip|tar|tar\.gz|tgz|7z|rar)(\.sha256)?$'; then
+    if public_binary_release_approved; then
+      ok "public binary release assets are explicitly approved"
+    else
+      block "release ${RELEASE_TAG} contains binary assets; remove them or complete public-binary-release approval before public visibility"
     fi
   fi
 fi

@@ -17,6 +17,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Simplified the project logo into a standalone uppercase `X` with a Codex-style purple-to-blue gradient.
 - Switched the transparent SVG wordmark text to a purple-to-blue gradient for clearer rendering across GitHub themes.
 - Enabled GitHub Actions audit CI for pushes and pull requests targeting `main`.
+- Hardened the public release audit so private preview zip assets block public readiness unless public binary distribution is explicitly approved.
 - Public release remains gated on upstream terms approval.
 
 ## private-preview-20260530-074240

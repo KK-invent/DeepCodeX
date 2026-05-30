@@ -41,6 +41,8 @@ scripts/verify-github-public-metadata.sh --repo KK-invent/DeepCodeX
 
 This audit intentionally fails while the project still has unresolved public-release blockers, such as missing GitHub MIT license detection, DeepSeek-style brand assets without public approval, unreviewed upstream patching terms, or missing GitHub Actions CI.
 
+If `--release-tag` points at a private preview release that still has `DeepCodeX-mac.zip` or checksum assets, the audit also fails unless `docs/UPSTREAM_TERMS_APPROVAL.md` explicitly says `public-binary-release: approved`.
+
 Before switching repository visibility, complete `docs/UPSTREAM_TERMS_APPROVAL.md` from `docs/UPSTREAM_TERMS_APPROVAL_TEMPLATE.md`.
 
 If binary distribution is not approved, run the final public gate without a private preview binary release attached to the public repository:
