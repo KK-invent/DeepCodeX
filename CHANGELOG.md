@@ -12,6 +12,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Updated the reviewer runtime checklist so Python syntax checks do not leave banned `__pycache__` files in the source tree.
 - Restricted public source release public-check bypass to dry-run planning while the repository is still private.
 - Required explicit private release asset inspection, or an explicit no-private-assets assertion, before public source release preparation can pass.
+- Made the no-private-assets path scan GitHub releases for binary/checksum assets instead of relying on maintainer assertion alone.
 - Public release remains gated on upstream terms approval and GitHub Actions audit CI.
 
 ## private-preview-20260530-074240

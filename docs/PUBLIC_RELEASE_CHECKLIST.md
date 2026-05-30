@@ -54,7 +54,7 @@ scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-re
 scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run --skip-public-check
 ```
 
-Do not omit `--private-release-tag` while a private preview release exists. If there has never been a private binary release, pass `--no-private-release-assets` instead so the skip is explicit.
+Do not omit `--private-release-tag` while a private preview release exists. If there has never been a private binary release, pass `--no-private-release-assets`; the script will scan GitHub releases and fail if any binary or checksum assets exist.
 
 After resolving the blockers and switching visibility to public, run:
 
