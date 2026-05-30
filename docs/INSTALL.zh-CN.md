@@ -39,8 +39,8 @@ DeepCodeX 使用 DeepSeek 兼容接口，不需要 ChatGPT OAuth 登录。但它
 适用于维护者已经提供私有 Release 成品包的情况。推荐下载：
 
 ```text
-DeepCodeX-private-runtime-bundled-*.zip
-DeepCodeX-private-runtime-bundled-*.zip.sha256
+DeepCodeX-mac.zip
+DeepCodeX-mac.zip.sha256
 ```
 
 DeepCodeX 不再区分“有 Codex 版”和“无 Codex 版”。同一个安装包会先检测 `/Applications/Codex.app`。如果没有检测到官方 Codex，安装器会停止，并引导你去 [OpenAI Codex 官方页面](https://openai.com/codex/) 下载 Codex。

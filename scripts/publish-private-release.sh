@@ -83,17 +83,17 @@ latest_matching() {
 
 assets=()
 if [ "${INCLUDE_RUNTIME_EXTERNAL}" -eq 1 ]; then
-  external_pkg="$(latest_matching 'DeepCodeX-private-runtime-external-*.zip')"
+  external_pkg="$(latest_matching 'DeepCodeX-mac-no-runtime.zip')"
   if [ -z "${external_pkg}" ] || [ ! -f "${external_pkg}.sha256" ]; then
-    echo "[FAIL] missing runtime-external package or checksum in ${OUT_DIR}" >&2
+    echo "[FAIL] missing DeepCodeX-mac-no-runtime.zip or checksum in ${OUT_DIR}" >&2
     exit 2
   fi
   assets+=("${external_pkg}" "${external_pkg}.sha256")
 fi
 
-bundled_pkg="$(latest_matching 'DeepCodeX-private-runtime-bundled-*.zip')"
+bundled_pkg="$(latest_matching 'DeepCodeX-mac.zip')"
 if [ -z "${bundled_pkg}" ] || [ ! -f "${bundled_pkg}.sha256" ]; then
-  echo "[FAIL] missing runtime-bundled package or checksum in ${OUT_DIR}" >&2
+  echo "[FAIL] missing DeepCodeX-mac.zip or checksum in ${OUT_DIR}" >&2
   exit 2
 fi
 assets+=("${bundled_pkg}" "${bundled_pkg}.sha256")

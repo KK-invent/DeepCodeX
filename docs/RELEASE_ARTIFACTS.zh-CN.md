@@ -62,9 +62,9 @@ scripts/package-private-release.sh --bundle-runtime
 scripts/package-private-release.sh --bundle-runtime
 ```
 
-输出文件名包含 `runtime-bundled`。这是默认推荐给普通用户的统一包。
+输出文件名是 `DeepCodeX-mac.zip`。这是默认推荐给普通用户的统一包。
 
-默认命令仍会生成 `runtime-external` 包：
+默认命令仍会生成 `DeepCodeX-mac-no-runtime.zip`：
 
 ```bash
 scripts/package-private-release.sh
@@ -80,10 +80,10 @@ DEEPCODEX_APP=/Applications/Deepcodex.app.tmp-controlled-upgrade-YYYYMMDD-HHMMSS
 
 打包脚本会调用 `scripts/audit-package.sh`。如果当前 app 里还残留维护者路径或真实本机 key，打包会失败。
 
-分享 `runtime-bundled` 统一包前，额外运行：
+分享 `DeepCodeX-mac.zip` 统一包前，额外运行：
 
 ```bash
-scripts/smoke-offline-package.sh dist/private/DeepCodeX-private-runtime-bundled-*.zip
+scripts/smoke-offline-package.sh dist/private/DeepCodeX-mac.zip
 ```
 
 这个 smoke test 会解压包、模拟没有 Codex 的新机器、检查安装器缺 Codex 时会停止、检查 runtime、用假的 base URL/API key 配置临时 app，并确认输出不泄露 key。
@@ -96,7 +96,7 @@ scripts/smoke-offline-package.sh dist/private/DeepCodeX-private-runtime-bundled-
 scripts/publish-private-release.sh --include-runtime-bundled
 ```
 
-这个脚本会先确认 GitHub 仓库是 private，再运行源码审计、包审计和 SHA256 校验，然后创建或更新 prerelease。不要把 runtime-bundled 成品包上传到公开仓库。
+这个脚本会先确认 GitHub 仓库是 private，再运行源码审计、包审计和 SHA256 校验，然后创建或更新 prerelease。不要把 `DeepCodeX-mac.zip` 成品包上传到公开仓库。
 
 `.sha256` 文件只能包含 zip 文件名，不能包含维护者本机绝对路径。`scripts/publish-private-release.sh` 会拒绝带维护者路径或用户名的校验文件。
 

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [ "$#" -ne 1 ]; then
-  echo "Usage: scripts/smoke-offline-package.sh <DeepCodeX-private-*.zip>" >&2
+  echo "Usage: scripts/smoke-offline-package.sh <DeepCodeX-mac*.zip>" >&2
   exit 2
 fi
 
@@ -21,7 +21,7 @@ trap cleanup EXIT
 
 "${ROOT}/scripts/audit-package.sh" "${ZIP}"
 /usr/bin/unzip -q "${ZIP}" -d "${WORK}"
-PKG_ROOT="$(find "${WORK}" -maxdepth 1 -type d -name 'DeepCodeX-private-*' | head -n 1)"
+PKG_ROOT="$(find "${WORK}" -maxdepth 1 -type d -name 'DeepCodeX-mac*' | head -n 1)"
 if [ -z "${PKG_ROOT}" ]; then
   echo "[FAIL] package root not found after unzip" >&2
   exit 1
@@ -54,13 +54,13 @@ if [ -d "${WORK}/installer-app/Deepcodex.app" ]; then
 fi
 
 case "$(basename "${ZIP}")" in
-  *runtime-bundled*)
+  DeepCodeX-mac.zip)
     test -x "${PKG_ROOT}/runtime/ccx/ccx"
     (cd "${PKG_ROOT}/runtime/ccx" && shasum -a 256 -c SHA256SUMS)
     ;;
-  *runtime-external*)
+  DeepCodeX-mac-no-runtime.zip)
     if [ -e "${PKG_ROOT}/runtime/ccx/ccx" ]; then
-      echo "[FAIL] runtime-external package unexpectedly contains runtime/ccx/ccx" >&2
+      echo "[FAIL] no-runtime package unexpectedly contains runtime/ccx/ccx" >&2
       exit 1
     fi
     ;;

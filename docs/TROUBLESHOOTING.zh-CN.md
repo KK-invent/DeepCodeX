@@ -65,7 +65,7 @@ export no_proxy="127.0.0.1,localhost,::1"
 - 成品包通过内网、U 盘或其他离线方式拿到本机。
 - 官方 Codex 安装包也通过内网、U 盘或其他离线方式拿到本机，并安装到 `/Applications/Codex.app`。
 - base URL 是本机能访问的内网 DeepSeek 兼容服务。
-- 对普通新用户，成品包文件名应包含 `runtime-bundled`；`runtime-external` 包缺少本地 runtime，不能单独完成模型请求。
+- 对普通新用户，成品包应使用 `DeepCodeX-mac.zip`；`DeepCodeX-mac-no-runtime.zip` 缺少本地 runtime，不能单独完成模型请求。
 
 如果没有可访问的模型服务，应用可以打开，但无法完成模型请求。
 
@@ -94,7 +94,7 @@ codesign --verify --deep --strict "$DEEPCODEX_APP"
 如果是刚从 GitHub 下载的 zip，请先确认 `.sha256` 校验是 `OK`，再右键打开 `Install-DeepCodeX.command`。仍被拦截时，可以对已解压且校验通过的目录执行：
 
 ```bash
-xattr -dr com.apple.quarantine DeepCodeX-private-runtime-bundled-*
+xattr -dr com.apple.quarantine DeepCodeX-mac
 ```
 
 不要对来源不明或校验不一致的文件执行 quarantine 移除。

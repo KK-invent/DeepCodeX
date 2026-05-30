@@ -34,9 +34,9 @@ Do not change visibility to public until `docs/COMPLIANCE.md` is complete and th
 
 If a private binary package is needed, build it locally and upload it as a private release asset only after `scripts/audit-package.sh` passes.
 
-Use `runtime-bundled` for the single ordinary-user package after the private runtime boundary is reviewed. The installer detects whether `/Applications/Codex.app` exists and points missing users to the official Codex page; do not publish separate "has Codex" and "no Codex" user-facing packages.
+Use `DeepCodeX-mac.zip` for the single ordinary-user package after the private runtime boundary is reviewed. The installer detects whether `/Applications/Codex.app` exists and points missing users to the official Codex page; do not publish separate "has Codex" and "no Codex" user-facing packages.
 
-`runtime-external` is a maintainer-only package for machines that already have a compatible runtime.
+`DeepCodeX-mac-no-runtime.zip` is a maintainer-only package for machines that already have a compatible runtime.
 
 Recommended private preview command:
 
@@ -49,7 +49,7 @@ The publish script refuses to upload assets unless the GitHub repository is priv
 Before sharing a direct-use asset, run:
 
 ```bash
-scripts/smoke-offline-package.sh dist/private/DeepCodeX-private-runtime-bundled-*.zip
+scripts/smoke-offline-package.sh dist/private/DeepCodeX-mac.zip
 ```
 
 The smoke test unzips the package, simulates a machine with no Codex/DeepCodeX app, checks that the installer blocks on missing Codex with clear guidance, checks the bundled runtime, configures a temporary extracted app with a fake base URL/API key, and verifies the key is not printed.

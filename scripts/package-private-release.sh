@@ -45,11 +45,11 @@ fi
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "${DEEPCODEX_APP}/Contents/Info.plist" 2>/dev/null || echo unknown)"
 build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "${DEEPCODEX_APP}/Contents/Info.plist" 2>/dev/null || echo 0)"
 stamp="$(date '+%Y%m%d-%H%M%S')"
-runtime_suffix="runtime-external"
+package_name="DeepCodeX-mac-no-runtime"
 if [ "${INCLUDE_LOCAL_CCX}" -eq 1 ]; then
-  runtime_suffix="runtime-bundled"
+  package_name="DeepCodeX-mac"
 fi
-name="DeepCodeX-private-${runtime_suffix}-${version}-${build}-${stamp}"
+name="${package_name}"
 work="$(mktemp -d)"
 pkg="${work}/${name}"
 mkdir -p "${pkg}/support" "${pkg}/runtime" "${OUT_DIR}"
@@ -185,7 +185,7 @@ elif [ -x "${DEEPCODEX_HOME}/ccx/ccx" ]; then
   echo "[OK] existing ccx runtime found: ${DEEPCODEX_HOME}/ccx/ccx"
 else
   echo "[WARN] package does not contain ccx runtime; DeepSeek route needs ${DEEPCODEX_HOME}/ccx/ccx"
-  echo "[WARN] runtime is not bundled; ask the maintainer for a runtime-bundled package or install a compatible runtime"
+  echo "[WARN] runtime is not bundled; ask the maintainer for DeepCodeX-mac.zip or install a compatible runtime"
 fi
 
 echo "[install] copying app to ${DEEPCODEX_APP}"
@@ -254,7 +254,7 @@ EOF
 chmod +x "${pkg}/Install-DeepCodeX.command"
 
 cat > "${pkg}/README-FIRST.zh-CN.txt" <<'EOF'
-DeepCodeX 私有成品包
+DeepCodeX Mac 私有成品包
 
 第一步：双击 Install-DeepCodeX.command。
 第二步：按提示填写 DeepSeek base URL 和 API key。
@@ -273,11 +273,12 @@ base URL 填你能访问的 DeepSeek/OpenAI-compatible 服务入口。
 
 如果 macOS 阻止打开，请先确认 .sha256 校验是 OK，再右键打开 Install-DeepCodeX.command。
 仍被拦截时，只对校验通过的解压目录执行：
-  xattr -dr com.apple.quarantine DeepCodeX-private-runtime-bundled-*
+  xattr -dr com.apple.quarantine DeepCodeX-mac
 EOF
 
 cat > "${pkg}/PACKAGE-MANIFEST.txt" <<EOF
 DeepCodeX private package
+Asset name: ${package_name}.zip
 Version: ${version}
 Build: ${build}
 Created: ${stamp}
@@ -291,6 +292,7 @@ echo "[package] auditing staged package"
 
 zip_path="${OUT_DIR}/${name}.zip"
 echo "[package] creating ${zip_path}"
+rm -f "${zip_path}" "${zip_path}.sha256"
 (cd "${work}" && /usr/bin/zip -qry "${zip_path}" "${name}")
 (cd "$(dirname "${zip_path}")" && shasum -a 256 "$(basename "${zip_path}")" > "$(basename "${zip_path}").sha256")
 "${ROOT}/scripts/audit-package.sh" "${zip_path}"
