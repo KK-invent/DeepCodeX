@@ -1,17 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360" role="img" aria-labelledby="title desc">
-  <title id="title">DeepCodeX original app icon</title>
-  <desc id="desc">An original blue route mark showing a local Codex path crossing into a compatible model endpoint.</desc>
+  <title id="title">DeepCodeX original X app icon</title>
+  <desc id="desc">An original minimal uppercase X mark with a purple gradient.</desc>
   <defs>
-    <linearGradient id="blue" x1="76" y1="58" x2="284" y2="304" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#6E8BFF"/>
-      <stop offset="1" stop-color="#3157F6"/>
+    <linearGradient id="xGradient" x1="78" y1="70" x2="286" y2="292" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#B16CFF"/>
+      <stop offset=".48" stop-color="#7C5CFF"/>
+      <stop offset="1" stop-color="#4D6BFE"/>
     </linearGradient>
   </defs>
   <rect width="360" height="360" rx="82" fill="#ffffff"/>
-  <circle cx="180" cy="180" r="116" fill="#F1F4FF"/>
-  <path d="M102 136c34-42 93-50 136-17 38 29 50 84 28 126-19 37-59 58-101 51" fill="none" stroke="url(#blue)" stroke-width="28" stroke-linecap="round"/>
-  <path d="M96 224c38 41 99 50 144 18 38-27 52-80 34-123" fill="none" stroke="url(#blue)" stroke-width="28" stroke-linecap="round"/>
-  <path d="M122 122l116 116M238 122L122 238" fill="none" stroke="#3157F6" stroke-width="30" stroke-linecap="round"/>
-  <circle cx="103" cy="136" r="18" fill="#3157F6"/>
-  <circle cx="257" cy="224" r="18" fill="#3157F6"/>
+  <rect x="62" y="62" width="236" height="236" rx="58" fill="#F7F4FF"/>
+  <path d="M114 112L246 248" fill="none" stroke="url(#xGradient)" stroke-width="48" stroke-linecap="round"/>
+  <path d="M246 112L114 248" fill="none" stroke="url(#xGradient)" stroke-width="48" stroke-linecap="round"/>
 </svg>
