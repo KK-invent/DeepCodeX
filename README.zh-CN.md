@@ -10,11 +10,11 @@
 
 DeepCodeX 是一个面向安全、隐私和可复用性的 DeepCodex 维护工具包。它的目标是让普通 Mac 用户通过 DeepSeek 兼容接口使用 DeepCodeX，同时让维护者可以在不泄露本机配置、不提交上游二进制的前提下构建和升级应用。
 
-当前仓库仍是 private 预览版。它不包含成品 `.app`、`app.asar`、官方 Codex 安装包、真实 API key、登录态、日志、会话、缓存、SQLite 数据库或第三方二进制。
+当前源码仓库已按公开发布边界整理，但正式公开前仍需完成上游条款复核和 GitHub Actions 审计。仓库不包含成品 `.app`、`app.asar`、官方 Codex 安装包、真实 API key、登录态、日志、会话、缓存、SQLite 数据库或第三方二进制。
 
 视觉素材采用 DeepCodeX 原创图形，不使用 DeepSeek 官方图标；素材来源和商标边界见 [assets/brand/SOURCES.md](assets/brand/SOURCES.md) 与 [docs/COMPLIANCE.md](docs/COMPLIANCE.md)。
 
-DeepCodeX 是非官方 private 预览项目，不隶属于 OpenAI、Codex、DeepSeek 或相关权利方，也不代表这些权利方的认可、背书或支持。
+DeepCodeX 是非官方项目，不隶属于 OpenAI、Codex、DeepSeek 或相关权利方，也不代表这些权利方的认可、背书或支持。
 
 ## 一张图看懂
 
@@ -111,6 +111,7 @@ scripts/preflight-mac.sh
 - 真实 `secrets.env`、`auth.json`、`ccx/.config/config.json` 不允许提交。
 - 会话、日志、缓存、SQLite 数据库不允许提交。
 - 仓库里不放官方 Codex 二进制、上游前端包或第三方二进制。
+- 源码、原创文档和原创视觉素材采用 MIT License；该许可证不授予任何上游应用、商标、服务账号、API key 或第三方资产的权利。
 
 发布前请运行：
 
@@ -134,5 +135,6 @@ scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS
 - [中文排障指南](docs/TROUBLESHOOTING.zh-CN.md)
 - [隐私与安全说明](docs/PRIVACY.zh-CN.md)
 - [合规说明](docs/COMPLIANCE.md)
+- [上游条款复核记录](docs/UPSTREAM_TERMS_REVIEW.md)
 - [公开发布检查清单](docs/PUBLIC_RELEASE_CHECKLIST.md)
 - [更新记录](CHANGELOG.md)

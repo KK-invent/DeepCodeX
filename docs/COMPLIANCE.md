@@ -1,6 +1,6 @@
 # Compliance Notes
 
-This repository should stay private until these boundaries are reviewed.
+This repository should stay private until the remaining upstream terms and CI boundaries are reviewed.
 
 ## What This Repository Does Not Ship
 
@@ -28,9 +28,16 @@ The public-facing repository should use original DeepCodeX artwork and should no
 
 ## License Boundary
 
-The current `LICENSE.md` is a private preview notice. Before public release, choose an explicit license for the original scripts and documentation, or keep the project source-available without open-source reuse rights.
+The original DeepCodeX source code, documentation, scripts, and original public-facing artwork are licensed under the MIT License in `LICENSE.md`.
 
-Do not choose a public license until the upstream binary and trademark boundaries are reviewed.
+The MIT License does not grant rights to:
+
+- The upstream Codex desktop app or any upstream app bundle content.
+- OpenAI, Codex, DeepSeek, or third-party trademarks.
+- DeepSeek or OpenAI service accounts, API keys, hosted services, or service names.
+- Third-party binaries, runtimes, or assets that are not tracked in this repository.
+
+Do not present the project as public-ready until the upstream patching model has been reviewed against the applicable upstream terms. Track that review in `docs/UPSTREAM_TERMS_REVIEW.md`.
 
 ## Public Release Checklist
 
@@ -42,6 +49,6 @@ Do not choose a public license until the upstream binary and trademark boundarie
 - README clearly says real DeepSeek API keys are user-provided and never committed.
 - README clearly states this is unofficial and not affiliated with upstream vendors.
 - Public-facing visual assets are original, or any third-party visual assets have explicit approval for the intended visibility.
-- License decision is intentional.
+- GitHub detects the MIT License after the license commit is pushed.
 - GitHub Actions audit CI is enabled before public visibility.
 - GitHub repository is private until the maintainer completes review.

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes for the private DeepCodeX preview are tracked here.
+All notable changes for the DeepCodeX preview and release preparation are tracked here.
 
 ## private-preview-20260530-074240
 
@@ -8,6 +8,8 @@ All notable changes for the private DeepCodeX preview are tracked here.
 - Added first-install guidance for users who already have Codex and for users who need to install Codex first.
 - Added Chinese-localized README diagrams so the Chinese entry point does not show English diagram copy.
 - Replaced DeepSeek official/derived icon assets with an original gradient `X` mark for public-facing artwork.
+- Replaced the private-preview license notice with the MIT License for original DeepCodeX source, documentation, scripts, and original artwork.
+- Added upstream-terms review tracking and a helper for enabling GitHub Actions audit CI once the token has `workflow` scope.
 - Added release asset verification to keep GitHub Release downloads concise and predictable.
 - Added a public-release readiness audit and checklist for license, brand, upstream-terms, CI, and GitHub metadata blockers.
 - Hardened the source audit against generated Python caches and local desktop metadata.

@@ -1,9 +1,21 @@
-# Private Preview Notice
+MIT License
 
-Copyright (c) 2026.
+Copyright (c) 2026 KK-invent
 
-No public open-source license is granted yet.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-This repository is prepared for private maintainer review. Do not redistribute, sublicense, publish, or reuse it as an open-source project until the maintainer explicitly replaces this notice with a chosen public license and completes the compliance checklist in `docs/COMPLIANCE.md`.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-The repository intentionally does not grant rights to any upstream Codex, OpenAI, DeepSeek, or third-party assets or binaries.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

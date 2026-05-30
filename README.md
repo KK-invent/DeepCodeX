@@ -12,11 +12,11 @@
 
 DeepCodeX is a safety-focused wrapper and maintenance toolkit for rebuilding a local DeepCodex app from an already installed Codex desktop app, then routing it through DeepSeek-compatible local services.
 
-This repository is prepared as a private review candidate. It intentionally does not contain a built `.app`, `app.asar`, upstream Codex assets, API keys, auth files, logs, caches, sessions, SQLite databases, or third-party binary payloads.
+This source repository is prepared as a sanitized maintainer toolkit. It intentionally does not contain a built `.app`, `app.asar`, upstream Codex assets, API keys, auth files, logs, caches, sessions, SQLite databases, or third-party binary payloads.
 
 The visual identity uses original DeepCodeX artwork. See [assets/brand/SOURCES.md](assets/brand/SOURCES.md) and [docs/COMPLIANCE.md](docs/COMPLIANCE.md) for source and trademark boundaries.
 
-DeepCodeX is an unofficial private-preview project. It is not affiliated with, endorsed by, or supported by OpenAI, Codex, DeepSeek, or their respective owners.
+DeepCodeX is an unofficial project. It is not affiliated with, endorsed by, or supported by OpenAI, Codex, DeepSeek, or their respective owners.
 
 ## Private Preview Download
 
@@ -113,17 +113,17 @@ The audit checks Python syntax, the image-strip self-test, high-confidence secre
 
 ## Compliance Boundary
 
-This project is a patcher and local maintenance toolkit. It does not redistribute Codex desktop, OpenAI assets, DeepSeek assets, or third-party binaries. See [docs/COMPLIANCE.md](docs/COMPLIANCE.md) before changing the repository visibility from private to public.
+This project is a patcher and local maintenance toolkit. It does not redistribute Codex desktop, OpenAI assets, DeepSeek assets, or third-party binaries. The source code and original documentation/artwork are licensed under the MIT License; that license does not grant rights to upstream apps, trademarks, service accounts, API keys, or third-party assets. See [docs/COMPLIANCE.md](docs/COMPLIANCE.md) before changing the repository visibility from private to public.
 
 Release history is tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## Current Release Status
 
-This repository is intended to be reviewed privately first. Do not make it public until:
+The source license is now chosen. Do not make the repository public until:
 
 - The audit script passes.
 - The public-release audit blockers are resolved.
 - The committed file list is manually reviewed.
 - The legal/compliance notes are accepted.
-- The license posture is intentionally chosen.
+- GitHub detects the committed MIT License.
 - A fresh local `--stage` and `doctor` verification pass on the target Codex version.

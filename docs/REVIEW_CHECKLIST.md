@@ -20,7 +20,8 @@
 - [ ] No upstream app binary or `app.asar` is tracked.
 - [ ] Any tracked third-party visual asset has a source note and visibility decision; replace before public release if rights are unclear.
 - [ ] README states this is not affiliated with upstream vendors.
-- [ ] License posture is intentionally chosen before public visibility.
+- [ ] GitHub detects the committed MIT License before public visibility.
+- [ ] Upstream patching terms are reviewed and recorded in `docs/UPSTREAM_TERMS_REVIEW.md`.
 - [ ] GitHub Actions audit CI is enabled before public visibility.
 
 ## Runtime Validation

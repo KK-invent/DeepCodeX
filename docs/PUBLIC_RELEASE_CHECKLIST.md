@@ -6,13 +6,14 @@ Do not make the repository public until every blocker here has a clear owner and
 
 ## Hard Blockers
 
-- Choose the public license posture:
-  - Replace `LICENSE.md` with a real public license, or
-  - Keep a source-available private notice and state that reuse rights are not granted.
+- Confirm the public license posture:
+  - `LICENSE.md` is MIT for original DeepCodeX source, documentation, scripts, and original artwork.
+  - The license does not grant rights to upstream apps, trademarks, service accounts, API keys, or third-party assets.
+  - GitHub license detection shows `mit` after the license commit is pushed.
 - Decide the visual-asset posture:
   - Keep only original DeepCodeX artwork in `assets/brand`, or
   - Track third-party official or derived assets only with explicit approval for public visibility.
-- Review the upstream Codex patching model against applicable app terms before presenting the project as public.
+- Review the upstream Codex patching model against applicable app terms before presenting the project as public. Track evidence in `docs/UPSTREAM_TERMS_REVIEW.md`.
 - Enable GitHub Actions audit CI by copying `docs/GITHUB_ACTIONS_AUDIT_TEMPLATE.yml` to `.github/workflows/audit.yml` with a GitHub token that has `workflow` scope.
 
 ## Required Commands
@@ -44,6 +45,7 @@ Before the visibility switch, run the same command without `--require-public`; i
 - Topics include `ai`, `codex`, `deepseek`, `developer-tools`, and `macos`.
 - The rendered English README and Chinese README both show the non-affiliation boundary.
 - The Chinese README uses only Chinese-localized diagrams.
+- GitHub detects the MIT License.
 
 ## Release Asset Rules
 
