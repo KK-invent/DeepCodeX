@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360" role="img" aria-labelledby="title desc">
-  <title id="title">DeepCodeX original X app icon</title>
-  <desc id="desc">An original minimal uppercase X mark with a purple gradient.</desc>
+  <title id="title">DeepCodeX gradient X icon</title>
+  <desc id="desc">An original minimal uppercase X mark with a purple-to-blue gradient.</desc>
   <defs>
-    <linearGradient id="xGradient" x1="78" y1="70" x2="286" y2="292" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#B16CFF"/>
-      <stop offset=".48" stop-color="#7C5CFF"/>
+    <linearGradient id="xGradient" x1="76" y1="54" x2="292" y2="306" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D47CFF"/>
+      <stop offset=".44" stop-color="#8C5CFF"/>
       <stop offset="1" stop-color="#4D6BFE"/>
     </linearGradient>
   </defs>
-  <rect width="360" height="360" rx="82" fill="#ffffff"/>
-  <rect x="62" y="62" width="236" height="236" rx="58" fill="#F7F4FF"/>
-  <path d="M114 112L246 248" fill="none" stroke="url(#xGradient)" stroke-width="48" stroke-linecap="round"/>
-  <path d="M246 112L114 248" fill="none" stroke="url(#xGradient)" stroke-width="48" stroke-linecap="round"/>
+  <g fill="url(#xGradient)">
+    <path d="M78 58h70l134 244h-70L78 58Z"/>
+    <path d="M282 58h-70L78 302h70L282 58Z"/>
+  </g>
 </svg>

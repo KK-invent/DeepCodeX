@@ -1,12 +1,12 @@
 # Brand Asset Sources
 
-DeepCodeX uses an original blue route mark for the public-facing repository.
+DeepCodeX uses original vector artwork for the public-facing repository.
 
 ## Original DeepCodeX Assets
 
-- `deepcodex-icon.svg`: original vector icon drawn for this repository. It uses a minimal uppercase `X` mark with a purple-to-blue gradient.
-- `deepcodex-logo.svg`: original wordmark composition using `deepcodex-icon.svg`.
-- `deepcodex-logo.zh-CN.svg`: Chinese-localized original wordmark composition using `deepcodex-icon.svg`.
+- `deepcodex-icon.svg`: original vector icon drawn for this repository. It uses a standalone uppercase `X` mark with a purple-to-blue gradient.
+- `deepcodex-logo.svg`: original English wordmark composition using the same standalone gradient `X` mark.
+- `deepcodex-logo.zh-CN.svg`: Chinese-localized original wordmark composition using the same standalone gradient `X` mark.
 
 No DeepSeek official image asset is tracked in the public-facing asset set. DeepSeek marks and graphics belong to their respective owner.
 

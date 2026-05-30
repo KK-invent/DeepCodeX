@@ -13,6 +13,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Restricted public source release public-check bypass to dry-run planning while the repository is still private.
 - Required explicit private release asset inspection, or an explicit no-private-assets assertion, before public source release preparation can pass.
 - Made the no-private-assets path scan GitHub releases for binary/checksum assets instead of relying on maintainer assertion alone.
+- Simplified the project logo into a standalone uppercase `X` with a Codex-style purple-to-blue gradient.
 - Public release remains gated on upstream terms approval and GitHub Actions audit CI.
 
 ## private-preview-20260530-074240
