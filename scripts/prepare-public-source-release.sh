@@ -114,11 +114,11 @@ is_binary_release_asset() {
 collect_binary_assets_for_release() {
   local tag="$1"
   local assets="${tmp}/assets-${tag//[^A-Za-z0-9_.-]/_}.txt"
-  retry_stdout "${assets}" gh release view "${tag}" --repo "${REPO}" --json assets -q '.assets[] | "\(.id)\t\(.name)"' || return 1
-  while IFS=$'\t' read -r asset_id asset_name; do
-    [ -n "${asset_id:-}" ] || continue
+  retry_stdout "${assets}" gh release view "${tag}" --repo "${REPO}" --json assets -q '.assets[] | "\(.apiUrl)\t\(.name)"' || return 1
+  while IFS=$'\t' read -r asset_api_url asset_name; do
+    [ -n "${asset_api_url:-}" ] || continue
     if is_binary_release_asset "${asset_name}"; then
-      printf '%s\t%s\t%s\n' "${tag}" "${asset_id}" "${asset_name}"
+      printf '%s\t%s\t%s\n' "${tag}" "${asset_api_url}" "${asset_name}"
     fi
   done < "${assets}"
 }
@@ -250,9 +250,9 @@ elif [ -n "${PRIVATE_RELEASE_TAG}" ]; then
       block "could not inspect binary assets for release ${PRIVATE_RELEASE_TAG}"
       binary_asset_rows=""
     fi
-    while IFS=$'\t' read -r release_tag asset_id asset_name; do
-      [ -n "${asset_id:-}" ] || continue
-      binary_assets+=("${asset_id}"$'\t'"${asset_name}")
+    while IFS=$'\t' read -r release_tag asset_api_url asset_name; do
+      [ -n "${asset_api_url:-}" ] || continue
+      binary_assets+=("${asset_api_url}"$'\t'"${asset_name}")
     done <<< "${binary_asset_rows}"
 
     if [ "${#binary_assets[@]}" -eq 0 ]; then
@@ -269,13 +269,14 @@ elif [ -n "${PRIVATE_RELEASE_TAG}" ]; then
       else
         "${ROOT}/scripts/verify-release-assets.sh" --repo "${REPO}" --tag "${PRIVATE_RELEASE_TAG}" --expected-target "$(git -C "${ROOT}" rev-parse HEAD)"
         for entry in "${binary_assets[@]}"; do
-          asset_id="${entry%%$'\t'*}"
+          asset_api_url="${entry%%$'\t'*}"
           asset_name="${entry#*$'\t'}"
+          asset_api_path="${asset_api_url#https://api.github.com/}"
           if [ "${DRY_RUN}" -eq 1 ]; then
-            echo "[DRY-RUN] would delete ${asset_name} (${asset_id})"
+            echo "[DRY-RUN] would delete ${asset_name} (${asset_api_path})"
           else
-            echo "[delete] ${asset_name} (${asset_id})"
-            gh api -X DELETE "repos/${REPO}/releases/assets/${asset_id}" >/dev/null
+            echo "[delete] ${asset_name} (${asset_api_path})"
+            gh api -X DELETE "${asset_api_path}" >/dev/null
           fi
         done
         if [ "${DRY_RUN}" -ne 1 ]; then

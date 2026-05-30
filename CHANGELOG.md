@@ -40,6 +40,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Made private release publishing run full offline package smoke tests before uploading zip assets.
 - Required upstream approval dates to be current with the tracked upstream terms review and not in the future.
 - Made release asset verification compare GitHub zip asset digests with published checksum files.
+- Fixed public source preparation so private preview asset deletion uses GitHub REST asset URLs.
 - Public release remains gated on upstream terms approval.
 
 ## private-preview-20260530-074240
