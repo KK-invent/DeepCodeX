@@ -1,0 +1,33 @@
+name: Release readiness task
+description: Track a public-release blocker or release checklist item.
+title: "[Release]: "
+labels: ["release"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Upstream terms approval
+        - GitHub Actions audit
+        - Binary release assets
+        - Source audit
+        - Documentation
+        - Brand and trademark posture
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence or current output
+      description: Paste command output, links, or file references. Redact secrets.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: What evidence proves this task is complete?
+    validations:
+      required: true

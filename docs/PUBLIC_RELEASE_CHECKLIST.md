@@ -62,6 +62,7 @@ scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-re
 - The rendered English README and Chinese README both show the non-affiliation boundary.
 - The Chinese README uses only Chinese-localized diagrams.
 - GitHub detects the MIT License.
+- `CONTRIBUTING.md`, `SUPPORT.md`, issue templates, and the pull request template are present.
 
 ## Release Asset Rules
 

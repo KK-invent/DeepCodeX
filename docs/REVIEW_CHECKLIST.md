@@ -20,6 +20,7 @@
 - [ ] No upstream app binary or `app.asar` is tracked.
 - [ ] Any tracked third-party visual asset has a source note and visibility decision; replace before public release if rights are unclear.
 - [ ] README states this is not affiliated with upstream vendors.
+- [ ] `CONTRIBUTING.md`, `SUPPORT.md`, and GitHub issue/PR templates are present for public repository operations.
 - [ ] GitHub detects the committed MIT License before public visibility.
 - [ ] Upstream patching terms are reviewed and recorded in `docs/UPSTREAM_TERMS_REVIEW.md`.
 - [ ] `docs/UPSTREAM_TERMS_APPROVAL.md` exists only after real approval and records whether public binary release assets are approved or private-only.

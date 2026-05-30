@@ -1,0 +1,74 @@
+name: Bug report
+description: Report a reproducible DeepCodeX source or install problem.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not paste API keys, tokens, cookies, private gateway URLs, auth files, app bundles, logs with secrets, or screenshots containing credentials.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What failed, and what did you expect?
+    validations:
+      required: true
+  - type: dropdown
+    id: install_source
+    attributes:
+      label: Install source
+      options:
+        - Source checkout
+        - Private preview package
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: codex_present
+    attributes:
+      label: Is official Codex installed at /Applications/Codex.app?
+      options:
+        - "Yes"
+        - "No"
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: deepcodex_present
+    attributes:
+      label: Is DeepCodeX installed at /Applications/Deepcodex.app?
+      options:
+        - "Yes"
+        - "No"
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: macos_version
+    attributes:
+      label: macOS version
+      placeholder: "Example: 15.5"
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command or action
+      description: Paste the exact command or describe the app action that failed.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Redacted output
+      description: Include redacted output from preflight or doctor. Replace secrets and private hosts with REDACTED.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Anything else relevant after redacting private data.
