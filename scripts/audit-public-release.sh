@@ -196,7 +196,7 @@ if [ -n "${REPO}" ]; then
 
   repo_visibility_file="$(mktemp)"
   if retry_stdout "${repo_visibility_file}" gh repo view "${REPO}" --json isPrivate; then
-    visibility_private="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("isPrivate"))' "${repo_visibility_file}")"
+    visibility_private="$(python3 -c 'import json,sys; print(str(json.load(open(sys.argv[1])).get("isPrivate")).lower())' "${repo_visibility_file}")"
   else
     block "could not inspect GitHub repository visibility"
     visibility_private="unknown"
