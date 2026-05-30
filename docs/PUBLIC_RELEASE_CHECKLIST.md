@@ -61,7 +61,7 @@ scripts/verify-github-actions-audit.sh --repo KK-invent/DeepCodeX --commit $(git
 Before the visibility switch, run the public-release gate without `--require-public`; it should pass after all decision blockers are resolved:
 
 ```bash
-scripts/audit-public-release.sh --repo KK-invent/DeepCodeX
+scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --release-tag private-preview-YYYYMMDD-HHMMSS
 scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run
 scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run --skip-public-check
 ```

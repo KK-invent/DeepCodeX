@@ -3,7 +3,7 @@
 ## Security
 
 - [ ] `scripts/audit-release.sh` passes locally.
-- [ ] `scripts/audit-public-release.sh --repo KK-invent/DeepCodeX` passes before public visibility.
+- [ ] `scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --release-tag private-preview-YYYYMMDD-HHMMSS` passes before public visibility.
 - [ ] `git ls-files` contains no secrets, local state, logs, sessions, caches, app bundles, or upstream binaries.
 - [ ] `git ls-files` contains no `.zip`, `.tar`, `.tgz`, `.7z`, `.rar`, `.dmg`, `.pkg`, `.asar`, `.app`, checksum, SQLite, log, `auth.json`, or `secrets.env` payloads.
 - [ ] `config/secrets.env.example` contains placeholders only.
@@ -24,12 +24,13 @@
 - [ ] `VERSION` and `docs/PUBLIC_SOURCE_RELEASE_NOTES.md` describe the public source release.
 - [ ] `CONTRIBUTING.md`, `SUPPORT.md`, and GitHub issue/PR templates are present for public repository operations.
 - [ ] `scripts/verify-github-public-metadata.sh --repo KK-invent/DeepCodeX` passes.
-- [ ] `scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --dry-run --skip-public-check` passes while still private, and the same command without `--skip-public-check` passes after public visibility.
+- [ ] `scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run --skip-public-check` passes while still private, and the same command without `--skip-public-check` passes after public visibility.
 - [ ] GitHub detects the committed MIT License before public visibility.
 - [ ] Upstream patching terms are reviewed and recorded in `docs/UPSTREAM_TERMS_REVIEW.md`.
 - [ ] `docs/UPSTREAM_TERMS_APPROVAL.md` exists only after real approval and records whether public binary release assets are approved or private-only.
 - [ ] Private preview binary release assets are removed before public visibility unless public binary distribution is approved.
-- [ ] `scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run` passes, or `--no-private-release-assets` scans GitHub releases and passes only when no private binary release assets exist.
+- [ ] If `public-binary-release: private-only`, `scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --delete-binary-assets --hide-private-release --dry-run` passes before changing visibility.
+- [ ] If no private binary release exists, `scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --no-private-release-assets --dry-run` scans GitHub releases and passes only when no binary/checksum release assets exist.
 - [ ] GitHub Actions audit CI is enabled before public visibility.
 
 ## Runtime Validation
