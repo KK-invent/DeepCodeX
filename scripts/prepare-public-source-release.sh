@@ -134,6 +134,21 @@ release_exists() {
   retry gh release view "$1" --repo "${REPO}" --json tagName >/dev/null
 }
 
+verify_no_binary_assets_for_release() {
+  local tag="$1"
+  local remaining_rows
+  if ! remaining_rows="$(collect_binary_assets_for_release "${tag}")"; then
+    block "could not verify binary assets were removed from release ${tag}"
+    return
+  fi
+  if [ -n "${remaining_rows}" ]; then
+    block "release ${tag} still has binary/checksum assets after cleanup"
+    printf '%s\n' "${remaining_rows}" | cut -f3 | sed 's/^/  - /' >&2
+  else
+    ok "binary/checksum assets were removed from ${tag}"
+  fi
+}
+
 mark_private_release_draft() {
   local tag="$1"
   if [ "${HIDE_PRIVATE_RELEASE}" -ne 1 ]; then
@@ -244,6 +259,7 @@ elif [ -n "${PRIVATE_RELEASE_TAG}" ]; then
       ok "no binary/checksum assets are attached to ${PRIVATE_RELEASE_TAG}"
       mark_private_release_draft "${PRIVATE_RELEASE_TAG}"
     elif [ "${binary_status:-}" = "approved" ]; then
+      "${ROOT}/scripts/verify-release-assets.sh" --repo "${REPO}" --tag "${PRIVATE_RELEASE_TAG}" --expected-target "$(git -C "${ROOT}" rev-parse HEAD)"
       ok "binary release assets are present and public-binary-release is approved"
     elif [ "${DELETE_BINARY_ASSETS}" -eq 1 ]; then
       if [ "${SOURCE_APPROVAL_READY}" -ne 1 ]; then
@@ -251,6 +267,7 @@ elif [ -n "${PRIVATE_RELEASE_TAG}" ]; then
       elif [ "${binary_status:-}" != "private-only" ]; then
         block "refusing to delete release assets unless public-binary-release is private-only"
       else
+        "${ROOT}/scripts/verify-release-assets.sh" --repo "${REPO}" --tag "${PRIVATE_RELEASE_TAG}" --expected-target "$(git -C "${ROOT}" rev-parse HEAD)"
         for entry in "${binary_assets[@]}"; do
           asset_id="${entry%%$'\t'*}"
           asset_name="${entry#*$'\t'}"
@@ -261,6 +278,9 @@ elif [ -n "${PRIVATE_RELEASE_TAG}" ]; then
             gh api -X DELETE "repos/${REPO}/releases/assets/${asset_id}" >/dev/null
           fi
         done
+        if [ "${DRY_RUN}" -ne 1 ]; then
+          verify_no_binary_assets_for_release "${PRIVATE_RELEASE_TAG}"
+        fi
         mark_private_release_draft "${PRIVATE_RELEASE_TAG}"
       fi
     else

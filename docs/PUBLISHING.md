@@ -96,7 +96,7 @@ scripts/prepare-public-source-release.sh \
   --hide-private-release
 ```
 
-`--hide-private-release` marks the old private preview Release as a draft after its binary/checksum assets are removed. The preparation script does not make the repository public. After it passes, review the GitHub UI and then change visibility manually.
+The preparation script verifies the private preview release target before deletion, then verifies that binary/checksum assets are gone afterward. `--hide-private-release` marks the old private preview Release as a draft after its binary/checksum assets are removed. The preparation script does not make the repository public. After it passes, review the GitHub UI and then change visibility manually.
 
 After the repository is public, create the source-only GitHub Release:
 

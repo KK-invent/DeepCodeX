@@ -84,7 +84,7 @@ If `docs/UPSTREAM_TERMS_APPROVAL.md` says `public-binary-release: private-only`,
 scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --delete-binary-assets --hide-private-release
 ```
 
-`--hide-private-release` marks the old private preview Release as a draft after its binary/checksum assets are removed, so the public repository does not expose a confusing empty private-preview prerelease.
+The preparation script verifies the private preview release target before deletion, then verifies that binary/checksum assets are gone afterward. `--hide-private-release` marks the old private preview Release as a draft after its binary/checksum assets are removed, so the public repository does not expose a confusing empty private-preview prerelease.
 
 After the repository is public, create and verify the source-only release:
 
