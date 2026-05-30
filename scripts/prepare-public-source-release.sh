@@ -59,7 +59,7 @@ approval_value() {
 
 is_binary_release_asset() {
   case "$1" in
-    *.app|*.app.sha256|*.asar|*.asar.sha256|*.dmg|*.dmg.sha256|*.pkg|*.pkg.sha256|*.zip|*.zip.sha256)
+    *.app|*.app.sha256|*.asar|*.asar.sha256|*.dmg|*.dmg.sha256|*.pkg|*.pkg.sha256|*.zip|*.zip.sha256|*.tar|*.tar.sha256|*.tar.gz|*.tar.gz.sha256|*.tgz|*.tgz.sha256|*.7z|*.7z.sha256|*.rar|*.rar.sha256)
       return 0
       ;;
     *)

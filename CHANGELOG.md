@@ -8,6 +8,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Added source-only public release publish and verification scripts that refuse uploaded binary assets.
 - Hardened source audit to fail on tracked runtime, package, cache, or private-state payload filenames while allowing ignored local release caches.
 - Refreshed the upstream-terms review packet with current Codex/OpenAI source links and explicit GitHub Actions scope guidance.
+- Broadened release payload guards for common archive/checksum formats and recursive brand raster assets.
 - Public release remains gated on upstream terms approval and GitHub Actions audit CI.
 
 ## private-preview-20260530-074240

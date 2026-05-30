@@ -36,11 +36,25 @@ tmp/
 
 # Upstream or generated app/binary payloads
 *.app/
+*.app.sha256
 *.asar
 *.asar.*
 *.dmg
+*.dmg.sha256
 *.zip
+*.zip.sha256
 *.pkg
+*.pkg.sha256
+*.tar
+*.tar.sha256
+*.tar.gz
+*.tar.gz.sha256
+*.tgz
+*.tgz.sha256
+*.7z
+*.7z.sha256
+*.rar
+*.rar.sha256
 ccx/ccx
 vendor_imports/
 plugins/
@@ -49,6 +63,12 @@ computer-use/
 # Brand/trademark-sensitive assets are intentionally not included by default.
 assets/*.icns
 assets/*.png
+assets/**/*.icns
+assets/**/*.png
+assets/**/*.jpg
+assets/**/*.jpeg
+assets/**/*.webp
+assets/**/*.gif
 !assets/.gitkeep
 
 # Python

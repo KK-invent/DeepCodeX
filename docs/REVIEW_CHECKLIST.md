@@ -5,7 +5,7 @@
 - [ ] `scripts/audit-release.sh` passes locally.
 - [ ] `scripts/audit-public-release.sh --repo KK-invent/DeepCodeX` passes before public visibility.
 - [ ] `git ls-files` contains no secrets, local state, logs, sessions, caches, app bundles, or upstream binaries.
-- [ ] `git ls-files` contains no `.zip`, `.dmg`, `.pkg`, `.asar`, `.app`, `.sqlite`, `.db`, `.log`, `auth.json`, or `secrets.env` payloads.
+- [ ] `git ls-files` contains no `.zip`, `.tar`, `.tgz`, `.7z`, `.rar`, `.dmg`, `.pkg`, `.asar`, `.app`, checksum, SQLite, log, `auth.json`, or `secrets.env` payloads.
 - [ ] `config/secrets.env.example` contains placeholders only.
 - [ ] CLI and GUI configuration paths do not print API keys.
 

@@ -98,4 +98,4 @@ DeepCodeX-mac.zip.sha256
 
 Do not publish maintainer-only or runtime-variant packages as default public downloads.
 
-For public repository visibility, do not expose uploaded app or binary release assets unless `docs/UPSTREAM_TERMS_APPROVAL.md` explicitly approves public binary distribution. If the approval says `public-binary-release: private-only`, delete private preview binary assets or keep the repository private.
+For public repository visibility, do not expose uploaded app, package, archive, or checksum release assets unless `docs/UPSTREAM_TERMS_APPROVAL.md` explicitly approves public binary distribution. If the approval says `public-binary-release: private-only`, delete private preview binary assets or keep the repository private.
