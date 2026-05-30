@@ -24,11 +24,6 @@ Options:
   --release-tag TAG       Optional release tag whose asset names must be checked.
   --require-public        Also fail if the GitHub repository is still private.
 
-Human decision acknowledgements:
-  DEEPCODEX_PUBLIC_BRAND_APPROVED=1
-  DEEPCODEX_PUBLIC_UPSTREAM_TERMS_APPROVED=1
-  DEEPCODEX_PUBLIC_BINARY_RELEASE_APPROVED=1
-
 Durable approval file:
   docs/UPSTREAM_TERMS_APPROVAL.md
 EOF
@@ -78,9 +73,7 @@ retry_stdout() {
 }
 
 public_binary_release_approved() {
-  [ "${DEEPCODEX_PUBLIC_BINARY_RELEASE_APPROVED:-}" = "1" ] ||
-    { [ -f "${UPSTREAM_APPROVAL_FILE}" ] &&
-      grep -Eq '^public-binary-release:[[:space:]]*approved[[:space:]]*$' "${UPSTREAM_APPROVAL_FILE}"; }
+  "${ROOT}/scripts/verify-upstream-terms-approval.sh" --file "${UPSTREAM_APPROVAL_FILE}" --require-binary-approved >/dev/null 2>&1
 }
 
 echo "== Source release audit =="
@@ -131,14 +124,10 @@ else
 fi
 
 echo "== Upstream terms posture =="
-if [ "${DEEPCODEX_PUBLIC_UPSTREAM_TERMS_APPROVED:-}" = "1" ]; then
-  ok "upstream Codex patching/distribution terms were explicitly approved"
-elif [ -f "${UPSTREAM_APPROVAL_FILE}" ] &&
-  grep -Eq '^approval-status:[[:space:]]*approved[[:space:]]*$' "${UPSTREAM_APPROVAL_FILE}" &&
-  grep -Eq '^public-source-release:[[:space:]]*approved[[:space:]]*$' "${UPSTREAM_APPROVAL_FILE}"; then
-  ok "upstream Codex patching/distribution terms approval file is present"
+if "${ROOT}/scripts/verify-upstream-terms-approval.sh" --file "${UPSTREAM_APPROVAL_FILE}"; then
+  ok "upstream Codex patching/distribution terms approval file is complete"
 else
-  block "upstream Codex patching/distribution terms are not approved; keep the repository private until docs/UPSTREAM_TERMS_APPROVAL.md is completed"
+  block "upstream Codex patching/distribution terms are not approved; keep the repository private until docs/UPSTREAM_TERMS_APPROVAL.md is complete"
 fi
 
 echo "== CI posture =="
@@ -175,6 +164,7 @@ required_public_files=(
   ".github/PULL_REQUEST_TEMPLATE.md"
   "scripts/verify-public-release-git-state.sh"
   "scripts/verify-github-actions-audit.sh"
+  "scripts/verify-upstream-terms-approval.sh"
   "scripts/publish-public-source-release.sh"
   "scripts/verify-public-source-release.sh"
 )

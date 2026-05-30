@@ -196,24 +196,11 @@ else
 fi
 
 echo "== Durable upstream approval =="
-if [ ! -f "${APPROVAL_FILE}" ]; then
-  block "missing ${APPROVAL_FILE}; copy docs/UPSTREAM_TERMS_APPROVAL_TEMPLATE.md only after real approval"
+if ! "${ROOT}/scripts/verify-upstream-terms-approval.sh" --file "${APPROVAL_FILE}"; then
+  block "upstream terms approval file is missing or incomplete"
 else
-  approval_status="$(approval_value approval-status)"
-  source_status="$(approval_value public-source-release)"
   binary_status="$(approval_value public-binary-release)"
-
-  [ "${approval_status}" = "approved" ] && ok "approval-status approved" || block "approval-status must be approved"
-  [ "${source_status}" = "approved" ] && ok "public-source-release approved" || block "public-source-release must be approved"
-  case "${binary_status}" in
-    private-only|approved) ok "public-binary-release is ${binary_status}" ;;
-    *) block "public-binary-release must be private-only or approved" ;;
-  esac
-  if [ "${approval_status}" = "approved" ] &&
-    [ "${source_status}" = "approved" ] &&
-    { [ "${binary_status}" = "private-only" ] || [ "${binary_status}" = "approved" ]; }; then
-    SOURCE_APPROVAL_READY=1
-  fi
+  SOURCE_APPROVAL_READY=1
 fi
 
 echo "== GitHub Actions audit =="

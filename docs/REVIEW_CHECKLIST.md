@@ -28,6 +28,7 @@
 - [ ] GitHub detects the committed MIT License before public visibility.
 - [ ] Upstream patching terms are reviewed and recorded in `docs/UPSTREAM_TERMS_REVIEW.md`.
 - [ ] `docs/UPSTREAM_TERMS_APPROVAL.md` exists only after real approval and records whether public binary release assets are approved or private-only.
+- [ ] `scripts/verify-upstream-terms-approval.sh` passes against `docs/UPSTREAM_TERMS_APPROVAL.md`.
 - [ ] Private preview binary release assets are removed before public visibility unless public binary distribution is approved.
 - [ ] If `public-binary-release: private-only`, `scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --delete-binary-assets --hide-private-release --dry-run` passes before changing visibility.
 - [ ] If no private binary release exists, `scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --no-private-release-assets --dry-run` scans GitHub releases and passes only when no binary/checksum release assets exist.

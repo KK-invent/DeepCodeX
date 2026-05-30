@@ -46,6 +46,12 @@ If `--release-tag` points at a private preview release that still has `DeepCodeX
 
 Before switching repository visibility, complete `docs/UPSTREAM_TERMS_APPROVAL.md` from `docs/UPSTREAM_TERMS_APPROVAL_TEMPLATE.md`.
 
+The approval file must pass:
+
+```bash
+scripts/verify-upstream-terms-approval.sh
+```
+
 If binary distribution is not approved, run the final public gate without a private preview binary release attached to the public repository:
 
 ```bash
