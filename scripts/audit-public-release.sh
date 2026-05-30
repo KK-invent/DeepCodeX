@@ -77,6 +77,20 @@ else
   ok "LICENSE.md no longer contains the private-preview notice"
 fi
 
+echo "== Version and public release notes posture =="
+if [ -f "${ROOT}/VERSION" ] && grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' "${ROOT}/VERSION"; then
+  ok "VERSION is a semver release version: $(cat "${ROOT}/VERSION")"
+else
+  block "VERSION must exist and contain a semver value like 0.1.0"
+fi
+if [ -s "${ROOT}/docs/PUBLIC_SOURCE_RELEASE_NOTES.md" ] &&
+  grep -Eq 'v[0-9]+\.[0-9]+\.[0-9]+' "${ROOT}/docs/PUBLIC_SOURCE_RELEASE_NOTES.md" &&
+  grep -Eq 'What Is Included|What Is Not Included|Public Release Preconditions' "${ROOT}/docs/PUBLIC_SOURCE_RELEASE_NOTES.md"; then
+  ok "public source release notes are present"
+else
+  block "docs/PUBLIC_SOURCE_RELEASE_NOTES.md must describe the public source release"
+fi
+
 echo "== Brand and trademark posture =="
 if git -C "${ROOT}" ls-files | grep -Eq '(^assets/brand/deepseek-|^assets/brand/deepcodex-hero\.png$)' || grep -Eiq 'Official DeepSeek Assets|downloaded from https://(cdn|download)\.deepseek\.com|official DeepSeek favicon|DeepSeek whale mark' "${ROOT}/assets/brand/SOURCES.md"; then
   if [ "${DEEPCODEX_PUBLIC_BRAND_APPROVED:-}" = "1" ]; then

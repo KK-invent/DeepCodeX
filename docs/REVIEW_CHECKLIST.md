@@ -20,6 +20,7 @@
 - [ ] No upstream app binary or `app.asar` is tracked.
 - [ ] Any tracked third-party visual asset has a source note and visibility decision; replace before public release if rights are unclear.
 - [ ] README states this is not affiliated with upstream vendors.
+- [ ] `VERSION` and `docs/PUBLIC_SOURCE_RELEASE_NOTES.md` describe the public source release.
 - [ ] `CONTRIBUTING.md`, `SUPPORT.md`, and GitHub issue/PR templates are present for public repository operations.
 - [ ] `scripts/verify-github-public-metadata.sh --repo KK-invent/DeepCodeX` passes.
 - [ ] GitHub detects the committed MIT License before public visibility.

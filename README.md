@@ -119,6 +119,8 @@ This project is a patcher and local maintenance toolkit. It does not redistribut
 
 Release history is tracked in [CHANGELOG.md](CHANGELOG.md).
 
+Planned public source release notes are in [docs/PUBLIC_SOURCE_RELEASE_NOTES.md](docs/PUBLIC_SOURCE_RELEASE_NOTES.md). The current source release version is tracked in [VERSION](VERSION).
+
 ## Contributing And Support
 
 Before opening an issue or pull request, read [CONTRIBUTING.md](CONTRIBUTING.md), [SUPPORT.md](SUPPORT.md), and [SECURITY.md](SECURITY.md). Do not paste API keys, tokens, cookies, private gateway URLs, app bundles, logs with secrets, or screenshots containing credentials into public GitHub threads.

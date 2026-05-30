@@ -30,6 +30,8 @@ If the name already exists, create a private repository with a dated suffix and 
 
 Do not change visibility to public until `docs/COMPLIANCE.md` and `docs/PUBLIC_RELEASE_CHECKLIST.md` are complete and the maintainer has manually reviewed the GitHub file list.
 
+The planned public source version is stored in `VERSION`. Public source release notes live in `docs/PUBLIC_SOURCE_RELEASE_NOTES.md`.
+
 Run:
 
 ```bash

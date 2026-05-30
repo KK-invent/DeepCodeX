@@ -10,6 +10,9 @@ Do not make the repository public until every blocker here has a clear owner and
   - `LICENSE.md` is MIT for original DeepCodeX source, documentation, scripts, and original artwork.
   - The license does not grant rights to upstream apps, trademarks, service accounts, API keys, or third-party assets.
   - GitHub license detection shows `mit` after the license commit is pushed.
+- Confirm the public source release identity:
+  - `VERSION` contains the semver version.
+  - `docs/PUBLIC_SOURCE_RELEASE_NOTES.md` describes what is included, not included, and still gated.
 - Decide the visual-asset posture:
   - Keep only original DeepCodeX artwork in `assets/brand`, or
   - Track third-party official or derived assets only with explicit approval for public visibility.
@@ -68,6 +71,7 @@ scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-re
 - The rendered English README and Chinese README both show the non-affiliation boundary.
 - The Chinese README uses only Chinese-localized diagrams.
 - GitHub detects the MIT License.
+- `VERSION` and `docs/PUBLIC_SOURCE_RELEASE_NOTES.md` are present.
 - `CONTRIBUTING.md`, `SUPPORT.md`, issue templates, and the pull request template are present.
 - GitHub labels used by issue templates exist: `bug`, `documentation`, `release`.
 

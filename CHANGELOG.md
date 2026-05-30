@@ -2,6 +2,11 @@
 
 All notable changes for the DeepCodeX preview and release preparation are tracked here.
 
+## v0.1.0
+
+- Prepared the first planned public source release identity with `VERSION` and public source release notes.
+- Public release remains gated on upstream terms approval and GitHub Actions audit CI.
+
 ## private-preview-20260530-074240
 
 - Published the private Mac preview package as `DeepCodeX-mac.zip` with a matching `.sha256` file.

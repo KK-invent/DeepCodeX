@@ -138,6 +138,7 @@ scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS
 - [上游条款复核记录](docs/UPSTREAM_TERMS_REVIEW.md)
 - [上游条款审批模板](docs/UPSTREAM_TERMS_APPROVAL_TEMPLATE.md)
 - [公开发布检查清单](docs/PUBLIC_RELEASE_CHECKLIST.md)
+- [公开源码发布说明](docs/PUBLIC_SOURCE_RELEASE_NOTES.md)
 - [贡献指南](CONTRIBUTING.md)
 - [支持说明](SUPPORT.md)
 - [安全策略](SECURITY.md)
