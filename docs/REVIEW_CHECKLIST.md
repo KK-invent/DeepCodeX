@@ -34,7 +34,7 @@
 
 ## Runtime Validation
 
-- [ ] `python3 -m py_compile bin/*.py` passes.
+- [ ] `PYTHONPYCACHEPREFIX="$(mktemp -d)" python3 -m py_compile bin/*.py` passes without leaving `bin/__pycache__`.
 - [ ] `bin/deepcodex-image-strip-proxy.py --selftest` passes.
 - [ ] On a configured machine, `bin/deepcodex-sync-upstream.py --stage` passes.
 - [ ] On a configured machine, `bin/deepcodex-doctor.py` reports no failures.

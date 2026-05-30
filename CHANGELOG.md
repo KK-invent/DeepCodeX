@@ -9,6 +9,7 @@ All notable changes for the DeepCodeX preview and release preparation are tracke
 - Hardened source audit to fail on tracked runtime, package, cache, or private-state payload filenames while allowing ignored local release caches.
 - Refreshed the upstream-terms review packet with current Codex/OpenAI source links and explicit GitHub Actions scope guidance.
 - Broadened release payload guards for common archive/checksum formats and recursive brand raster assets.
+- Updated the reviewer runtime checklist so Python syntax checks do not leave banned `__pycache__` files in the source tree.
 - Public release remains gated on upstream terms approval and GitHub Actions audit CI.
 
 ## private-preview-20260530-074240
