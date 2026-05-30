@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="500" viewBox="0 0 1120 500" role="img" aria-labelledby="title desc">
+  <title id="title">DeepCodeX 本地路由架构</title>
+  <desc id="desc">展示 Codex、DeepCodeX、本地转接层、运行时和用户所选 DeepSeek 兼容服务地址的极简路由图。</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8faff}
+      .box{fill:#fff;stroke:#dbe3ff;stroke-width:2}
+      .accent{fill:#f1f4ff;stroke:#4D6BFE;stroke-width:2}
+      .txt{font-family:'PingFang SC','Hiragino Sans GB','Noto Sans CJK SC','Microsoft YaHei',Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#0f2942}
+      .sub{fill:#56617a}
+      .line{stroke:#4D6BFE;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 10 5 0 10z" fill="#4D6BFE"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1120" height="500" rx="32"/>
+  <text class="txt" x="64" y="70" font-size="34" font-weight="760">本地路由，边界清晰</text>
+  <text class="txt sub" x="64" y="108" font-size="18">官方 Codex 保持原样；DeepCodeX 只保存本机配置，并转发到你选择的服务地址。</text>
+
+  <rect class="box" x="62" y="190" width="190" height="112" rx="22"/>
+  <text class="txt" x="92" y="236" font-size="22" font-weight="720">Codex</text>
+  <text class="txt sub" x="92" y="270" font-size="16">官方应用</text>
+  <path class="line" d="M252 246h70"/>
+
+  <rect class="accent" x="322" y="190" width="190" height="112" rx="22"/>
+  <text class="txt" x="352" y="236" font-size="22" font-weight="720">DeepCodeX</text>
+  <text class="txt sub" x="352" y="270" font-size="16">本地改造应用</text>
+  <path class="line" d="M512 246h70"/>
+
+  <rect class="box" x="582" y="190" width="190" height="112" rx="22"/>
+  <text class="txt" x="612" y="236" font-size="22" font-weight="720">本地转接层</text>
+  <text class="txt sub" x="612" y="270" font-size="16">127.0.0.1:3100</text>
+  <path class="line" d="M772 246h70"/>
+
+  <rect class="box" x="842" y="190" width="218" height="112" rx="22"/>
+  <text class="txt" x="872" y="236" font-size="22" font-weight="720">服务地址</text>
+  <text class="txt sub" x="872" y="270" font-size="16">DeepSeek 兼容服务</text>
+
+  <text class="txt sub" x="104" y="382" font-size="16">不使用 ChatGPT 登录令牌</text>
+  <circle cx="82" cy="376" r="7" fill="#4D6BFE"/>
+  <text class="txt sub" x="410" y="382" font-size="16">访问密钥只留在本机</text>
+  <circle cx="388" cy="376" r="7" fill="#4D6BFE"/>
+  <text class="txt sub" x="690" y="382" font-size="16">发布前完成成品包审计</text>
+  <circle cx="668" cy="376" r="7" fill="#4D6BFE"/>
+</svg>

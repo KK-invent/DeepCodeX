@@ -112,6 +112,8 @@ The audit checks Python syntax, the image-strip self-test, high-confidence secre
 
 This project is a patcher and local maintenance toolkit. It does not redistribute Codex desktop, OpenAI assets, or third-party binaries. DeepSeek visual assets are tracked only for this private preview and are not covered by the project license. See [docs/COMPLIANCE.md](docs/COMPLIANCE.md) before changing the repository visibility from private to public.
 
+Release history is tracked in [CHANGELOG.md](CHANGELOG.md).
+
 ## Current Release Status
 
 This repository is intended to be reviewed privately first. Do not make it public until:

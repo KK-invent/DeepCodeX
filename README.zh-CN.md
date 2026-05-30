@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="assets/brand/deepseek-app-icon.png" alt="DeepSeek blue whale app icon" width="156">
+  <img src="assets/brand/deepseek-app-icon.png" alt="DeepSeek 蓝鲸应用图标" width="156">
 </p>
 
 <p align="center">
-  <img src="assets/brand/deepcodex-logo.svg" alt="DeepCodeX" width="560">
+  <img src="assets/brand/deepcodex-logo.zh-CN.svg" alt="DeepCodeX 中文标志" width="560">
 </p>
 
 # DeepCodeX
@@ -16,11 +16,11 @@ DeepCodeX 是一个面向安全、隐私和可复用性的 DeepCodex 维护工�
 
 ## 一张图看懂
 
-![DeepCodeX routing architecture](assets/brand/routing-architecture.svg)
+![DeepCodeX 本地路由架构](assets/brand/routing-architecture.zh-CN.svg)
 
-![DeepCodeX install detection flow](assets/brand/install-detection-flow.svg)
+![DeepCodeX 统一安装检测流程](assets/brand/install-detection-flow.zh-CN.svg)
 
-![DeepCodeX safety scorecard](assets/brand/safety-scorecard.svg)
+![DeepCodeX 安全门禁一览](assets/brand/safety-scorecard.zh-CN.svg)
 
 ## 你是哪类用户
 
@@ -131,3 +131,4 @@ scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS
 - [中文排障指南](docs/TROUBLESHOOTING.zh-CN.md)
 - [隐私与安全说明](docs/PRIVACY.zh-CN.md)
 - [合规说明](docs/COMPLIANCE.md)
+- [更新记录](CHANGELOG.md)

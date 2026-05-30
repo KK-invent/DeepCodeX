@@ -15,7 +15,11 @@ DeepSeek marks and graphics belong to their respective owner. These files are in
 ## Local Diagrams
 
 - `install-detection-flow.svg`
+- `install-detection-flow.zh-CN.svg`
 - `routing-architecture.svg`
+- `routing-architecture.zh-CN.svg`
 - `safety-scorecard.svg`
+- `safety-scorecard.zh-CN.svg`
+- `deepcodex-logo.zh-CN.svg`
 
 These diagrams were authored for this repository and use the DeepSeek blue palette (`#4D6BFE`) to match the official app icon style.
