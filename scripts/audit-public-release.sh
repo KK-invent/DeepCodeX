@@ -114,6 +114,25 @@ else
   block "README files must state the unofficial/non-affiliation boundary in both languages"
 fi
 
+echo "== Public repository operations posture =="
+required_public_files=(
+  "CONTRIBUTING.md"
+  "SUPPORT.md"
+  "SECURITY.md"
+  ".github/ISSUE_TEMPLATE/config.yml"
+  ".github/ISSUE_TEMPLATE/bug_report.yml"
+  ".github/ISSUE_TEMPLATE/docs.yml"
+  ".github/ISSUE_TEMPLATE/release_readiness.yml"
+  ".github/PULL_REQUEST_TEMPLATE.md"
+)
+for public_file in "${required_public_files[@]}"; do
+  if [ -s "${ROOT}/${public_file}" ]; then
+    ok "public operations file present: ${public_file}"
+  else
+    block "missing public operations file: ${public_file}"
+  fi
+done
+
 if [ -n "${REPO}" ]; then
   echo "== GitHub repository metadata =="
   description="$(gh repo view "${REPO}" --json description -q .description)"
@@ -132,6 +151,17 @@ if [ -n "${REPO}" ]; then
       block "missing GitHub topic: ${topic}"
     fi
   done
+
+  if command -v gh >/dev/null 2>&1; then
+    labels="$(gh label list --repo "${REPO}" --limit 100 --json name -q '.[].name' | sort | tr '\n' ' ')"
+    for label in bug documentation release; do
+      if printf '%s\n' "${labels}" | grep -Eq "(^| )${label}( |$)"; then
+        ok "label present: ${label}"
+      else
+        block "missing GitHub label used by issue templates: ${label}"
+      fi
+    done
+  fi
 
   if [ "${license_key}" = "other" ] || [ -z "${license_key}" ]; then
     block "GitHub license detection is '${license_key:-empty}'; choose an explicit public license before public release"

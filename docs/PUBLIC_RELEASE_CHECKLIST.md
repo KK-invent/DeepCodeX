@@ -34,6 +34,12 @@ Run the public-release gate:
 scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --release-tag private-preview-YYYYMMDD-HHMMSS
 ```
 
+Run the GitHub public metadata gate:
+
+```bash
+scripts/verify-github-public-metadata.sh --repo KK-invent/DeepCodeX
+```
+
 After resolving the blockers and switching visibility to public, run:
 
 ```bash
@@ -63,6 +69,7 @@ scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-re
 - The Chinese README uses only Chinese-localized diagrams.
 - GitHub detects the MIT License.
 - `CONTRIBUTING.md`, `SUPPORT.md`, issue templates, and the pull request template are present.
+- GitHub labels used by issue templates exist: `bug`, `documentation`, `release`.
 
 ## Release Asset Rules
 

@@ -34,6 +34,7 @@ Run:
 
 ```bash
 scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --release-tag private-preview-YYYYMMDD-HHMMSS
+scripts/verify-github-public-metadata.sh --repo KK-invent/DeepCodeX
 ```
 
 This audit intentionally fails while the project still has unresolved public-release blockers, such as missing GitHub MIT license detection, DeepSeek-style brand assets without public approval, unreviewed upstream patching terms, or missing GitHub Actions CI.
