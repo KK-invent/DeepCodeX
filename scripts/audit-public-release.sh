@@ -188,39 +188,20 @@ done
 
 if [ -n "${REPO}" ]; then
   echo "== GitHub repository metadata =="
-  description="$(gh repo view "${REPO}" --json description -q .description)"
-  homepage="$(gh repo view "${REPO}" --json homepageUrl -q .homepageUrl)"
-  visibility_private="$(gh repo view "${REPO}" --json isPrivate -q .isPrivate)"
-  license_key="$(gh repo view "${REPO}" --json licenseInfo -q '.licenseInfo.key // ""')"
-  topics="$(gh repo view "${REPO}" --json repositoryTopics -q '.repositoryTopics[].name' | sort | tr '\n' ' ')"
-
-  [ -n "${description}" ] && ok "repository description is set" || block "repository description is empty"
-  [ -n "${homepage}" ] && ok "repository homepage is set" || block "repository homepage is empty"
-
-  for topic in ai codex deepseek developer-tools macos; do
-    if printf '%s\n' "${topics}" | grep -Eq "(^| )${topic}( |$)"; then
-      ok "topic present: ${topic}"
-    else
-      block "missing GitHub topic: ${topic}"
-    fi
-  done
-
-  if command -v gh >/dev/null 2>&1; then
-    labels="$(gh label list --repo "${REPO}" --limit 100 --json name -q '.[].name' | sort | tr '\n' ' ')"
-    for label in bug documentation release; do
-      if printf '%s\n' "${labels}" | grep -Eq "(^| )${label}( |$)"; then
-        ok "label present: ${label}"
-      else
-        block "missing GitHub label used by issue templates: ${label}"
-      fi
-    done
-  fi
-
-  if [ "${license_key}" = "other" ] || [ -z "${license_key}" ]; then
-    block "GitHub license detection is '${license_key:-empty}'; choose an explicit public license before public release"
+  if "${ROOT}/scripts/verify-github-public-metadata.sh" --repo "${REPO}"; then
+    ok "GitHub public metadata gate passed"
   else
-    ok "GitHub detected license: ${license_key}"
+    block "GitHub public metadata gate failed"
   fi
+
+  repo_visibility_file="$(mktemp)"
+  if retry_stdout "${repo_visibility_file}" gh repo view "${REPO}" --json isPrivate; then
+    visibility_private="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("isPrivate"))' "${repo_visibility_file}")"
+  else
+    block "could not inspect GitHub repository visibility"
+    visibility_private="unknown"
+  fi
+  rm -f "${repo_visibility_file}" "${repo_visibility_file}.tmp"
 
   if [ "${REQUIRE_PUBLIC}" -eq 1 ] && [ "${visibility_private}" = "true" ]; then
     block "repository is still private but --require-public was requested"

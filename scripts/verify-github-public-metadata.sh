@@ -26,6 +26,29 @@ if [ -z "${REPO}" ]; then
   REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
 fi
 
+tmp="$(mktemp -d)"
+cleanup() {
+  rm -rf "${tmp}"
+}
+trap cleanup EXIT
+
+retry_stdout() {
+  local output="$1"
+  shift
+  local attempt=1
+  local max_attempts=3
+  until "$@" > "${output}.tmp"; do
+    rm -f "${output}.tmp"
+    if [ "${attempt}" -ge "${max_attempts}" ]; then
+      return 1
+    fi
+    echo "[retry] command failed; retrying $((attempt + 1))/${max_attempts}: $*" >&2
+    sleep "${attempt}"
+    attempt=$((attempt + 1))
+  done
+  mv "${output}.tmp" "${output}"
+}
+
 failures=0
 
 block() {
@@ -37,11 +60,24 @@ ok() {
   echo "[OK] $*"
 }
 
-description="$(gh repo view "${REPO}" --json description -q .description)"
-homepage="$(gh repo view "${REPO}" --json homepageUrl -q .homepageUrl)"
-license_key="$(gh repo view "${REPO}" --json licenseInfo -q '.licenseInfo.key // ""')"
-topics="$(gh repo view "${REPO}" --json repositoryTopics -q '.repositoryTopics[].name' | sort | tr '\n' ' ')"
-labels="$(gh label list --repo "${REPO}" --limit 100 --json name -q '.[].name' | sort | tr '\n' ' ')"
+repo_json="${tmp}/repo.json"
+labels_json="${tmp}/labels.json"
+if ! retry_stdout "${repo_json}" gh repo view "${REPO}" --json description,homepageUrl,licenseInfo,repositoryTopics; then
+  block "could not inspect GitHub repository metadata"
+  echo "GitHub public metadata verification failed with ${failures} issue(s)." >&2
+  exit 1
+fi
+if ! retry_stdout "${labels_json}" gh label list --repo "${REPO}" --limit 100 --json name; then
+  block "could not inspect GitHub labels"
+  echo "GitHub public metadata verification failed with ${failures} issue(s)." >&2
+  exit 1
+fi
+
+description="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("description") or "")' "${repo_json}")"
+homepage="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("homepageUrl") or "")' "${repo_json}")"
+license_key="$(python3 -c 'import json,sys; print((json.load(open(sys.argv[1])).get("licenseInfo") or {}).get("key") or "")' "${repo_json}")"
+topics="$(python3 -c 'import json,sys; print(" ".join(sorted(topic.get("name","") for topic in json.load(open(sys.argv[1])).get("repositoryTopics", []))))' "${repo_json}")"
+labels="$(python3 -c 'import json,sys; print(" ".join(sorted(label.get("name","") for label in json.load(open(sys.argv[1])))))' "${labels_json}")"
 
 [ -n "${description}" ] && ok "repository description is set" || block "repository description is empty"
 [ -n "${homepage}" ] && ok "repository homepage is set" || block "repository homepage is empty"
