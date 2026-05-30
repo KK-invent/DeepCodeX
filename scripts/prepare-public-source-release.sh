@@ -183,6 +183,11 @@ if [ -f "${ROOT}/.github/workflows/audit.yml" ]; then
 else
   block "missing .github/workflows/audit.yml; run scripts/enable-github-actions-audit.sh after refreshing gh workflow scope"
 fi
+if "${ROOT}/scripts/verify-github-actions-audit.sh" --repo "${REPO}" --commit "$(git -C "${ROOT}" rev-parse HEAD)"; then
+  ok "GitHub Actions audit workflow passed for current commit"
+else
+  block "GitHub Actions audit workflow has not passed for the current commit"
+fi
 
 echo "== Private preview release assets =="
 binary_status="${binary_status:-$(approval_value public-binary-release)}"

@@ -12,6 +12,9 @@ cleanup() {
 trap cleanup EXIT
 PYTHONPYCACHEPREFIX="${pycache_root}" python3 -m py_compile bin/*.py scripts/*.py
 
+echo "== Shell syntax =="
+bash -n bin/*.sh scripts/*.sh
+
 echo "== Documentation links and assets =="
 python3 scripts/verify-doc-links.py --root "${ROOT}"
 

@@ -154,4 +154,5 @@ Confirm the workflow is active and the latest run passed:
 ```bash
 gh workflow list --repo KK-invent/DeepCodeX
 gh run list --repo KK-invent/DeepCodeX --workflow Audit --limit 5
+scripts/verify-github-actions-audit.sh --repo KK-invent/DeepCodeX --commit $(git rev-parse HEAD)
 ```

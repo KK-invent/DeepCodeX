@@ -143,6 +143,13 @@ else
   block "GitHub Actions audit workflow is missing; add .github/workflows/audit.yml before public release"
   echo "       Template: docs/GITHUB_ACTIONS_AUDIT_TEMPLATE.yml" >&2
 fi
+if [ -n "${REPO}" ]; then
+  if "${ROOT}/scripts/verify-github-actions-audit.sh" --repo "${REPO}" --commit "$(git -C "${ROOT}" rev-parse HEAD)"; then
+    ok "GitHub Actions audit workflow passed for current commit"
+  else
+    block "GitHub Actions audit workflow has not passed for the current commit"
+  fi
+fi
 
 echo "== README affiliation posture =="
 if grep -Eiq 'not affiliated|not endorsed|unofficial' "${ROOT}/README.md" && grep -Eq '非官方|不隶属|未获.*背书|不代表.*官方' "${ROOT}/README.zh-CN.md"; then
@@ -161,6 +168,7 @@ required_public_files=(
   ".github/ISSUE_TEMPLATE/docs.yml"
   ".github/ISSUE_TEMPLATE/release_readiness.yml"
   ".github/PULL_REQUEST_TEMPLATE.md"
+  "scripts/verify-github-actions-audit.sh"
   "scripts/publish-public-source-release.sh"
   "scripts/verify-public-source-release.sh"
 )

@@ -54,6 +54,7 @@ Confirm GitHub Actions audit CI:
 ```bash
 gh workflow list --repo KK-invent/DeepCodeX
 gh run list --repo KK-invent/DeepCodeX --workflow Audit --limit 5
+scripts/verify-github-actions-audit.sh --repo KK-invent/DeepCodeX --commit $(git rev-parse HEAD)
 ```
 
 Before the visibility switch, run the public-release gate without `--require-public`; it should pass after all decision blockers are resolved:
@@ -100,6 +101,7 @@ scripts/verify-public-source-release.sh --repo KK-invent/DeepCodeX --tag v$(cat 
 - `CONTRIBUTING.md`, `SUPPORT.md`, issue templates, and the pull request template are present.
 - Source-only release helper scripts are present: `scripts/publish-public-source-release.sh` and `scripts/verify-public-source-release.sh`.
 - GitHub labels used by issue templates exist: `bug`, `documentation`, `release`.
+- `scripts/verify-github-actions-audit.sh --repo KK-invent/DeepCodeX --commit $(git rev-parse HEAD)` passes for the exact release commit.
 
 ## Release Asset Rules
 
