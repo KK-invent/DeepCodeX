@@ -96,6 +96,7 @@ install -m 644 "${ROOT}/config/secrets.env.example" "${pkg}/support/config/secre
 install -m 755 "${ROOT}/scripts/detect-install-mode.sh" "${pkg}/support/scripts/"
 install -m 755 "${ROOT}/scripts/preflight-mac.sh" "${pkg}/support/scripts/"
 install -m 644 "${ROOT}/README.zh-CN.md" "${pkg}/support/"
+install -m 644 "${ROOT}/CHANGELOG.md" "${pkg}/support/"
 mkdir -p "${pkg}/support/assets/brand"
 install -m 644 "${ROOT}/assets/brand/"* "${pkg}/support/assets/brand/"
 install -m 644 "${ROOT}/docs/INSTALL.zh-CN.md" "${pkg}/support/docs/"
