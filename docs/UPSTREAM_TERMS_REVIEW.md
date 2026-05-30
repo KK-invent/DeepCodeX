@@ -17,7 +17,8 @@ Last checked: 2026-05-30.
 
 - OpenAI Terms of Use: `https://openai.com/policies/terms-of-use/`
 - OpenAI Service Terms: `https://openai.com/policies/service-terms/`
-- OpenAI Services Agreement / Business Terms: `https://openai.com/policies/business-terms/`
+- OpenAI Services Agreement: `https://openai.com/policies/services-agreement/`
+- OpenAI Help Center, Using Codex with your ChatGPT plan: `https://help.openai.com/en/articles/11369540-using-codex-with-your-chatgpt-plan`
 - OpenAI Codex product page: `https://openai.com/codex/`
 
 Use the currently applicable agreement for the account, distribution channel, and Codex desktop build involved. These pages can change, so refresh this review before changing GitHub visibility.
@@ -31,7 +32,10 @@ Observed on 2026-05-30:
 - The Terms of Use say downloaded software may update automatically and may include open source software governed by its own licenses.
 - The Terms of Use reserve OpenAI IP rights in the services and require use of OpenAI name and logo only according to OpenAI brand guidelines.
 - OpenAI Service Terms were updated on 2026-01-09 and govern service-specific use alongside the applicable agreement.
-- OpenAI Services Agreement defines services for business/developer use as including associated software, tools, developer services, documentation, and websites, and defines reverse engineering broadly.
+- The OpenAI Help Center says Codex sign-in with an existing ChatGPT account is governed by the ChatGPT Terms of Use and Privacy Policy, or the corresponding online services agreement for API, Enterprise, Education, or Business users, for data shared between Codex and ChatGPT.
+- OpenAI Services Agreement was updated on 2025-12-01 and effective on 2026-01-01. It applies to APIs, ChatGPT Enterprise, ChatGPT Business, ChatGPT for Clinicians, and other business/developer services, not consumer or individual use unless specified.
+- OpenAI Services Agreement grants business/developer customers a limited right to access and use services during the term, and restricts reverse engineering any aspect of the services or the systems used to provide them.
+- OpenAI Services Agreement says customers receive no IP rights in the services except as expressly granted, and requires express prior written permission before using OpenAI's name or logo in public materials or making public relationship statements.
 - OpenAI's Codex product page identifies Codex as an OpenAI coding agent and says the app is available on macOS and Windows.
 
 These notes are evidence for review, not legal approval.

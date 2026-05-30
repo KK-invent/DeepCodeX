@@ -22,6 +22,7 @@ Do not make the repository public until every blocker here has a clear owner and
   - Public source release with no uploaded app/binary assets, or
   - Public binary release only after explicit `public-binary-release: approved` signoff.
 - Enable GitHub Actions audit CI by copying `docs/GITHUB_ACTIONS_AUDIT_TEMPLATE.yml` to `.github/workflows/audit.yml` with a GitHub token that has `workflow` scope.
+  - If `gh auth status -h github.com` does not list `workflow`, run `gh auth refresh -h github.com -s workflow`, then run `scripts/enable-github-actions-audit.sh`.
 
 ## Required Commands
 

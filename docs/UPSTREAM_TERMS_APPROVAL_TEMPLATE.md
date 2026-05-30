@@ -11,7 +11,8 @@ review-date:
 terms-reviewed:
   - OpenAI Terms of Use, effective 2026-01-01
   - OpenAI Service Terms, updated 2026-01-09
-  - OpenAI Services Agreement / applicable account agreement
+  - OpenAI Services Agreement, effective 2026-01-01 / applicable account agreement
+  - OpenAI Help Center, Using Codex with your ChatGPT plan
   - OpenAI Codex product page
 public-source-release: approved
 public-binary-release: private-only
