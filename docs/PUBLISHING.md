@@ -129,10 +129,10 @@ DeepCodeX-mac.zip.sha256
 To verify an existing release manually:
 
 ```bash
-scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS
+scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS --expected-target $(git rev-parse HEAD)
 ```
 
-The verifier retries transient GitHub API and checksum-asset download failures before failing the gate.
+The verifier checks the release target commit, retries transient GitHub API and checksum-asset download failures, and then fails the gate if the remote asset surface is not exactly the expected package set.
 
 Before sharing a direct-use asset, run:
 

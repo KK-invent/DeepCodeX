@@ -4,11 +4,12 @@ set -euo pipefail
 REPO="${GITHUB_REPOSITORY:-}"
 TAG=""
 ALLOW_NO_RUNTIME=0
+EXPECTED_TARGET=""
 
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/verify-release-assets.sh --tag TAG [--repo OWNER/REPO] [--allow-no-runtime]
+  scripts/verify-release-assets.sh --tag TAG [--repo OWNER/REPO] [--allow-no-runtime] [--expected-target COMMIT]
 
 Verifies that a GitHub release exposes only the expected concise DeepCodeX
 asset names and that each .sha256 file references a bare zip filename.
@@ -21,6 +22,8 @@ Options:
   --repo OWNER/REPO       GitHub repository. Defaults to current gh repo.
   --tag TAG               Release tag to verify.
   --allow-no-runtime      Also allow the maintainer-only no-runtime package.
+  --expected-target COMMIT
+                         Require the release target commitish to match COMMIT.
 EOF
 }
 
@@ -29,6 +32,7 @@ while [ "$#" -gt 0 ]; do
     --repo) REPO="$2"; shift ;;
     --tag) TAG="$2"; shift ;;
     --allow-no-runtime) ALLOW_NO_RUNTIME=1 ;;
+    --expected-target) EXPECTED_TARGET="$2"; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -103,6 +107,18 @@ fi
 LC_ALL=C sort -o "${expected}" "${expected}"
 retry_stdout "${actual}.unsorted" gh release view "${TAG}" --repo "${REPO}" --json assets -q '.assets[].name'
 LC_ALL=C sort "${actual}.unsorted" > "${actual}"
+
+if [ -n "${EXPECTED_TARGET}" ]; then
+  target_file="${tmp}/target.txt"
+  retry_stdout "${target_file}" gh release view "${TAG}" --repo "${REPO}" --json targetCommitish -q '.targetCommitish'
+  actual_target="$(cat "${target_file}")"
+  if [ "${actual_target}" != "${EXPECTED_TARGET}" ]; then
+    echo "[FAIL] release target does not match expected commit." >&2
+    echo "Expected: ${EXPECTED_TARGET}" >&2
+    echo "Actual:   ${actual_target}" >&2
+    exit 1
+  fi
+fi
 
 if ! cmp -s "${expected}" "${actual}"; then
   echo "[FAIL] release asset names do not match the expected public surface." >&2

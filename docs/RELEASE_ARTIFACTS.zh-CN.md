@@ -108,7 +108,7 @@ DeepCodeX-mac.zip.sha256
 如果是复查已经存在的 Release，可以手动运行：
 
 ```bash
-scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS
+scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS --expected-target $(git rev-parse HEAD)
 ```
 
 `.sha256` 文件只能包含 zip 文件名，不能包含维护者本机绝对路径。`scripts/publish-private-release.sh` 会拒绝带维护者路径或用户名的校验文件。

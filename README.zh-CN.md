@@ -127,7 +127,7 @@ git ls-files
 更新 GitHub 私有 Release 后，请确认远端只暴露简洁资产名：
 
 ```bash
-scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS
+scripts/verify-release-assets.sh --tag private-preview-YYYYMMDD-HHMMSS --expected-target $(git rev-parse HEAD)
 ```
 
 更多文档：

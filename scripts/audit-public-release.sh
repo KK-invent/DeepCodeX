@@ -214,7 +214,7 @@ fi
 
 if [ -n "${RELEASE_TAG}" ]; then
   echo "== Release asset names =="
-  "${ROOT}/scripts/verify-release-assets.sh" --repo "${REPO}" --tag "${RELEASE_TAG}"
+  "${ROOT}/scripts/verify-release-assets.sh" --repo "${REPO}" --tag "${RELEASE_TAG}" --expected-target "$(git -C "${ROOT}" rev-parse HEAD)"
 
   release_assets_file="$(mktemp)"
   if ! retry_stdout "${release_assets_file}" gh release view "${RELEASE_TAG}" --repo "${REPO}" --json assets -q '.assets[].name'; then

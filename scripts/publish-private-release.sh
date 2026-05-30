@@ -146,6 +146,7 @@ fi
 
 gh release upload "${TAG}" "${assets[@]}" --repo "${REPO}" --clobber
 verify_flags=(--repo "${REPO}" --tag "${TAG}")
+verify_flags+=(--expected-target "${target}")
 if [ "${INCLUDE_RUNTIME_EXTERNAL}" -eq 1 ]; then
   verify_flags+=(--allow-no-runtime)
 fi
