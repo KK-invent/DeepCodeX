@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEEPCODEX_HOME="${DEEPCODEX_HOME:-${HOME}/.codex-deepseek}"
+LAUNCHD_DOMAIN="${DEEPCODEX_LAUNCHD_DOMAIN:-com.deepcodex}"
+LEGACY_CCX_LABEL="${DEEPCODEX_CCX_LABEL:-${LAUNCHD_DOMAIN}.ccx-deepseek}"
 
 install -d "${DEEPCODEX_HOME}/bin" "${DEEPCODEX_HOME}/app-backups" "${DEEPCODEX_HOME}/cache-backups" "${DEEPCODEX_HOME}/logs"
 install -m 755 "${ROOT}/bin/"*.py "${DEEPCODEX_HOME}/bin/"
@@ -33,26 +35,26 @@ for tmpl in "${ROOT}/config/launchagents/"*.plist; do
   echo "Installed launchd plist: ${dest}"
 done
 
-# Bootstrap launchd services if DeepCodeX.app exists
-if [ -d "/Applications/DeepCodeX.app" ] || [ -d "${HOME}/Applications/DeepCodeX.app" ]; then
-  echo "DeepCodeX.app detected - bootstrapping launchd services..."
-  for tmpl in "${ROOT}/config/launchagents/"*.plist; do
-    fname="$(basename "${tmpl}")"
-    dest="${LAUNCH_AGENTS}/${fname}"
-    label="${LAUNCHD_DOMAIN}.${fname%.plist}"
-    launchctl bootstrap "gui/$(id -u)" "${dest}" 2>/dev/null || true
-    echo "  Bootstraped: ${label}"
-  done
-else
-  echo "Skipping launchd bootstrap - no DeepCodeX.app found."
-  echo "Run deepcodex-sync-upstream.py --apply to build it, then re-run this script."
-fi
+echo "Stopping legacy ccx service if present..."
+launchctl bootout "gui/$(id -u)/${LEGACY_CCX_LABEL}" >/dev/null 2>&1 || true
+
+echo "Bootstrapping DeepCodeX bridge services..."
+for tmpl in "${ROOT}/config/launchagents/"*.plist; do
+  fname="$(basename "${tmpl}")"
+  dest="${LAUNCH_AGENTS}/${fname}"
+  label="$(/usr/libexec/PlistBuddy -c 'Print :Label' "${dest}" 2>/dev/null || basename "${dest}" .plist)"
+  launchctl bootout "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
+  launchctl bootstrap "gui/$(id -u)" "${dest}" 2>/dev/null || true
+  launchctl kickstart -k "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
+  echo "  bootstrapped: ${label}"
+done
 
 echo "Installed DeepCodeX scripts to ${DEEPCODEX_HOME}"
 echo ""
 "${ROOT}/scripts/detect-install-mode.sh" || true
 echo ""
 echo "Next:"
-echo "  1. 打开 DeepCodeX.app -> '配置 DeepSeek...' 菜单，填写 base URL 和 API key"
-echo "  2. 或命令行：${DEEPCODEX_HOME}/bin/deepcodex-configure-deepseek.py"
-echo "  3. 运行 doctor 验证：${DEEPCODEX_HOME}/bin/deepcodex-doctor.py"
+echo "  1. 先配置 DeepSeek：${DEEPCODEX_HOME}/bin/deepcodex-configure-deepseek.py --restart-services"
+echo "  2. 再构建 DeepCodeX：${DEEPCODEX_HOME}/bin/deepcodex-sync-upstream.py --stage"
+echo "  3. 通过后应用：${DEEPCODEX_HOME}/bin/deepcodex-sync-upstream.py --apply"
+echo "  4. 运行 doctor 验证：${DEEPCODEX_HOME}/bin/deepcodex-doctor.py"

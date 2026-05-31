@@ -38,6 +38,7 @@ IMAGE_STRIP_LABEL = os.environ.get("DEEPCODEX_IMAGE_STRIP_LABEL", f"{LAUNCHD_DOM
 BRIDGE_LABEL = os.environ.get("DEEPCODEX_BRIDGE_LABEL", f"{LAUNCHD_DOMAIN}.deepseek-bridge")
 BACKUP_LABEL = os.environ.get("DEEPCODEX_BACKUP_LABEL", f"{LAUNCHD_DOMAIN}.deepcodex-backup")
 CCX_PLIST = LAUNCH_AGENTS / f"{CCX_LABEL}.plist"
+BRIDGE_PLIST = LAUNCH_AGENTS / f"{BRIDGE_LABEL}.plist"
 IMAGE_STRIP_PLIST = LAUNCH_AGENTS / f"{IMAGE_STRIP_LABEL}.plist"
 LOG_PRUNE_SCRIPT = DEEPCODEX_HOME / "bin" / "deepcodex-log-prune.py"
 APP_ASAR = DEEPCODEX_APP / "Contents/Resources/app.asar"
@@ -238,7 +239,7 @@ def normalize_config(config_text: str) -> tuple[str, list[str]]:
     if provider != "ccx-deepseek":
         config_text, changed = set_top_level_value(config_text, "model_provider", '"ccx-deepseek"')
         if changed:
-            actions.append("routed DeepCodex to ccx-deepseek")
+            actions.append("routed DeepCodex to DeepSeek local provider")
 
     config_text, changed = set_top_level_value(config_text, "forced_login_method", '"api"')
     if changed:
@@ -300,14 +301,20 @@ def repair_environment() -> list[str]:
     if code == 0 or "could not find service" not in out.lower():
         actions.append("removed legacy hybrid router launchd service")
 
-    if CCX_PLIST.exists():
-        actions.append(launchctl_load_or_restart(CCX_PLIST, CCX_LABEL))
+    code, out = run_allow_failure(["launchctl", "bootout", launchctl_target(CCX_LABEL)])
+    if code == 0:
+        actions.append("stopped legacy ccx launchd service")
+    elif "could not find service" not in out.lower():
+        actions.append("legacy ccx launchd service was not stopped: " + (out.strip() or "not loaded"))
+
+    if BRIDGE_PLIST.exists():
+        actions.append(launchctl_load_or_restart(BRIDGE_PLIST, BRIDGE_LABEL))
         if wait_tcp("127.0.0.1", 3000):
-            actions.append("ccx port 3000 is ready")
+            actions.append("deepseek-bridge port 3000 is ready")
         else:
-            actions.append("ccx port 3000 is not ready yet")
+            actions.append("deepseek-bridge port 3000 is not ready yet")
     else:
-        actions.append(f"missing {CCX_PLIST}")
+        actions.append(f"missing {BRIDGE_PLIST}")
 
     if IMAGE_STRIP_PLIST.exists():
         actions.append(launchctl_load_or_restart(IMAGE_STRIP_PLIST, IMAGE_STRIP_LABEL))
@@ -439,13 +446,13 @@ def check_config(results: list[CheckResult], config_text: str) -> None:
     else:
         results.append(CheckResult("FAIL", "default-reasoning", f"invalid effort {reasoning!r}, expected one of {sorted(VALID_REASONING)}"))
 
-    # DeepSeek-only：任何当前模型都必须是 DeepSeek，且只能走 ccx-deepseek。
+    # DeepSeek-only：任何当前模型都必须是 DeepSeek，且只能走本地 provider。
     if model in DEEPSEEK_MODELS and provider != "ccx-deepseek":
         results.append(CheckResult("FAIL", "provider-route", f"DeepSeek model requires ccx-deepseek, got {provider!r}"))
     elif model not in DEEPSEEK_MODELS:
         results.append(CheckResult("FAIL", "provider-route", f"DeepCodex is DeepSeek-only; got non-DeepSeek model {model!r}"))
     else:
-        results.append(CheckResult("OK", "provider-route", "DeepSeek -> shim(3100) -> ccx(3000)"))
+        results.append(CheckResult("OK", "provider-route", "DeepSeek -> shim(3100) -> bridge(3000)"))
 
     if model in LONG_CONTEXT_MODELS:
         if context_window != EXPECTED_CONTEXT_WINDOW or auto_compact_limit != EXPECTED_AUTO_COMPACT_LIMIT:
@@ -538,9 +545,9 @@ def check_launchd(results: list[CheckResult], config_text: str) -> None:
         results.append(CheckResult("OK", "old-hybrid-router", "not loaded"))
 
     if re.search(re.escape(CCX_LABEL), launchctl):
-        results.append(CheckResult("OK", "ccx-service", "launchd entry present"))
+        results.append(CheckResult("WARN", "ccx-service", "legacy ccx launchd entry is still loaded; bridge should own port 3000"))
     else:
-        results.append(CheckResult("WARN", "ccx-service", "launchd entry not found (OK if using new python bridge)"))
+        results.append(CheckResult("OK", "ccx-service", "legacy ccx launchd entry not loaded"))
 
     # 剥图中转 (image-strip shim)：DeepSeek 纯文本，shim 把请求里的图片剥掉，防止手滑发图整轮崩。
 
@@ -549,6 +556,10 @@ def check_launchd(results: list[CheckResult], config_text: str) -> None:
         results.append(CheckResult("OK", "deepseek-bridge", "launchd entry present (Python bridge)"))
     else:
         results.append(CheckResult("WARN", "deepseek-bridge", "launchd entry not found"))
+    if tcp_open("127.0.0.1", 3000):
+        results.append(CheckResult("OK", "deepseek-bridge-live", "bridge port 127.0.0.1:3000 is reachable"))
+    else:
+        results.append(CheckResult("FAIL", "deepseek-bridge-live", "bridge port 127.0.0.1:3000 is not reachable"))
     shim_loaded = bool(re.search(re.escape(IMAGE_STRIP_LABEL), launchctl))
     base_url_match = re.search(r'base_url\s*=\s*"([^"]+)"', config_text)
     base_url = base_url_match.group(1) if base_url_match else ""

@@ -18,26 +18,36 @@ The visual identity uses original DeepCodeX artwork. See [assets/brand/SOURCES.m
 
 DeepCodeX is an unofficial project. It is not affiliated with, endorsed by, or supported by OpenAI, Codex, DeepSeek, or their respective owners.
 
-## Public Source And Private Binary Preview
+## Quick Start
 
-The source repository is the public-ready surface. Binary preview packages are a separate private distribution path until upstream terms review explicitly approves public binary release assets.
+DeepCodeX no longer depends on the private `ccx` runtime. The local translation layer is `bin/deepcodex-deepseek-bridge.py`, a pure Python service that listens on `127.0.0.1:3000`.
 
-If you received a private GitHub Release, use the ordinary-user package:
-
-```text
-DeepCodeX-mac.zip
-DeepCodeX-mac.zip.sha256
-```
-
-Verify it before opening:
+You still need to provide your own DeepSeek-compatible endpoint and API key. The maintainer does not provide either value.
 
 ```bash
-shasum -a 256 -c DeepCodeX-mac.zip.sha256
+# 1. Install the official Codex desktop app at /Applications/Codex.app.
+
+# 2. Clone this public source repository.
+git clone https://github.com/KK-invent/DeepCodeX.git
+cd DeepCodeX
+
+# 3. Install local scripts, config skeletons, and launchd bridge services.
+scripts/install-local.sh
+
+# 4. Enter your DeepSeek-compatible base URL and API key.
+~/.codex-deepseek/bin/deepcodex-configure-deepseek.py --restart-services
+
+# 5. Rebuild DeepCodeX from your local Codex.app.
+~/.codex-deepseek/bin/deepcodex-sync-upstream.py --stage
+~/.codex-deepseek/bin/deepcodex-sync-upstream.py --apply
+
+# 6. Verify the local install.
+~/.codex-deepseek/bin/deepcodex-doctor.py
 ```
 
-Then unzip `DeepCodeX-mac.zip` and run `Install-DeepCodeX.command`. The installer checks whether `/Applications/Codex.app` exists. If Codex is missing, install the official Codex desktop app first, then rerun the installer.
+Use `https://api.deepseek.com` as the base URL if your Mac can reach the official DeepSeek API. If you use a company or third-party OpenAI-compatible gateway, enter that gateway URL instead. Do not enter `127.0.0.1:3100`; that is DeepCodeX's internal shim address.
 
-Do not use the source checkout as a direct app download. The repository is a maintainer toolkit and intentionally does not include the built app or upstream Codex binaries.
+After the app exists, the same settings can be changed from the DeepCodeX app menu: **Configure DeepSeek...**.
 
 ## Scope
 
@@ -52,6 +62,7 @@ Included:
 - `bin/deepcodex-sync-upstream.py` rebuilds a staged DeepCodex bundle from the local `/Applications/Codex.app`, applies DeepSeek-only patches, signs it locally, and verifies it before replacement.
 - `bin/deepcodex-doctor.py` checks the local DeepCodex bundle, routing, model picker, launchd services, signing-sensitive settings, and runtime guards.
 - `bin/deepcodex-configure-deepseek.py` provides the single CLI entry for setting the upstream DeepSeek base URL and API key without printing secrets.
+- `bin/deepcodex-deepseek-bridge.py` replaces the former private `ccx` runtime with a pure Python Responses API to DeepSeek Chat Completions translator.
 - `bin/deepcodex-image-strip-proxy.py` removes or converts image blocks before forwarding text-only requests to DeepSeek.
 - `bin/deepcodex-log-prune.py` and `bin/deepcodex-backup.sh` keep local logs and backups bounded.
 
@@ -67,9 +78,9 @@ Not included:
 ## Requirements
 
 - macOS.
-- Official Codex desktop app installed at `/Applications/Codex.app`, or set `CODEX_APP`. The private installer checks this first and points missing users to the [official Codex page](https://openai.com/codex/).
+- Official Codex desktop app installed at `/Applications/Codex.app`, or set `CODEX_APP`.
 - A local DeepCodeX home directory, defaulting to `~/.codex-deepseek`, or set `DEEPCODEX_HOME`.
-- A local `ccx` compatible service if you use the DeepSeek route expected by the current scripts.
+- A DeepSeek-compatible base URL and API key supplied by you.
 - Python 3.10+ recommended.
 
 Important environment variables:
@@ -88,8 +99,7 @@ For Chinese first-time installation guidance, see [docs/INSTALL.zh-CN.md](docs/I
 ```bash
 scripts/install-local.sh
 scripts/preflight-mac.sh
-cp config/secrets.env.example "$DEEPCODEX_HOME/secrets.env"
-"$DEEPCODEX_HOME/bin/deepcodex-configure-deepseek.py"
+"$DEEPCODEX_HOME/bin/deepcodex-configure-deepseek.py" --restart-services
 "$DEEPCODEX_HOME/bin/deepcodex-sync-upstream.py" --stage
 ```
 
@@ -103,21 +113,18 @@ codesign --verify --deep --strict "$DEEPCODEX_APP"
 
 ## Safety Gates
 
-Before pushing or making the repository public, run:
+Before pushing release changes, run:
 
 ```bash
 scripts/audit-release.sh
-scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --release-tag private-preview-YYYYMMDD-HHMMSS
-scripts/prepare-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run
-scripts/publish-public-source-release.sh --repo KK-invent/DeepCodeX --private-release-tag private-preview-YYYYMMDD-HHMMSS --dry-run --skip-public-check
 git status --short
 ```
 
-The audit checks Python syntax, the image-strip self-test, high-confidence secret patterns, banned runtime/binary filenames outside local release caches, and tracked source payload filenames.
+The audit checks Python syntax, shell syntax, documentation links, image-strip and bridge self-tests, high-confidence secret patterns, banned runtime/binary filenames outside local release caches, and tracked source payload filenames.
 
 ## Compliance Boundary
 
-This project is a patcher and local maintenance toolkit. It does not redistribute Codex desktop, OpenAI assets, DeepSeek assets, or third-party binaries. The source code and original documentation/artwork are licensed under the MIT License; that license does not grant rights to upstream apps, trademarks, service accounts, API keys, or third-party assets. See [docs/COMPLIANCE.md](docs/COMPLIANCE.md) before changing the repository visibility from private to public.
+This project is a patcher and local maintenance toolkit. It does not redistribute Codex desktop, OpenAI assets, DeepSeek assets, service accounts, API keys, or third-party binaries. The source code and original documentation/artwork are licensed under the MIT License; that license does not grant rights to upstream apps, trademarks, service accounts, API keys, or third-party assets. See [docs/COMPLIANCE.md](docs/COMPLIANCE.md) before changing distribution behavior.
 
 Release history is tracked in [CHANGELOG.md](CHANGELOG.md).
 
@@ -129,12 +136,10 @@ Before opening an issue or pull request, read [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Current Release Status
 
-The source license is now chosen. Do not make the repository public until:
+The repository is public source. Public GitHub releases are source-only unless `docs/UPSTREAM_TERMS_APPROVAL.md` explicitly approves public binary release assets. For user-ready bridge changes, verify at least:
 
-- The audit script passes.
-- The public-release audit blockers are resolved.
-- The committed file list is manually reviewed.
-- The legal/compliance notes are accepted.
-- GitHub detects the committed MIT License.
-- Private binary release assets are removed, or public binary distribution is explicitly approved in `docs/UPSTREAM_TERMS_APPROVAL.md`.
-- A fresh local `--stage` and `doctor` verification pass on the target Codex version.
+- `scripts/audit-release.sh`
+- `~/.codex-deepseek/bin/deepcodex-sync-upstream.py --stage`
+- `~/.codex-deepseek/bin/deepcodex-sync-upstream.py --apply`
+- `~/.codex-deepseek/bin/deepcodex-doctor.py`
+- One real text request and one real tool-call request in DeepCodeX.app.

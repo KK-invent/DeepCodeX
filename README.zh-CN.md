@@ -55,19 +55,19 @@ DeepCodex.app ──responses──▶ shim(3100, 剥图) ──▶ bridge(3000,
 git clone https://github.com/KK-invent/DeepCodeX.git
 cd DeepCodeX
 
-# 3. 安装维护工具
+# 3. 安装维护工具和本地 bridge 服务
 scripts/install-local.sh
 
-# 4. 从本地 Codex 构建 DeepCodeX
+# 4. 填写你自己的 DeepSeek base URL 和 API key
+~/.codex-deepseek/bin/deepcodex-configure-deepseek.py --restart-services
+
+# 5. 从本地 Codex 构建 DeepCodeX
 ~/.codex-deepseek/bin/deepcodex-sync-upstream.py --stage   # 预检
 ~/.codex-deepseek/bin/deepcodex-sync-upstream.py --apply   # 构建
 
-# 5. 首次打开 DeepCodeX.app，会自动弹出"配置 DeepSeek"窗口
-#    - DeepSeek base URL：保持 https://api.deepseek.com 即可
-#    - DeepSeek API key：粘贴你从 platform.deepseek.com 创建好的 key
-#    点"保存并重启"，完成。
+# 6. 以后也可以在 DeepCodeX.app 菜单里打开"配置 DeepSeek..."修改配置
 
-# 6. 验证
+# 7. 验证
 ~/.codex-deepseek/bin/deepcodex-doctor.py     # 期望 FAIL=0
 ```
 
@@ -75,18 +75,25 @@ scripts/install-local.sh
 
 ### 配置 DeepSeek 的两种方式
 
-**方式一（推荐）：DeepCodeX 应用内**
+**方式一（源码首次安装推荐）：命令行配置**
+
+```bash
+~/.codex-deepseek/bin/deepcodex-configure-deepseek.py --restart-services
+```
+
+按提示填写：
+
+- `DeepSeek base URL`：默认 `https://api.deepseek.com`，除非你使用内网或第三方 OpenAI-compatible 网关。
+- `DeepSeek API key`：从 [platform.deepseek.com](https://platform.deepseek.com) → API Keys 创建后粘贴。
+
+配置会写入本机 `~/.codex-deepseek/secrets.env`，不会打印 key。
+
+**方式二：DeepCodeX 应用内**
 
 1. 首次启动 DeepCodeX.app 时，自动弹出"配置 DeepSeek"窗口。
 2. 填写 **DeepSeek base URL**（默认 `https://api.deepseek.com`）和 **DeepSeek API key**（密码框）。
 3. 点击"保存并重启"。
 4. 之后也可以从菜单栏 **「配置 DeepSeek...」**(Configure DeepSeek...) 随时修改。
-
-**方式二（纯命令行）：**
-
-```bash
-~/.codex-deepseek/bin/deepcodex-configure-deepseek.py
-```
 
 或直接编辑 `~/.codex-deepseek/secrets.env`，设置：
 
@@ -108,7 +115,7 @@ launchctl kickstart gui/$(id -u)/com.deepcodex.deepseek-bridge
 ```bash
 scripts/install-local.sh
 scripts/preflight-mac.sh
-"$DEEPCODEX_HOME/bin/deepcodex-configure-deepseek.py"
+"$DEEPCODEX_HOME/bin/deepcodex-configure-deepseek.py" --restart-services
 "$DEEPCODEX_HOME/bin/deepcodex-sync-upstream.py" --stage
 # --stage 通过后:
 "$DEEPCODEX_HOME/bin/deepcodex-sync-upstream.py" --apply

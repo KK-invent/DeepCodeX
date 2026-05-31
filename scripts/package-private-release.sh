@@ -5,24 +5,24 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEEPCODEX_HOME="${DEEPCODEX_HOME:-${HOME}/.codex-deepseek}"
 DEEPCODEX_APP="${DEEPCODEX_APP:-/Applications/Deepcodex.app}"
 OUT_DIR="${OUT_DIR:-${ROOT}/dist/private}"
-INCLUDE_LOCAL_CCX=0
 
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/package-private-release.sh [--bundle-runtime]
+  scripts/package-private-release.sh
 
 Creates a private, user-installable DeepCodeX zip from an already verified
 Deepcodex.app. The package is for private review/distribution only.
 
-By default the package excludes the local runtime binary. Use --bundle-runtime
-only after reviewing redistribution rights for that binary.
+The package does not include Codex.app, app.asar sources from upstream, API keys,
+or third-party runtime binaries. The DeepSeek bridge is the tracked Python
+source in support/bin/deepcodex-deepseek-bridge.py.
 EOF
 }
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --bundle-runtime) INCLUDE_LOCAL_CCX=1 ;;
+    --bundle-runtime) echo "[WARN] --bundle-runtime is deprecated; Python bridge is bundled as source." >&2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
   esac
@@ -45,10 +45,7 @@ fi
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "${DEEPCODEX_APP}/Contents/Info.plist" 2>/dev/null || echo unknown)"
 build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "${DEEPCODEX_APP}/Contents/Info.plist" 2>/dev/null || echo 0)"
 stamp="$(date '+%Y%m%d-%H%M%S')"
-package_name="DeepCodeX-mac-no-runtime"
-if [ "${INCLUDE_LOCAL_CCX}" -eq 1 ]; then
-  package_name="DeepCodeX-mac"
-fi
+package_name="DeepCodeX-mac"
 name="${package_name}"
 work="$(mktemp -d)"
 pkg="${work}/${name}"
@@ -89,10 +86,13 @@ PY
 codesign --force --deep --sign - "${pkg}/Deepcodex.app" >/dev/null
 
 echo "[package] copying support files"
-mkdir -p "${pkg}/support/bin" "${pkg}/support/config" "${pkg}/support/docs" "${pkg}/support/scripts"
+mkdir -p "${pkg}/support/bin" "${pkg}/support/config/launchagents" "${pkg}/support/docs" "${pkg}/support/scripts"
 install -m 755 "${ROOT}/bin/"*.py "${pkg}/support/bin/"
 install -m 755 "${ROOT}/bin/deepcodex-backup.sh" "${pkg}/support/bin/"
 install -m 644 "${ROOT}/config/secrets.env.example" "${pkg}/support/config/secrets.env.example"
+install -m 644 "${ROOT}/config/config.toml.example" "${pkg}/support/config/config.toml.example"
+install -m 644 "${ROOT}/config/model-catalog.json" "${pkg}/support/config/model-catalog.json"
+install -m 644 "${ROOT}/config/launchagents/"*.plist "${pkg}/support/config/launchagents/"
 install -m 755 "${ROOT}/scripts/detect-install-mode.sh" "${pkg}/support/scripts/"
 install -m 755 "${ROOT}/scripts/preflight-mac.sh" "${pkg}/support/scripts/"
 install -m 644 "${ROOT}/README.zh-CN.md" "${pkg}/support/"
@@ -104,25 +104,10 @@ install -m 644 "${ROOT}/docs/OFFLINE_QUICKSTART.zh-CN.md" "${pkg}/support/docs/"
 install -m 644 "${ROOT}/docs/TROUBLESHOOTING.zh-CN.md" "${pkg}/support/docs/"
 install -m 644 "${ROOT}/docs/PRIVACY.zh-CN.md" "${pkg}/support/docs/"
 
-if [ "${INCLUDE_LOCAL_CCX}" -eq 1 ]; then
-  if [ ! -x "${DEEPCODEX_HOME}/ccx/ccx" ]; then
-    echo "[FAIL] --bundle-runtime requested, but ${DEEPCODEX_HOME}/ccx/ccx is missing" >&2
-    exit 2
-  fi
-  mkdir -p "${pkg}/runtime/ccx"
-  install -m 755 "${DEEPCODEX_HOME}/ccx/ccx" "${pkg}/runtime/ccx/ccx"
-  (cd "${pkg}/runtime/ccx" && shasum -a 256 ccx > SHA256SUMS)
-  cat > "${pkg}/runtime/THIRD_PARTY_BINARIES.txt" <<'EOF'
-This private package includes a local ccx binary supplied by the maintainer.
-Review redistribution rights before making this package public.
+cat > "${pkg}/runtime/THIRD_PARTY_BINARIES.txt" <<'EOF'
+This package does not include third-party runtime binaries.
+DeepCodeX uses the tracked Python bridge in support/bin/deepcodex-deepseek-bridge.py.
 EOF
-else
-  cat > "${pkg}/runtime/THIRD_PARTY_BINARIES.txt" <<'EOF'
-This private package does not include the ccx runtime binary.
-DeepCodeX can be installed, but the DeepSeek route will not work until a
-compatible local ccx runtime is installed at $DEEPCODEX_HOME/ccx/ccx.
-EOF
-fi
 
 cat > "${pkg}/Install-DeepCodeX.command" <<'EOF'
 #!/usr/bin/env bash
@@ -134,8 +119,7 @@ DEEPCODEX_APP="${DEEPCODEX_APP:-/Applications/Deepcodex.app}"
 CODEX_APP="${CODEX_APP:-/Applications/Codex.app}"
 CODEX_DOWNLOAD_PAGE="${CODEX_DOWNLOAD_PAGE:-https://openai.com/codex/}"
 LAUNCHD_DOMAIN="${DEEPCODEX_LAUNCHD_DOMAIN:-com.deepcodex}"
-CCX_LABEL="${DEEPCODEX_CCX_LABEL:-${LAUNCHD_DOMAIN}.ccx-deepseek}"
-IMAGE_STRIP_LABEL="${DEEPCODEX_IMAGE_STRIP_LABEL:-${LAUNCHD_DOMAIN}.deepcodex-image-strip}"
+LEGACY_CCX_LABEL="${DEEPCODEX_CCX_LABEL:-${LAUNCHD_DOMAIN}.ccx-deepseek}"
 LAUNCH_AGENTS="${HOME}/Library/LaunchAgents"
 
 echo "== 安装 DeepCodeX =="
@@ -165,88 +149,45 @@ echo "  无外网环境: 填你本机能访问的内网 DeepSeek/OpenAI-compatib
 echo "  不要填写: 127.0.0.1:3100、代理地址、GitHub 地址、网页聊天地址"
 echo ""
 
-mkdir -p "${DEEPCODEX_HOME}/bin" "${DEEPCODEX_HOME}/logs" "${DEEPCODEX_HOME}/ccx" "${LAUNCH_AGENTS}"
+mkdir -p "${DEEPCODEX_HOME}/bin" "${DEEPCODEX_HOME}/logs" "${LAUNCH_AGENTS}"
 install -m 755 "${ROOT}/support/bin/"*.py "${DEEPCODEX_HOME}/bin/"
 install -m 755 "${ROOT}/support/bin/deepcodex-backup.sh" "${DEEPCODEX_HOME}/bin/deepcodex-backup.sh"
 install -m 755 "${ROOT}/support/scripts/"*.sh "${DEEPCODEX_HOME}/bin/"
 if [ ! -f "${DEEPCODEX_HOME}/secrets.env" ]; then
   install -m 600 "${ROOT}/support/config/secrets.env.example" "${DEEPCODEX_HOME}/secrets.env"
 fi
-
-RUNTIME_READY=0
-if [ -x "${ROOT}/runtime/ccx/ccx" ]; then
-  if [ -f "${ROOT}/runtime/ccx/SHA256SUMS" ]; then
-    (cd "${ROOT}/runtime/ccx" && shasum -a 256 -c SHA256SUMS)
-  fi
-  install -m 755 "${ROOT}/runtime/ccx/ccx" "${DEEPCODEX_HOME}/ccx/ccx"
-  RUNTIME_READY=1
-  echo "[OK] bundled ccx runtime installed"
-elif [ -x "${DEEPCODEX_HOME}/ccx/ccx" ]; then
-  RUNTIME_READY=1
-  echo "[OK] existing ccx runtime found: ${DEEPCODEX_HOME}/ccx/ccx"
-else
-  echo "[WARN] package does not contain ccx runtime; DeepSeek route needs ${DEEPCODEX_HOME}/ccx/ccx"
-  echo "[WARN] runtime is not bundled; ask the maintainer for DeepCodeX-mac.zip or install a compatible runtime"
+if [ ! -f "${DEEPCODEX_HOME}/config.toml" ]; then
+  install -m 644 "${ROOT}/support/config/config.toml.example" "${DEEPCODEX_HOME}/config.toml"
 fi
+if [ ! -f "${DEEPCODEX_HOME}/model-catalog.json" ]; then
+  install -m 644 "${ROOT}/support/config/model-catalog.json" "${DEEPCODEX_HOME}/model-catalog.json"
+fi
+
+echo "[install] installing launchd services"
+installed_plists=()
+for tmpl in "${ROOT}/support/config/launchagents/"*.plist; do
+  fname="$(basename "${tmpl}")"
+  dest="${LAUNCH_AGENTS}/${fname}"
+  sed -e "s|__DEEPCODEX_HOME__|${DEEPCODEX_HOME}|g" \
+      -e "s|__LAUNCHD_DOMAIN__|${LAUNCHD_DOMAIN}|g" \
+      "${tmpl}" > "${dest}"
+  chmod 644 "${dest}"
+  installed_plists+=("${dest}")
+done
 
 echo "[install] copying app to ${DEEPCODEX_APP}"
 ditto --noqtn "${ROOT}/Deepcodex.app" "${DEEPCODEX_APP}"
 
-if [ "${RUNTIME_READY}" -eq 1 ]; then
-  cat > "${LAUNCH_AGENTS}/${CCX_LABEL}.plist" <<PLIST
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-  <key>Label</key><string>${CCX_LABEL}</string>
-  <key>ProgramArguments</key><array><string>${DEEPCODEX_HOME}/ccx/ccx</string></array>
-  <key>WorkingDirectory</key><string>${DEEPCODEX_HOME}/ccx</string>
-  <key>RunAtLoad</key><true/>
-  <key>KeepAlive</key><true/>
-  <key>StandardOutPath</key><string>${DEEPCODEX_HOME}/logs/ccx.out.log</string>
-  <key>StandardErrorPath</key><string>${DEEPCODEX_HOME}/logs/ccx.err.log</string>
-  <key>EnvironmentVariables</key><dict>
-    <key>PATH</key><string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
-  </dict>
-</dict></plist>
-PLIST
-
-  cat > "${LAUNCH_AGENTS}/${IMAGE_STRIP_LABEL}.plist" <<PLIST
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-  <key>Label</key><string>${IMAGE_STRIP_LABEL}</string>
-  <key>ProgramArguments</key><array><string>/usr/bin/python3</string><string>${DEEPCODEX_HOME}/bin/deepcodex-image-strip-proxy.py</string></array>
-  <key>WorkingDirectory</key><string>${DEEPCODEX_HOME}</string>
-  <key>RunAtLoad</key><true/>
-  <key>KeepAlive</key><true/>
-  <key>StandardOutPath</key><string>${DEEPCODEX_HOME}/logs/image-strip.out.log</string>
-  <key>StandardErrorPath</key><string>${DEEPCODEX_HOME}/logs/image-strip.err.log</string>
-  <key>EnvironmentVariables</key><dict>
-    <key>PATH</key><string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
-    <key>LISTEN_HOST</key><string>127.0.0.1</string>
-    <key>LISTEN_PORT</key><string>3100</string>
-    <key>UPSTREAM_HOST</key><string>127.0.0.1</string>
-    <key>UPSTREAM_PORT</key><string>3000</string>
-  </dict>
-</dict></plist>
-PLIST
-else
-  echo "[WARN] runtime is missing; launchd service files were not written"
-fi
-
 echo "[config] 请填写 DeepSeek base URL 和 API key"
 "${DEEPCODEX_HOME}/bin/deepcodex-configure-deepseek.py"
 
-if [ "${RUNTIME_READY}" -eq 1 ]; then
-  for label in "${CCX_LABEL}" "${IMAGE_STRIP_LABEL}"; do
-    plist="${LAUNCH_AGENTS}/${label}.plist"
-    launchctl bootout "gui/$(id -u)" "${plist}" >/dev/null 2>&1 || true
-    launchctl bootstrap "gui/$(id -u)" "${plist}" >/dev/null 2>&1 || true
-    launchctl kickstart -k "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
-  done
-else
-  echo "[WARN] DeepCodeX installed, but runtime is missing; model requests will not work yet"
-fi
+launchctl bootout "gui/$(id -u)/${LEGACY_CCX_LABEL}" >/dev/null 2>&1 || true
+for plist in "${installed_plists[@]}"; do
+  label="$(/usr/libexec/PlistBuddy -c 'Print :Label' "${plist}")"
+  launchctl bootout "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
+  launchctl bootstrap "gui/$(id -u)" "${plist}" >/dev/null 2>&1 || true
+  launchctl kickstart -k "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
+done
 
 echo "== 安装完成 =="
 echo "可以打开：${DEEPCODEX_APP}"
@@ -283,7 +224,7 @@ Asset name: ${package_name}.zip
 Version: ${version}
 Build: ${build}
 Created: ${stamp}
-Includes bundled runtime: ${INCLUDE_LOCAL_CCX}
+Runtime: tracked Python bridge, no third-party runtime binary
 
 Run: Install-DeepCodeX.command
 EOF

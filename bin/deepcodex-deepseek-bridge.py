@@ -373,10 +373,11 @@ def build_streaming_events(chat_chunk, state):
             state["reasoning_item_id"] = f"rs_{state['response_id']}_0"
             state["reasoning_received"] = True
             state["output_index"] += 1
+            state["reasoning_output_index"] = state["output_index"]
             rid = state["reasoning_item_id"]
             _emit("response.output_item.added", {
                 "type": "response.output_item.added",
-                "output_index": state["output_index"],
+                "output_index": state["reasoning_output_index"],
                 "item": {
                     "id": rid,
                     "type": "reasoning",
@@ -388,7 +389,7 @@ def build_streaming_events(chat_chunk, state):
             _emit("response.reasoning_summary_part.added", {
                 "type": "response.reasoning_summary_part.added",
                 "item_id": rid,
-                "output_index": state["output_index"],
+                "output_index": state["reasoning_output_index"],
                 "summary_index": state["summary_index"],
                 "part": {"type": "summary_text", "text": ""},
             })
@@ -396,7 +397,7 @@ def build_streaming_events(chat_chunk, state):
         _emit("response.reasoning_summary_text.delta", {
             "type": "response.reasoning_summary_text.delta",
             "item_id": state["reasoning_item_id"],
-            "output_index": state["output_index"],
+            "output_index": state["reasoning_output_index"],
             "summary_index": state["summary_index"],
             "text": reasoning_content,
         })
@@ -408,11 +409,6 @@ def build_streaming_events(chat_chunk, state):
             tc_id = tc.get("id", "")
             tc_func = tc.get("function", {})
 
-            # Ensure we have a tool call entry
-            if not state.get("function_call_received"):
-                state["function_call_received"] = True
-                state["output_index"] += 1
-
             # Check if this is a new tool call
             existing = None
             for etc in state.get("tool_calls", []):
@@ -422,11 +418,14 @@ def build_streaming_events(chat_chunk, state):
 
             if existing is None:
                 # New tool call
+                state["function_call_received"] = True
+                state["output_index"] += 1
                 item_id = f"fc_call_{tc_index}_{random_id('', 16)}"
                 name = tc_func.get("name", "")
                 call_id_param = tc_id or f"call_{tc_index}_{random_id('', 8)}"
                 tc_entry = {
                     "index": tc_index,
+                    "output_index": state["output_index"],
                     "item_id": item_id,
                     "call_id": call_id_param,
                     "name": name,
@@ -439,7 +438,7 @@ def build_streaming_events(chat_chunk, state):
                 # Emit output_item.added for function_call
                 _emit("response.output_item.added", {
                     "type": "response.output_item.added",
-                    "output_index": state["output_index"],
+                    "output_index": existing["output_index"],
                     "item": {
                         "id": existing["item_id"],
                         "type": "function_call",
@@ -455,7 +454,7 @@ def build_streaming_events(chat_chunk, state):
                     _emit("response.function_call_arguments.delta", {
                         "type": "response.function_call_arguments.delta",
                         "item_id": existing["item_id"],
-                        "output_index": state["output_index"],
+                        "output_index": existing["output_index"],
                         "delta": args_delta,
                     })
             else:
@@ -466,7 +465,7 @@ def build_streaming_events(chat_chunk, state):
                     _emit("response.function_call_arguments.delta", {
                         "type": "response.function_call_arguments.delta",
                         "item_id": existing["item_id"],
-                        "output_index": state["output_index"],
+                        "output_index": existing["output_index"],
                         "delta": args_delta,
                     })
                 if tc_func.get("name") and not existing["name_received"]:
@@ -479,11 +478,12 @@ def build_streaming_events(chat_chunk, state):
             state["msg_item_id"] = f"msg_{state['response_id']}_{len(state.get('tool_calls', [])) + 1}"
             state["msg_received"] = True
             state["output_index"] += 1
+            state["msg_output_index"] = state["output_index"]
             state["content_index"] = 0
             mid = state["msg_item_id"]
             _emit("response.output_item.added", {
                 "type": "response.output_item.added",
-                "output_index": state["output_index"],
+                "output_index": state["msg_output_index"],
                 "item": {
                     "id": mid,
                     "type": "message",
@@ -495,7 +495,7 @@ def build_streaming_events(chat_chunk, state):
             _emit("response.content_part.added", {
                 "type": "response.content_part.added",
                 "item_id": mid,
-                "output_index": state["output_index"],
+                "output_index": state["msg_output_index"],
                 "content_index": state["content_index"],
                 "part": {
                     "type": "output_text",
@@ -508,7 +508,7 @@ def build_streaming_events(chat_chunk, state):
         _emit("response.output_text.delta", {
             "type": "response.output_text.delta",
             "item_id": state["msg_item_id"],
-            "output_index": state["output_index"],
+            "output_index": state["msg_output_index"],
             "content_index": state["content_index"],
             "delta": content,
             "logprobs": [],
@@ -533,17 +533,18 @@ def _finalize(state, usage, events):
     # Close reasoning item
     if state.get("reasoning_item_id"):
         rid = state["reasoning_item_id"]
+        out_idx = state.get("reasoning_output_index", 0)
         _emit("response.reasoning_summary_text.done", {
             "type": "response.reasoning_summary_text.done",
             "item_id": rid,
-            "output_index": state["output_index"],
+            "output_index": out_idx,
             "summary_index": state["summary_index"],
             "text": state.get("reasoning_text", ""),
         })
         _emit("response.reasoning_summary_part.done", {
             "type": "response.reasoning_summary_part.done",
             "item_id": rid,
-            "output_index": state["output_index"],
+            "output_index": out_idx,
             "summary_index": state["summary_index"],
             "part": {
                 "type": "summary_text",
@@ -552,7 +553,7 @@ def _finalize(state, usage, events):
         })
         _emit("response.output_item.done", {
             "type": "response.output_item.done",
-            "output_index": state["output_index"],
+            "output_index": out_idx,
             "item": {
                 "id": rid,
                 "type": "reasoning",
@@ -567,10 +568,11 @@ def _finalize(state, usage, events):
     # Close message item
     mid = state.get("msg_item_id")
     if mid:
+        out_idx = state.get("msg_output_index", state["output_index"])
         _emit("response.output_text.done", {
             "type": "response.output_text.done",
             "item_id": mid,
-            "output_index": state["output_index"],
+            "output_index": out_idx,
             "content_index": state["content_index"],
             "text": state.get("text_buf", ""),
             "logprobs": [],
@@ -578,7 +580,7 @@ def _finalize(state, usage, events):
         _emit("response.content_part.done", {
             "type": "response.content_part.done",
             "item_id": mid,
-            "output_index": state["output_index"],
+            "output_index": out_idx,
             "content_index": state["content_index"],
             "part": {
                 "type": "output_text",
@@ -589,7 +591,7 @@ def _finalize(state, usage, events):
         })
         _emit("response.output_item.done", {
             "type": "response.output_item.done",
-            "output_index": state["output_index"],
+            "output_index": out_idx,
             "item": {
                 "id": mid,
                 "type": "message",
@@ -609,12 +611,12 @@ def _finalize(state, usage, events):
         _emit("response.function_call_arguments.done", {
             "type": "response.function_call_arguments.done",
             "item_id": tc["item_id"],
-            "output_index": state["output_index"],
+            "output_index": tc["output_index"],
             "arguments": tc["arguments_buf"],
         })
         _emit("response.output_item.done", {
             "type": "response.output_item.done",
-            "output_index": state["output_index"],
+            "output_index": tc["output_index"],
             "item": {
                 "id": tc["item_id"],
                 "type": "function_call",
@@ -628,23 +630,23 @@ def _finalize(state, usage, events):
     # Build output array for response.completed
     output_items = []
     if state.get("reasoning_item_id"):
-        output_items.append({
+        output_items.append((state.get("reasoning_output_index", 0), {
             "id": state["reasoning_item_id"],
             "type": "reasoning",
             "status": "completed",
             "summary": [{"text": state.get("reasoning_text", ""), "type": "summary_text"}],
-        })
+        }))
     for tc in state.get("tool_calls", []):
-        output_items.append({
+        output_items.append((tc["output_index"], {
             "id": tc["item_id"],
             "type": "function_call",
             "status": "completed",
             "arguments": tc["arguments_buf"],
             "call_id": tc["call_id"],
             "name": tc["name"],
-        })
+        }))
     if mid:
-        output_items.append({
+        output_items.append((state.get("msg_output_index", state["output_index"]), {
             "id": mid,
             "type": "message",
             "status": "completed",
@@ -655,7 +657,7 @@ def _finalize(state, usage, events):
                 "text": state.get("text_buf", ""),
             }],
             "role": "assistant",
-        })
+        }))
 
     usage_data = usage or {}
     _emit("response.completed", {
@@ -665,8 +667,13 @@ def _finalize(state, usage, events):
             "object": "response",
             "created_at": state["created_at"],
             "status": "completed",
+            "background": False,
+            "error": None,
+            "instructions": state.get("instructions", ""),
             "model": state.get("req_model", "deepseek-v4-flash"),
-            "output": output_items,
+            "tool_choice": state.get("tool_choice"),
+            "tools": state.get("tools", []),
+            "output": [item for _, item in sorted(output_items, key=lambda pair: pair[0])],
             "usage": {
                 "input_tokens": usage_data.get("prompt_tokens", 0),
                 "output_tokens": usage_data.get("completion_tokens", 0),
@@ -1067,7 +1074,13 @@ def run_selftest():
     evts1 = build_streaming_events(chunk1, state)
     assert len(evts1) > 0
     assert evts1[0][0] == "response.created"
-    _vlog(f"  [PASS] streaming event building (initial + reasoning, {len(evts1)} events)")
+    chunk1b = {"choices": [{"delta": {"content": "answer"}, "index": 0, "finish_reason": "stop"}], "usage": {"prompt_tokens": 5, "completion_tokens": 5, "total_tokens": 10}}
+    evts1b = build_streaming_events(chunk1b, state)
+    reasoning_done = [e for e in evts1b if e[0] == "response.reasoning_summary_text.done"][0][1]
+    message_done = [e for e in evts1b if e[0] == "response.output_text.done"][0][1]
+    assert reasoning_done["output_index"] == 0, reasoning_done
+    assert message_done["output_index"] == 1, message_done
+    _vlog(f"  [PASS] streaming event indexes (reasoning + text, {len(evts1) + len(evts1b)} events)")
 
     # Simulate text completion
     state2 = {
@@ -1103,7 +1116,7 @@ def run_selftest():
     assert resp_smoke["status"] == "completed"
     _vlog("  [PASS] smoke test compliance (model echo + status)")
 
-    _vlog(f"  All {7} self-tests passed!")
+    _vlog("  All 8 self-tests passed!")
     return 0 if errors == 0 else 1
 
 

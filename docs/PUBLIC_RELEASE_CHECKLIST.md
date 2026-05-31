@@ -1,8 +1,8 @@
-# Public Release Checklist
+# Public Source Release Checklist
 
-This checklist is for changing DeepCodeX from private preview to a public GitHub project.
+This checklist tracks the public source release posture for DeepCodeX.
 
-Do not make the repository public until every blocker here has a clear owner and evidence.
+Current posture: the repository may stay public as a source-only project. Uploaded app packages, zip archives, or checksum assets still need explicit public-binary approval before they are exposed from a public release.
 
 ## Hard Blockers
 

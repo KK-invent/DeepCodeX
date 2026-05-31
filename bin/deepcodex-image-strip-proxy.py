@@ -6,7 +6,7 @@ DeepCodex 图生文中转 (image-strip / image-to-text shim)
 对话里只要出现图片，整轮请求会被服务端拒绝（messages[N]: unknown variant `image_url`），
 而且那张图留在历史里会让该会话之后每一轮都失败。
 
-这个 shim 坐在 App 和 ccx 之间，处理发往 DeepSeek 的请求体里的图片：
+这个 shim 坐在 App 和 Python bridge 之间，处理发往 DeepSeek 的请求体里的图片：
 - 【视觉开启时】把每张图片送到 LongCat-Flash-Omni 多模态模型转成文字描述，
   再把图片内容块替换成 `[图片内容：……]` 的文字块 —— DeepSeek 收到纯文本，
   既不崩、又能"间接看到"图。
@@ -16,7 +16,7 @@ DeepCodex 图生文中转 (image-strip / image-to-text shim)
 设计原则（稳定第一）：
 - 视觉是"增强"，不是"依赖"：LongCat 超时/报错/没配 key 一律回退到剥图，绝不拖垮 DeepSeek。
 - 按图片内容哈希缓存描述：对话历史每轮重发同一张图，只有第一次真正调 LongCat。
-- ccx 一个字节不动；本进程挂掉只影响 DeepSeek 主链路，DeepCodex 不再保留 GPT/ChatGPT 回退路线。
+- bridge 一个字节不动；本进程挂掉只影响 DeepSeek 主链路，DeepCodex 不再保留 GPT/ChatGPT 回退路线。
 - 非图片请求 / 非 JSON 请求 一律原样透传；响应流式透传，不缓冲。
 
 视觉配置（均可选；没配 LONGCAT_API_KEY 时自动退化为纯剥图）：
@@ -42,7 +42,7 @@ LISTEN_HOST = os.environ.get("LISTEN_HOST", "127.0.0.1")
 LISTEN_PORT = int(os.environ.get("LISTEN_PORT", "3100"))
 UPSTREAM_HOST = os.environ.get("UPSTREAM_HOST", "127.0.0.1")
 UPSTREAM_PORT = int(os.environ.get("UPSTREAM_PORT", "3000"))
-# ccx 的 stream_idle_timeout_ms 默认 300000，这里给足余量。
+# 上游 bridge/DeepSeek 推理可能很慢，这里给足余量。
 UPSTREAM_TIMEOUT = float(os.environ.get("UPSTREAM_TIMEOUT", "600"))
 
 PLACEHOLDER_TEXT = "[图片已忽略：DeepCodex 当前只使用 DeepSeek，模型不支持原生图片输入]"

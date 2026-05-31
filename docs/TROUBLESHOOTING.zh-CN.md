@@ -2,7 +2,7 @@
 
 ## 启动前先确认路径
 
-普通用户如果拿到的是 `DeepCodeX-mac.zip`，先解压并双击 `Install-DeepCodeX.command`。安装器会自动检测 Codex、DeepCodeX 和 runtime 状态。
+普通用户如果拿到的是 `DeepCodeX-mac.zip`，先解压并双击 `Install-DeepCodeX.command`。安装器会自动检测 Codex、DeepCodeX 和本地 bridge 状态。
 
 如果你想在成品包解压目录里手动看检测结果，运行：
 
@@ -81,7 +81,7 @@ export no_proxy="127.0.0.1,localhost,::1"
 - 成品包通过内网、U 盘或其他离线方式拿到本机。
 - 官方 Codex 安装包也通过内网、U 盘或其他离线方式拿到本机，并安装到 `/Applications/Codex.app`。
 - base URL 是本机能访问的内网 DeepSeek 兼容服务。
-- 对普通新用户，成品包应使用 `DeepCodeX-mac.zip`；`DeepCodeX-mac-no-runtime.zip` 缺少本地 runtime，不能单独完成模型请求。
+- 对普通新用户，成品包应使用当前 bridge 版本的 `DeepCodeX-mac.zip`；旧的 no-runtime 包不再作为推荐入口。
 
 如果没有可访问的模型服务，应用可以打开，但无法完成模型请求。
 

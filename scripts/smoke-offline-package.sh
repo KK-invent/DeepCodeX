@@ -55,18 +55,14 @@ if [ -d "${WORK}/installer-app/Deepcodex.app" ]; then
   exit 1
 fi
 
-case "$(basename "${ZIP}")" in
-  DeepCodeX-mac.zip)
-    test -x "${PKG_ROOT}/runtime/ccx/ccx"
-    (cd "${PKG_ROOT}/runtime/ccx" && shasum -a 256 -c SHA256SUMS)
-    ;;
-  DeepCodeX-mac-no-runtime.zip)
-    if [ -e "${PKG_ROOT}/runtime/ccx/ccx" ]; then
-      echo "[FAIL] no-runtime package unexpectedly contains runtime/ccx/ccx" >&2
-      exit 1
-    fi
-    ;;
-esac
+test -x "${PKG_ROOT}/support/bin/deepcodex-deepseek-bridge.py"
+test -f "${PKG_ROOT}/support/config/config.toml.example"
+test -f "${PKG_ROOT}/support/config/model-catalog.json"
+test -f "${PKG_ROOT}/support/config/launchagents/com.deepcodex.deepseek-bridge.plist"
+if [ -e "${PKG_ROOT}/runtime/ccx/ccx" ]; then
+  echo "[FAIL] package unexpectedly contains legacy runtime/ccx/ccx" >&2
+  exit 1
+fi
 
 HOME_DIR="${WORK}/home"
 DEEPCODEX_HOME="${HOME_DIR}/.codex-deepseek"

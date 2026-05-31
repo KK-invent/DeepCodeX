@@ -1,6 +1,18 @@
 # DeepCodeX config.toml example
 # Copy to $DEEPCODEX_HOME/config.toml (only if it does not exist).
 
+# Default local route.
+model = "deepseek-v4-flash"
+model_provider = "ccx-deepseek"
+model_context_window = 1000000
+model_auto_compact_token_limit = 700000
+forced_login_method = "api"
+check_for_update_on_startup = false
+codex_hooks = true
+goals = true
+memories = true
+model_catalog_json = "model-catalog.json"
+
 [model_providers.ccx-deepseek]
 name = "DeepSeek"
 base_url = "http://127.0.0.1:3100/v1"
@@ -9,16 +21,3 @@ env_key = "CCX_PROXY_ACCESS_KEY"
 env_key_instructions = "Configure with deepcodex-configure-deepseek.py; stored in ~/.codex-deepseek/secrets.env"
 request_max_retries = 3
 stream_idle_timeout_ms = 300000
-
-# Doctor expects these top-level keys.
-codex_hooks = true
-goals = true
-memories = true
-check_for_update_on_startup = false
-
-# Model catalog path (relative to DEEPCODEX_HOME)
-# model_catalog_json = "model-catalog.json"
-
-# Context and compact mode
-# context_window_multiplier = 1.0
-# compact_message_limit = 100

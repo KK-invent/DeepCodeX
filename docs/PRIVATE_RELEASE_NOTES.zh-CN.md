@@ -9,11 +9,7 @@
 - `DeepCodeX-mac.zip`
 - `DeepCodeX-mac.zip.sha256`
 
-这个包包含本地转发 runtime，并会自动检测 `/Applications/Codex.app`。如果没有检测到官方 Codex，安装器会停止并引导你先去官方页面下载 Codex；不需要另找“无 Codex 版”。
-
-## 维护者包
-
-`DeepCodeX-mac-no-runtime.zip` 不包含本地转发 runtime。它适合维护者或已经有兼容 runtime 的机器，不适合普通新用户单独使用，也不会作为默认推荐下载项。
+这个包包含开源 Python bridge 支持文件，并会自动检测 `/Applications/Codex.app`。如果没有检测到官方 Codex，安装器会停止并引导你先去官方页面下载 Codex；不需要另找“无 Codex 版”。
 
 ## 安装
 
@@ -32,4 +28,4 @@
 
 - 安装脚本不会打印 API key。
 - 包审计会检查真实本机 key、运行态数据库、日志、会话文件和维护者路径。
-- `DeepCodeX-mac.zip` 包含本地 runtime，只适合私有、已审阅的分发场景。
+- `DeepCodeX-mac.zip` 不包含私有 `ccx` runtime；它使用仓库内置 Python bridge。

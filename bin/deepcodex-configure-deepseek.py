@@ -28,6 +28,7 @@ DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 APP_BACKUPS = DEEPCODEX_HOME / "app-backups"
 LAUNCHD_DOMAIN = os.environ.get("DEEPCODEX_LAUNCHD_DOMAIN", os.environ.get("DEEPCODEX_LAUNCHD_PREFIX", "com.deepcodex"))
 CCX_LABEL = os.environ.get("DEEPCODEX_CCX_LABEL", f"{LAUNCHD_DOMAIN}.ccx-deepseek")
+BRIDGE_LABEL = os.environ.get("DEEPCODEX_BRIDGE_LABEL", f"{LAUNCHD_DOMAIN}.deepseek-bridge")
 IMAGE_STRIP_LABEL = os.environ.get("DEEPCODEX_IMAGE_STRIP_LABEL", f"{LAUNCHD_DOMAIN}.deepcodex-image-strip")
 
 
@@ -97,6 +98,9 @@ def current_deepseek_entry() -> dict | None:
 
 
 def current_deepseek_base_url() -> str | None:
+    base_url = read_env_value(SECRETS, "DEEPSEEK_BASE_URL")
+    if base_url:
+        return base_url
     upstream = current_deepseek_entry()
     if upstream:
         base_url = upstream.get("baseUrl")
@@ -106,7 +110,7 @@ def current_deepseek_base_url() -> str | None:
 
 
 def current_deepseek_api_key() -> str | None:
-    # First try secrets.env (new location), then ccx config (backward compat)
+    # First try secrets.env (new bridge location), then legacy config for backward compatibility.
     key = read_env_value(SECRETS, "DEEPSEEK_API_KEY")
     if key:
         return key
@@ -302,7 +306,7 @@ def write_ccx_config(api_key: str, base_url: str, tag: str) -> list[str]:
     if CCX_CONFIG.exists():
         backup = backup_file(CCX_CONFIG, tag)
         if backup:
-            actions.append(f"backed up ccx config.json to {backup}")
+            actions.append(f"backed up legacy bridge config.json to {backup}")
         try:
             config = json.loads(CCX_CONFIG.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
@@ -343,8 +347,8 @@ def write_ccx_config(api_key: str, base_url: str, tag: str) -> list[str]:
     config.setdefault("stripBillingHeader", True)
     CCX_CONFIG.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     os.chmod(CCX_CONFIG, stat.S_IRUSR | stat.S_IWUSR)
-    actions.append(f"wrote DeepSeek upstream base URL to ccx config: {base_url}")
-    actions.append("wrote DeepSeek upstream API key to ccx config without printing it")
+    actions.append(f"wrote DeepSeek upstream base URL to bridge compatibility config: {base_url}")
+    actions.append("wrote DeepSeek upstream API key to bridge compatibility config without printing it")
     return actions
 
 
@@ -425,7 +429,12 @@ def update_config(tag: str) -> list[str]:
 
 def restart_services() -> list[str]:
     actions: list[str] = []
-    for label in (CCX_LABEL, IMAGE_STRIP_LABEL):
+    code, out = run_allow_failure(["launchctl", "bootout", f"gui/{os.getuid()}/{CCX_LABEL}"])
+    if code == 0:
+        actions.append(f"stopped legacy {CCX_LABEL}")
+    elif "could not find service" not in out.lower():
+        actions.append(f"legacy {CCX_LABEL} was not stopped: {out.strip() or 'not loaded'}")
+    for label in (BRIDGE_LABEL, IMAGE_STRIP_LABEL):
         target = f"gui/{os.getuid()}/{label}"
         code, out = run_allow_failure(["launchctl", "kickstart", "-k", target])
         if code == 0:
@@ -448,7 +457,6 @@ def status_info() -> dict:
     missing: list[str] = []
     proxy_present = read_env_presence(SECRETS, "CCX_PROXY_ACCESS_KEY")
     base_url_secret_present = read_env_presence(SECRETS, "DEEPSEEK_BASE_URL")
-    upstream = current_deepseek_entry()
     base_url = current_deepseek_base_url() or DEFAULT_DEEPSEEK_BASE_URL
     upstream_key_present = bool(current_deepseek_api_key())
     if not read_env_presence(SECRETS, "CCX_PROXY_ACCESS_KEY"):
@@ -473,18 +481,6 @@ def status_info() -> dict:
         env = load_plist(info_path).get("LSEnvironment", {})
         if not env.get("CCX_PROXY_ACCESS_KEY"):
             missing.append("Info.plist:LSEnvironment:CCX_PROXY_ACCESS_KEY")
-    else:
-        missing.append("Deepcodex.app Info.plist")
-
-    if not CCX_CONFIG.exists():
-        missing.append("ccx/.config/config.json")
-    elif not upstream:
-        missing.append("ccx/.config/config.json:DeepSeek upstream")
-    else:
-        if not upstream.get("baseUrl"):
-            missing.append("ccx/.config/config.json:baseUrl")
-        if not upstream.get("apiKeys"):
-            missing.append("ccx/.config/config.json:apiKeys")
 
     return {
         "configured": not missing,
@@ -519,12 +515,12 @@ def parse_args() -> argparse.Namespace:
     source.add_argument("--keep-existing-key", action="store_true", help="reuse the existing upstream DeepSeek API key")
     parser.add_argument("--base-url", metavar="URL", help=f"upstream DeepSeek/OpenAI-compatible base URL; default: {DEFAULT_DEEPSEEK_BASE_URL}")
     parser.add_argument("--base-url-env", metavar="ENV", help="read the upstream DeepSeek base URL from an environment variable")
-    parser.add_argument("--proxy-key-env", metavar="ENV", help="read the local ccx proxy access key from an environment variable; otherwise keep or generate one")
-    parser.add_argument("--rotate-proxy-key", action="store_true", help="generate a new local ccx proxy access key")
+    parser.add_argument("--proxy-key-env", metavar="ENV", help="read the local bridge/shim access key from an environment variable; otherwise keep or generate one")
+    parser.add_argument("--rotate-proxy-key", action="store_true", help="generate a new local bridge/shim access key")
     parser.add_argument("--no-confirm", action="store_true", help="do not ask for a second interactive confirmation")
     parser.add_argument("--check", action="store_true", help="check whether the DeepSeek API entry is configured; no writes")
     parser.add_argument("--status-json", action="store_true", help="print non-secret DeepSeek configuration status as JSON; no writes")
-    parser.add_argument("--restart-services", action="store_true", help="restart ccx and image-strip launchd services after writing")
+    parser.add_argument("--restart-services", action="store_true", help="restart deepseek-bridge and image-strip launchd services after writing")
     return parser.parse_args()
 
 

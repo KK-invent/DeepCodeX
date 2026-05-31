@@ -71,7 +71,7 @@ done
 
 echo "== Local username leak scan =="
 current_user="$(id -un 2>/dev/null || true)"
-if [ -n "${current_user}" ] && rg -n --hidden --glob '!.git/**' --glob '!scripts/audit-release.sh' -e "/Users/${current_user}" -e "${current_user}" .; then
+if [ -n "${current_user}" ] && rg -n --hidden --glob '!.git' --glob '!.git/**' --glob '!scripts/audit-release.sh' -e "/Users/${current_user}" -e "${current_user}" .; then
   echo "Local username or absolute private path detected." >&2
   exit 1
 fi
