@@ -120,6 +120,14 @@ CODEX_APP="${CODEX_APP:-/Applications/Codex.app}"
 CODEX_DOWNLOAD_PAGE="${CODEX_DOWNLOAD_PAGE:-https://openai.com/codex/}"
 LAUNCHD_DOMAIN="${DEEPCODEX_LAUNCHD_DOMAIN:-com.deepcodex}"
 LEGACY_CCX_LABEL="${DEEPCODEX_CCX_LABEL:-${LAUNCHD_DOMAIN}.ccx-deepseek}"
+LEGACY_USER_DOMAIN="com.$(id -un)"
+LEGACY_LABELS=(
+  "${LEGACY_CCX_LABEL}"
+  "com.deepcodex.ccx-deepseek"
+  "${LEGACY_USER_DOMAIN}.ccx-deepseek"
+  "${LEGACY_USER_DOMAIN}.deepcodex-image-strip"
+  "${LEGACY_USER_DOMAIN}.deepseek-bridge"
+)
 LAUNCH_AGENTS="${HOME}/Library/LaunchAgents"
 
 echo "== 安装 DeepCodeX =="
@@ -181,10 +189,24 @@ ditto --noqtn "${ROOT}/Deepcodex.app" "${DEEPCODEX_APP}"
 echo "[config] 请填写 DeepSeek base URL 和 API key"
 "${DEEPCODEX_HOME}/bin/deepcodex-configure-deepseek.py"
 
-launchctl bootout "gui/$(id -u)/${LEGACY_CCX_LABEL}" >/dev/null 2>&1 || true
+for label in "${LEGACY_LABELS[@]}"; do
+  launchctl bootout "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
+done
 for plist in "${installed_plists[@]}"; do
   label="$(/usr/libexec/PlistBuddy -c 'Print :Label' "${plist}")"
   launchctl bootout "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
+done
+for label in "${LEGACY_USER_DOMAIN}.ccx-deepseek" "${LEGACY_USER_DOMAIN}.deepcodex-image-strip" "${LEGACY_USER_DOMAIN}.deepseek-bridge"; do
+  legacy_plist="${LAUNCH_AGENTS}/${label}.plist"
+  if [ -f "${legacy_plist}" ]; then
+    mv "${legacy_plist}" "${legacy_plist}.disabled-python-bridge-$(date +%Y%m%d%H%M%S)"
+  fi
+done
+pkill -f "${DEEPCODEX_HOME}/ccx/ccx" >/dev/null 2>&1 || true
+pkill -f "${DEEPCODEX_HOME}/bin/deepcodex-deepseek-bridge.py" >/dev/null 2>&1 || true
+pkill -f "${DEEPCODEX_HOME}/bin/deepcodex-image-strip-proxy.py" >/dev/null 2>&1 || true
+for plist in "${installed_plists[@]}"; do
+  label="$(/usr/libexec/PlistBuddy -c 'Print :Label' "${plist}")"
   launchctl bootstrap "gui/$(id -u)" "${plist}" >/dev/null 2>&1 || true
   launchctl kickstart -k "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
 done

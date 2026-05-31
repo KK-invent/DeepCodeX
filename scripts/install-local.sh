@@ -5,6 +5,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEEPCODEX_HOME="${DEEPCODEX_HOME:-${HOME}/.codex-deepseek}"
 LAUNCHD_DOMAIN="${DEEPCODEX_LAUNCHD_DOMAIN:-com.deepcodex}"
 LEGACY_CCX_LABEL="${DEEPCODEX_CCX_LABEL:-${LAUNCHD_DOMAIN}.ccx-deepseek}"
+LEGACY_USER_DOMAIN="com.$(id -un)"
+LEGACY_LABELS=(
+  "${LEGACY_CCX_LABEL}"
+  "com.deepcodex.ccx-deepseek"
+  "${LEGACY_USER_DOMAIN}.ccx-deepseek"
+  "${LEGACY_USER_DOMAIN}.deepcodex-image-strip"
+  "${LEGACY_USER_DOMAIN}.deepseek-bridge"
+)
 
 install -d "${DEEPCODEX_HOME}/bin" "${DEEPCODEX_HOME}/app-backups" "${DEEPCODEX_HOME}/cache-backups" "${DEEPCODEX_HOME}/logs"
 install -m 755 "${ROOT}/bin/"*.py "${DEEPCODEX_HOME}/bin/"
@@ -25,6 +33,8 @@ fi
 LAUNCH_AGENTS="${HOME}/Library/LaunchAgents"
 install -d "${LAUNCH_AGENTS}"
 LAUNCHD_DOMAIN="${DEEPCODEX_LAUNCHD_DOMAIN:-com.deepcodex}"
+installed_plists=()
+installed_labels=()
 for tmpl in "${ROOT}/config/launchagents/"*.plist; do
   fname="$(basename "${tmpl}")"
   dest="${LAUNCH_AGENTS}/${fname}"
@@ -32,18 +42,33 @@ for tmpl in "${ROOT}/config/launchagents/"*.plist; do
       -e "s|__LAUNCHD_DOMAIN__|${LAUNCHD_DOMAIN}|g" \
       "${tmpl}" > "${dest}"
   chmod 644 "${dest}"
+  label="$(/usr/libexec/PlistBuddy -c 'Print :Label' "${dest}" 2>/dev/null || basename "${dest}" .plist)"
+  installed_plists+=("${dest}")
+  installed_labels+=("${label}")
   echo "Installed launchd plist: ${dest}"
 done
 
-echo "Stopping legacy ccx service if present..."
-launchctl bootout "gui/$(id -u)/${LEGACY_CCX_LABEL}" >/dev/null 2>&1 || true
+echo "Stopping stale DeepCodeX services if present..."
+for label in "${LEGACY_LABELS[@]}"; do
+  launchctl bootout "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
+done
+for label in "${installed_labels[@]}"; do
+  launchctl bootout "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
+done
+for label in "${LEGACY_USER_DOMAIN}.ccx-deepseek" "${LEGACY_USER_DOMAIN}.deepcodex-image-strip" "${LEGACY_USER_DOMAIN}.deepseek-bridge"; do
+  legacy_plist="${LAUNCH_AGENTS}/${label}.plist"
+  if [ -f "${legacy_plist}" ]; then
+    mv "${legacy_plist}" "${legacy_plist}.disabled-python-bridge-$(date +%Y%m%d%H%M%S)"
+  fi
+done
+pkill -f "${DEEPCODEX_HOME}/ccx/ccx" >/dev/null 2>&1 || true
+pkill -f "${DEEPCODEX_HOME}/bin/deepcodex-deepseek-bridge.py" >/dev/null 2>&1 || true
+pkill -f "${DEEPCODEX_HOME}/bin/deepcodex-image-strip-proxy.py" >/dev/null 2>&1 || true
 
 echo "Bootstrapping DeepCodeX bridge services..."
-for tmpl in "${ROOT}/config/launchagents/"*.plist; do
-  fname="$(basename "${tmpl}")"
-  dest="${LAUNCH_AGENTS}/${fname}"
-  label="$(/usr/libexec/PlistBuddy -c 'Print :Label' "${dest}" 2>/dev/null || basename "${dest}" .plist)"
-  launchctl bootout "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
+for idx in "${!installed_plists[@]}"; do
+  dest="${installed_plists[$idx]}"
+  label="${installed_labels[$idx]}"
   launchctl bootstrap "gui/$(id -u)" "${dest}" 2>/dev/null || true
   launchctl kickstart -k "gui/$(id -u)/${label}" >/dev/null 2>&1 || true
   echo "  bootstrapped: ${label}"

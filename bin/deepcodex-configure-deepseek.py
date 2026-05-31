@@ -30,6 +30,14 @@ LAUNCHD_DOMAIN = os.environ.get("DEEPCODEX_LAUNCHD_DOMAIN", os.environ.get("DEEP
 CCX_LABEL = os.environ.get("DEEPCODEX_CCX_LABEL", f"{LAUNCHD_DOMAIN}.ccx-deepseek")
 BRIDGE_LABEL = os.environ.get("DEEPCODEX_BRIDGE_LABEL", f"{LAUNCHD_DOMAIN}.deepseek-bridge")
 IMAGE_STRIP_LABEL = os.environ.get("DEEPCODEX_IMAGE_STRIP_LABEL", f"{LAUNCHD_DOMAIN}.deepcodex-image-strip")
+LEGACY_USER_DOMAIN = f"com.{os.environ.get('USER') or HOME.name}"
+LEGACY_LABELS = tuple(dict.fromkeys((
+    CCX_LABEL,
+    "com.deepcodex.ccx-deepseek",
+    f"{LEGACY_USER_DOMAIN}.ccx-deepseek",
+    f"{LEGACY_USER_DOMAIN}.deepcodex-image-strip",
+    f"{LEGACY_USER_DOMAIN}.deepseek-bridge",
+)))
 
 
 def fail(message: str) -> int:
@@ -429,11 +437,21 @@ def update_config(tag: str) -> list[str]:
 
 def restart_services() -> list[str]:
     actions: list[str] = []
-    code, out = run_allow_failure(["launchctl", "bootout", f"gui/{os.getuid()}/{CCX_LABEL}"])
-    if code == 0:
-        actions.append(f"stopped legacy {CCX_LABEL}")
-    elif "could not find service" not in out.lower():
-        actions.append(f"legacy {CCX_LABEL} was not stopped: {out.strip() or 'not loaded'}")
+    for label in LEGACY_LABELS:
+        code, out = run_allow_failure(["launchctl", "bootout", f"gui/{os.getuid()}/{label}"])
+        if code == 0:
+            actions.append(f"stopped legacy {label}")
+        elif "could not find service" not in out.lower():
+            actions.append(f"legacy {label} was not stopped: {out.strip() or 'not loaded'}")
+    stale_processes = (
+        DEEPCODEX_HOME / "ccx" / "ccx",
+        DEEPCODEX_HOME / "bin" / "deepcodex-deepseek-bridge.py",
+        DEEPCODEX_HOME / "bin" / "deepcodex-image-strip-proxy.py",
+    )
+    for process_path in stale_processes:
+        code, _out = run_allow_failure(["pkill", "-f", str(process_path)])
+        if code == 0:
+            actions.append(f"stopped stale process matching {process_path}")
     for label in (BRIDGE_LABEL, IMAGE_STRIP_LABEL):
         target = f"gui/{os.getuid()}/{label}"
         code, out = run_allow_failure(["launchctl", "kickstart", "-k", target])

@@ -374,9 +374,6 @@ def patch_bootstrap_js(data: bytes) -> bytes:
             r"([A-Za-z_$][\w$]*)=require\(`node:path`\);",
             text,
         )
-        if not match:
-            raise RuntimeError("bootstrap import prelude shape changed; refusing unsafe patch")
-        session_var, session_path, workspace_var, workspace_path, electron_var, path_var = match.groups()
         prefix = (
             "process.env.LANG='zh_CN.UTF-8';"
             "process.env.LC_ALL='zh_CN.UTF-8';"
@@ -385,15 +382,35 @@ def patch_bootstrap_js(data: bytes) -> bytes:
             "process.env.CODEX_ELECTRON_USER_DATA_PATH="
             "process.env.CODEX_ELECTRON_USER_DATA_PATH||process.env.DEEPCODEX_USER_DATA||`${process.env.HOME}/Library/Application Support/Deepcodex`;"
         )
-        replacement = (
-            f"{prefix}let {electron_var}=require(`electron`);"
-            f"try{{{electron_var}.app.commandLine.appendSwitch(`lang`,`zh-CN`)}}catch{{}}"
-            f"try{{{electron_var}.app.commandLine.appendSwitch(`password-store`,`basic`)}}catch{{}}"
-            f"try{{{electron_var}.app.commandLine.appendSwitch(`use-mock-keychain`)}}catch{{}}"
-            f"const {session_var}=require(`{session_path}`),{workspace_var}=require(`{workspace_path}`);"
-            f"let {path_var}=require(`node:path`);"
-        )
-        text = replacement + text[match.end() :]
+        if match:
+            session_var, session_path, workspace_var, workspace_path, electron_var, path_var = match.groups()
+            switches = (
+                f"try{{{electron_var}.app.commandLine.appendSwitch(`lang`,`zh-CN`)}}catch{{}}"
+                f"try{{{electron_var}.app.commandLine.appendSwitch(`password-store`,`basic`)}}catch{{}}"
+                f"try{{{electron_var}.app.commandLine.appendSwitch(`use-mock-keychain`)}}catch{{}}"
+            )
+            replacement = (
+                f"{prefix}let {electron_var}=require(`electron`);"
+                f"{switches}"
+                f"const {session_var}=require(`{session_path}`),{workspace_var}=require(`{workspace_path}`);"
+                f"let {path_var}=require(`node:path`);"
+            )
+            text = replacement + text[match.end() :]
+        else:
+            electron_chain = re.search(r"let\s+([A-Za-z_$][\w$]*)=require\(`electron`\),([^;]+);", text)
+            if not electron_chain:
+                raise RuntimeError("bootstrap import prelude shape changed; refusing unsafe patch")
+            app_session_before_electron = text.find("app-session-") >= 0 and text.find("app-session-") < electron_chain.start()
+            if app_session_before_electron:
+                raise RuntimeError("bootstrap app-session loads before electron switches; refusing unsafe patch")
+            electron_var, rest = electron_chain.groups()
+            switches = (
+                f"try{{{electron_var}.app.commandLine.appendSwitch(`lang`,`zh-CN`)}}catch{{}}"
+                f"try{{{electron_var}.app.commandLine.appendSwitch(`password-store`,`basic`)}}catch{{}}"
+                f"try{{{electron_var}.app.commandLine.appendSwitch(`use-mock-keychain`)}}catch{{}}"
+            )
+            replacement = f"let {electron_var}=require(`electron`);{switches}let {rest};"
+            text = prefix + text[: electron_chain.start()] + replacement + text[electron_chain.end() :]
         changed = True
 
     electron_var = extract_electron_var(text)
@@ -433,10 +450,12 @@ def verify_bootstrap_patch(text: str) -> None:
     electron_idx = text.find("require(`electron`)", start)
     password_idx = text.find("appendSwitch(`password-store`,`basic`)", start)
     mock_idx = text.find("appendSwitch(`use-mock-keychain`)", start)
-    app_session_idx = text.find("app-session-", start)
-    if min(start, electron_idx, password_idx, mock_idx, app_session_idx) < 0:
+    late_marker_idx = text.find("app-session-", start)
+    if late_marker_idx < 0:
+        late_marker_idx = text.find(".app.setName(", start)
+    if min(start, electron_idx, password_idx, mock_idx, late_marker_idx) < 0:
         raise RuntimeError("bootstrap patch verification failed: missing key marker")
-    if not (electron_idx < password_idx < app_session_idx and electron_idx < mock_idx < app_session_idx):
+    if not (electron_idx < password_idx < late_marker_idx and electron_idx < mock_idx < late_marker_idx):
         raise RuntimeError("bootstrap patch verification failed: keychain switches load too late")
     if "CODEX_SPARKLE_ENABLED!==`false`" not in text:
         raise RuntimeError("bootstrap patch verification failed: Sparkle is not gated")
@@ -450,7 +469,10 @@ def patch_model_queries_js(data: bytes) -> bytes:
     if "var p=`gpt-5.5`" in text:
         text = text.replace("var p=`gpt-5.5`", "var p=`deepseek-v4-flash`", 1)
         changed = True
-    elif "var p=`deepseek-v4-flash`" not in text:
+    elif "defaultModel:f" in text:
+        text = text.replace("defaultModel:f", "defaultModel:`deepseek-v4-flash`", 1)
+        changed = True
+    elif "var p=`deepseek-v4-flash`" not in text and "defaultModel:`deepseek-v4-flash`" not in text:
         raise RuntimeError("model-queries default model marker missing")
 
     old_available = "_=[],v={availableModels:new Set(_),useHiddenModels:!1,defaultModel:p};"
@@ -459,7 +481,16 @@ def patch_model_queries_js(data: bytes) -> bytes:
         text = text.replace(old_available, new_available, 1)
         changed = True
     elif new_available not in text:
-        raise RuntimeError("model-queries availableModels marker missing")
+        text, count = re.subn(
+            r"([,;])([A-Za-z_$][\w$]*)=\[\],([A-Za-z_$][\w$]*)=\{availableModels:new Set\(\2\),useHiddenModels:!1,defaultModel:`deepseek-v4-flash`\};",
+            r"\1\2=[`deepseek-v4-flash`,`deepseek-v4-pro`],\3={availableModels:new Set(\2),useHiddenModels:!1,defaultModel:`deepseek-v4-flash`};",
+            text,
+            count=1,
+        )
+        if count:
+            changed = True
+        else:
+            raise RuntimeError("model-queries availableModels marker missing")
 
     old_filter = "if(d?a.has(e.model):!e.hidden){"
     new_filter = (
@@ -470,7 +501,16 @@ def patch_model_queries_js(data: bytes) -> bytes:
         text = text.replace(old_filter, new_filter, 1)
         changed = True
     elif new_filter not in text:
-        raise RuntimeError("model-queries DeepSeek filter marker missing")
+        text, count = re.subn(
+            r"if\(([A-Za-z_$][\w$]*)\?([A-Za-z_$][\w$]*)\.has\(e\.model\):!e\.hidden\)\{",
+            r"if((e.model===`deepseek-v4-flash`||e.model===`deepseek-v4-pro`)&&(\1?\2.has(e.model):!e.hidden)){",
+            text,
+            count=1,
+        )
+        if count:
+            changed = True
+        else:
+            raise RuntimeError("model-queries DeepSeek filter marker missing")
 
     old_statement_fallback = (
         "let s=[{model:`deepseek-v4-flash`,displayName:`DeepSeek Flash`,"
@@ -532,7 +572,7 @@ def patch_thread_management_js(data: bytes) -> bytes:
 
 def verify_new_frontend_patch(model_queries: str | None, use_model_settings: str | None) -> None:
     if model_queries is not None:
-        if "var p=`deepseek-v4-flash`" not in model_queries:
+        if "var p=`deepseek-v4-flash`" not in model_queries and "defaultModel:`deepseek-v4-flash`" not in model_queries:
             raise RuntimeError("model-queries default model is not DeepSeek")
         if "e.model===`deepseek-v4-flash`||e.model===`deepseek-v4-pro`" not in model_queries:
             raise RuntimeError("model-queries DeepSeek-only filter missing")
@@ -670,7 +710,7 @@ def patch_main_js(data: bytes) -> bytes:
     if menu_old in text:
         text = text.replace(menu_old, menu_new, 1)
         changed = True
-    elif menu_new not in text:
+    elif menu_new not in text and "function DCXCfgInstallMenu()" not in text:
         raise RuntimeError("main process application menu template shape changed")
 
     return text.encode("utf-8") if changed else data
@@ -758,7 +798,7 @@ def verify_asar_patch(app: Path) -> None:
         raise RuntimeError("asar verification failed: DeepSeek config window patch missing")
     old_picker_ok = b"var FR = [`deepseek-v4-flash`, `deepseek-v4-pro`]" in data and b"function LRR(e)" in data
     new_picker_ok = (
-        b"var p=`deepseek-v4-flash`" in data
+        (b"var p=`deepseek-v4-flash`" in data or b"defaultModel:`deepseek-v4-flash`" in data)
         and b"e.model===`deepseek-v4-flash`||e.model===`deepseek-v4-pro`" in data
         and b"displayName:`DeepSeek Flash`" in data
         and b"displayName:`DeepSeek Pro`" in data
@@ -811,6 +851,7 @@ def smoke_deepseek_route(timeout: int = 25) -> None:
         "input": [{"role": "user", "content": [{"type": "input_text", "text": "ping"}]}],
         "reasoning": {"effort": "high"},
         "store": False,
+        "stream": False,
     }).encode("utf-8")
     env = os.environ.copy()
     for name in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy"):
