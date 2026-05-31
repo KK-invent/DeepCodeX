@@ -31,7 +31,7 @@ if [ "${installer_rc}" -ne 2 ]; then
   echo "Source installer missing-Codex smoke failed; expected exit 2, got ${installer_rc}." >&2
   exit 1
 fi
-if ! rg -q '\[ACTION REQUIRED\].*Codex|未检测到官方 Codex' "${installer_out}"; then
+if ! grep -Eq '\[ACTION REQUIRED\].*Codex|未检测到官方 Codex' "${installer_out}"; then
   cat "${installer_out}" >&2
   echo "Source installer did not print clear missing-Codex guidance." >&2
   exit 1
