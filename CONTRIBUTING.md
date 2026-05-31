@@ -1,38 +1,24 @@
 # Contributing
 
-Thanks for helping improve DeepCodeX. This repository is a source-only maintenance toolkit, not a binary distribution of Codex or DeepCodex.
+Thanks for your interest in DeepCodeX!
 
-## Before Opening An Issue
+## Before you open an issue
 
-- Search existing issues first.
-- Read `README.md`, `docs/INSTALL.zh-CN.md`, and `docs/TROUBLESHOOTING.zh-CN.md`.
-- Run the relevant local check:
+1. Search existing issues — someone might've hit the same thing.
+2. Skim the [README](README.md) and [troubleshooting guide](docs/TROUBLESHOOTING.zh-CN.md).
+3. Run the doctor: `~/.codex-deepseek/bin/deepcodex-doctor.py`
+4. **Redact secrets** (API keys, tokens, paths with your username) before pasting output.
 
-```bash
-scripts/audit-release.sh
-scripts/preflight-mac.sh
-```
+## Pull requests
 
-For an installed DeepCodeX app, also run:
+The basics:
 
-```bash
-"$DEEPCODEX_HOME/bin/deepcodex-doctor.py"
-```
+- Run `scripts/audit-release.sh` before pushing — it'll catch most problems.
+- Don't commit binaries, `.app` bundles, real config, logs, or caches. The audit will yell at you if you try.
+- Don't print secrets in code, tests, or error messages.
+- Keep PRs small and update docs if you change install or packaging behavior.
 
-Redact local paths, API keys, tokens, cookies, account identifiers, request IDs, and any private gateway URLs before sharing output.
-
-## Pull Request Rules
-
-Every pull request should keep the public source boundary intact:
-
-- Do not commit `.app`, `.asar`, `.dmg`, `.pkg`, `.zip`, runtime binaries, caches, logs, sessions, SQLite databases, auth files, or real config.
-- Do not commit OpenAI, Codex, DeepSeek, or third-party trademarked image assets unless the public visibility decision is recorded in `docs/COMPLIANCE.md`.
-- Do not print secrets in scripts, tests, logs, or error messages.
-- Keep changes small and focused.
-- Update docs when changing install, packaging, release, or compliance behavior.
-- Run `scripts/audit-release.sh` before pushing.
-
-## Development Setup
+## Dev setup
 
 ```bash
 scripts/install-local.sh
@@ -41,21 +27,10 @@ cp config/secrets.env.example "$DEEPCODEX_HOME/secrets.env"
 "$DEEPCODEX_HOME/bin/deepcodex-configure-deepseek.py"
 ```
 
-Only use real API keys in local ignored files. Do not paste keys into issues, pull requests, screenshots, or chat logs.
+Real API keys go in local ignored files only — never in issues, PRs, or screenshots.
 
-## Release-Sensitive Changes
+## Release-sensitive files
 
-Changes to any of these files require extra review:
+These need extra review since they affect what ships:
 
-- `scripts/audit-release.sh`
-- `scripts/audit-public-release.sh`
-- `scripts/package-private-release.sh`
-- `scripts/publish-private-release.sh`
-- `scripts/prepare-public-source-release.sh`
-- `docs/COMPLIANCE.md`
-- `docs/PUBLIC_RELEASE_CHECKLIST.md`
-- `docs/UPSTREAM_TERMS_REVIEW.md`
-- `docs/UPSTREAM_TERMS_APPROVAL_TEMPLATE.md`
-- `assets/brand/*`
-
-Before changing repository visibility or release assets, run the public gates described in `docs/PUBLISHING.md`.
+`scripts/audit-release.sh` · `scripts/audit-public-release.sh` · `scripts/package-private-release.sh` · `docs/COMPLIANCE.md` · `docs/UPSTREAM_TERMS_REVIEW.md` · `assets/brand/*`

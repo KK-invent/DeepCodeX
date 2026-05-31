@@ -1,91 +1,90 @@
 <p align="center">
-  <img src="assets/brand/deepcodex-hero.svg" alt="DeepCodeX light blue hero" width="860">
+  <img src="assets/brand/deepcodex-hero.svg" alt="DeepCodeX" width="860">
 </p>
 
 # DeepCodeX
 
+**Use [DeepSeek](https://deepseek.com) as the brain behind your local [Codex](https://openai.com/codex/) desktop app.**
+
 中文文档：[README.zh-CN.md](README.zh-CN.md)
 
-DeepCodeX is a safety-focused wrapper and maintenance toolkit for rebuilding a local DeepCodex app from an already installed Codex desktop app, then routing it through DeepSeek-compatible local services.
+DeepCodeX patches your existing Codex desktop app so it talks to DeepSeek instead of OpenAI — entirely on your Mac, no cloud account swap needed. Bring your own DeepSeek API key and you're good to go.
 
-This source repository is prepared as a sanitized maintainer toolkit. It intentionally does not contain a built `.app`, `app.asar`, upstream Codex assets, API keys, auth files, logs, caches, sessions, SQLite databases, or third-party binary payloads.
-
-The visual identity uses original DeepCodeX artwork. See [assets/brand/SOURCES.md](assets/brand/SOURCES.md) and [docs/COMPLIANCE.md](docs/COMPLIANCE.md) for source and trademark boundaries.
-
-DeepCodeX is an unofficial project. It is not affiliated with, endorsed by, or supported by OpenAI, Codex, DeepSeek, or their respective owners.
+> This is an unofficial community project. Not affiliated with OpenAI or DeepSeek.
 
 ## Quick Start
 
-### No Codex yet? Do this first
+You need three things: a Mac, the [official Codex app](https://openai.com/codex/), and a [DeepSeek API key](https://platform.deepseek.com).
 
-DeepCodeX does not ship Codex itself. Install the official Codex desktop app from [OpenAI Codex](https://openai.com/codex/) first and make sure it exists at `/Applications/Codex.app`, then come back and run the steps below. If Codex lives somewhere else, set `CODEX_APP=/path/to/Codex.app` before running the installer.
-
-Official Codex download page: https://openai.com/codex/
-
-DeepCodeX no longer depends on the private `ccx` runtime. The local translation layer is `bin/deepcodex-deepseek-bridge.py`, a pure Python service that listens on `127.0.0.1:3000`.
-
-You still need to provide your own DeepSeek-compatible endpoint and API key. The maintainer does not provide either value.
+> **Don't have Codex yet?** Grab it from [openai.com/codex](https://openai.com/codex/) first — DeepCodeX patches it but doesn't ship it. If your Codex lives somewhere other than `/Applications/Codex.app`, set `CODEX_APP=/your/path` before running the installer.
 
 ```bash
-# 1. Install the official Codex desktop app at /Applications/Codex.app.
+# 1. Make sure Codex.app is at /Applications/Codex.app
 
-# 2. Clone this public source repository.
+# 2. Clone and install
 git clone https://github.com/KK-invent/DeepCodeX.git
 cd DeepCodeX
-
-# 3. Install local scripts, config skeletons, and launchd bridge services.
 scripts/install-local.sh
 
-# 4. Enter your DeepSeek-compatible base URL and API key.
+# 3. Plug in your DeepSeek key
 ~/.codex-deepseek/bin/deepcodex-configure-deepseek.py --restart-services
 
-# 5. Rebuild DeepCodeX from your local Codex.app.
-~/.codex-deepseek/bin/deepcodex-sync-upstream.py --stage
-~/.codex-deepseek/bin/deepcodex-sync-upstream.py --apply
+# 4. Build DeepCodeX from your local Codex
+~/.codex-deepseek/bin/deepcodex-sync-upstream.py --stage    # dry run first
+~/.codex-deepseek/bin/deepcodex-sync-upstream.py --apply    # build for real
 
-# 6. Verify the local install.
+# 5. Sanity check
 ~/.codex-deepseek/bin/deepcodex-doctor.py
 ```
 
-Use `https://api.deepseek.com` as the base URL if your Mac can reach the official DeepSeek API. If you use a company or third-party OpenAI-compatible gateway, enter that gateway URL instead. Do not enter `127.0.0.1:3100`; that is DeepCodeX's internal shim address.
+The configure script will ask for a base URL — just press Enter to use the default (`https://api.deepseek.com`). If you're behind a corporate gateway or using another OpenAI-compatible endpoint, type that instead. Don't type `127.0.0.1:3100` — that's an internal address.
 
-After the app exists, the same settings can be changed from the DeepCodeX app menu: **Configure DeepSeek...**.
+Once the app is running, you can change these settings anytime from the menu bar: **Configure DeepSeek...**
 
-## Scope
+## How It Works
 
 ![DeepCodeX routing architecture](assets/brand/routing-architecture.svg)
 
+```
+Codex app ──Responses API──▶ image shim (:3100) ──▶ bridge (:3000) ──▶ DeepSeek
+```
+
+Codex speaks OpenAI's Responses API. DeepSeek speaks Chat Completions. DeepCodeX bridges the two with a pair of lightweight Python services on localhost:
+
+| Port | Service | What it does |
+|------|---------|--------------|
+| 3100 | **Image shim** | DeepSeek is text-only, so this strips image blocks (or converts them to text descriptions via a vision model) before forwarding |
+| 3000 | **Bridge** | Translates Responses ↔ Chat Completions, swaps your local proxy key for your real DeepSeek API key, streams everything back |
+
+Pure Python, no `pip install`, no Docker. They run as launchd services that start automatically on login.
+
+### What's in the repo
+
+| File | What it does |
+|------|--------------|
+| `bin/deepcodex-sync-upstream.py` | Copies your Codex.app → patches it for DeepSeek → signs → verifies |
+| `bin/deepcodex-deepseek-bridge.py` | Responses ↔ Chat Completions translator (port 3000) |
+| `bin/deepcodex-image-strip-proxy.py` | Strips/converts images so DeepSeek doesn't choke (port 3100) |
+| `bin/deepcodex-configure-deepseek.py` | Sets your DeepSeek URL + API key (never prints secrets) |
+| `bin/deepcodex-doctor.py` | Health check — tells you what's wrong and how to fix it |
+| `bin/deepcodex-log-prune.py` | Keeps logs from eating your disk |
+| `bin/deepcodex-backup.sh` | Backs up configs before changes |
+
+### What's NOT in the repo
+
+No Codex binaries, no `.app` builds, no API keys, no logs, no caches. This repo is the toolkit — you supply the Codex app and the DeepSeek key.
+
 ![DeepCodeX install detection flow](assets/brand/install-detection-flow.svg)
-
-![DeepCodeX safety scorecard](assets/brand/safety-scorecard.svg)
-
-Included:
-
-- `bin/deepcodex-sync-upstream.py` rebuilds a staged DeepCodex bundle from the local `/Applications/Codex.app`, applies DeepSeek-only patches, signs it locally, and verifies it before replacement.
-- `bin/deepcodex-doctor.py` checks the local DeepCodex bundle, routing, model picker, launchd services, signing-sensitive settings, and runtime guards.
-- `bin/deepcodex-configure-deepseek.py` provides the single CLI entry for setting the upstream DeepSeek base URL and API key without printing secrets.
-- `bin/deepcodex-deepseek-bridge.py` replaces the former private `ccx` runtime with a pure Python Responses API to DeepSeek Chat Completions translator.
-- `bin/deepcodex-image-strip-proxy.py` removes or converts image blocks before forwarding text-only requests to DeepSeek.
-- `bin/deepcodex-log-prune.py` and `bin/deepcodex-backup.sh` keep local logs and backups bounded.
-
-Not included:
-
-- OpenAI Codex desktop app binaries or resources.
-- DeepCodex `.app` builds.
-- `app.asar` or extracted upstream frontend bundles.
-- Real `secrets.env`, `auth.json`, `ccx/.config/config.json`, sessions, logs, memories, caches, or SQLite state.
-- The local `ccx` binary.
-- OpenAI Codex trademarked image assets.
 
 ## Requirements
 
-- macOS.
-- Official Codex desktop app installed at `/Applications/Codex.app`, or set `CODEX_APP`.
-- A local DeepCodeX home directory, defaulting to `~/.codex-deepseek`, or set `DEEPCODEX_HOME`.
-- A DeepSeek-compatible base URL and API key supplied by you.
-- Python 3.10+ recommended.
+- macOS
+- [Codex desktop app](https://openai.com/codex/) at `/Applications/Codex.app`
+- [DeepSeek API key](https://platform.deepseek.com)
+- Python 3.10+
 
-Important environment variables:
+<details>
+<summary>Environment variables (most people won't need these)</summary>
 
 ```bash
 export DEEPCODEX_HOME="$HOME/.codex-deepseek"
@@ -94,54 +93,35 @@ export DEEPCODEX_APP="/Applications/Deepcodex.app"
 export DEEPCODEX_LAUNCHD_DOMAIN="com.deepcodex"
 ```
 
-## Local Setup
+</details>
 
-For Chinese first-time installation guidance, see [docs/INSTALL.zh-CN.md](docs/INSTALL.zh-CN.md).
+## Updating
 
-```bash
-scripts/install-local.sh
-scripts/preflight-mac.sh
-"$DEEPCODEX_HOME/bin/deepcodex-configure-deepseek.py" --restart-services
-"$DEEPCODEX_HOME/bin/deepcodex-sync-upstream.py" --stage
-```
-
-Only run `--apply` after `--stage` succeeds and you have reviewed the output:
+When Codex releases a new version, just re-run:
 
 ```bash
-"$DEEPCODEX_HOME/bin/deepcodex-sync-upstream.py" --apply
-"$DEEPCODEX_HOME/bin/deepcodex-doctor.py"
-codesign --verify --deep --strict "$DEEPCODEX_APP"
+~/.codex-deepseek/bin/deepcodex-sync-upstream.py --stage
+~/.codex-deepseek/bin/deepcodex-sync-upstream.py --apply
 ```
 
-## Safety Gates
+Or hit the update button inside the app — same thing.
 
-Before pushing release changes, run:
+## Safety
 
-```bash
-scripts/audit-release.sh
-git status --short
-```
+![DeepCodeX safety scorecard](assets/brand/safety-scorecard.svg)
 
-The audit checks Python syntax, shell syntax, documentation links, image-strip and bridge self-tests, high-confidence secret patterns, banned runtime/binary filenames outside local release caches, and tracked source payload filenames.
+Everything runs locally. Your API key lives in `~/.codex-deepseek/secrets.env` (permissions `0600`) and only goes to DeepSeek's API. The patcher backs up your current app before every change and rolls back automatically if anything goes wrong.
 
-## Compliance Boundary
+Before pushing changes to this repo, run `scripts/audit-release.sh` — it catches leaked secrets, banned binaries, and broken docs.
 
-This project is a patcher and local maintenance toolkit. It does not redistribute Codex desktop, OpenAI assets, DeepSeek assets, service accounts, API keys, or third-party binaries. The source code and original documentation/artwork are licensed under the MIT License; that license does not grant rights to upstream apps, trademarks, service accounts, API keys, or third-party assets. See [docs/COMPLIANCE.md](docs/COMPLIANCE.md) before changing distribution behavior.
+## Compliance
 
-Release history is tracked in [CHANGELOG.md](CHANGELOG.md).
+This is a patcher, not a redistribution. No Codex binaries, OpenAI assets, or DeepSeek assets are included. Source code and original artwork are MIT-licensed; that doesn't cover upstream apps or trademarks. Details: [docs/COMPLIANCE.md](docs/COMPLIANCE.md).
 
-Planned public source release notes are in [docs/PUBLIC_SOURCE_RELEASE_NOTES.md](docs/PUBLIC_SOURCE_RELEASE_NOTES.md). The current source release version is tracked in [VERSION](VERSION).
+## Contributing
 
-## Contributing And Support
+Issues and PRs are welcome — just don't paste API keys or secrets into GitHub. See [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: [SECURITY.md](SECURITY.md).
 
-Before opening an issue or pull request, read [CONTRIBUTING.md](CONTRIBUTING.md), [SUPPORT.md](SUPPORT.md), and [SECURITY.md](SECURITY.md). Do not paste API keys, tokens, cookies, private gateway URLs, app bundles, logs with secrets, or screenshots containing credentials into public GitHub threads.
+---
 
-## Current Release Status
-
-The repository is public source. Public GitHub releases are source-only unless `docs/UPSTREAM_TERMS_APPROVAL.md` explicitly approves public binary release assets. For user-ready bridge changes, verify at least:
-
-- `scripts/audit-release.sh`
-- `~/.codex-deepseek/bin/deepcodex-sync-upstream.py --stage`
-- `~/.codex-deepseek/bin/deepcodex-sync-upstream.py --apply`
-- `~/.codex-deepseek/bin/deepcodex-doctor.py`
-- One real text request and one real tool-call request in DeepCodeX.app.
+[CHANGELOG](CHANGELOG.md) · [VERSION](VERSION) · 中文安装: [docs/INSTALL.zh-CN.md](docs/INSTALL.zh-CN.md)

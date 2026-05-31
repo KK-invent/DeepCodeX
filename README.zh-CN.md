@@ -1,151 +1,130 @@
 <p align="center">
-  <img src="assets/brand/deepcodex-hero.svg" alt="DeepCodeX 浅色蓝紫视觉横幅" width="860">
+  <img src="assets/brand/deepcodex-hero.svg" alt="DeepCodeX" width="860">
 </p>
 
 # DeepCodeX
 
-DeepCodeX 是一个面向安全、隐私和可复用性的 DeepCodex 维护工具包。它的目标是让普通 Mac 用户通过 DeepSeek 兼容接口使用 DeepCodeX，同时让维护者可以在不泄露本机配置、不提交上游二进制的前提下构建和升级应用。
+**让你的 [Codex](https://openai.com/codex/) 桌面应用跑在 [DeepSeek](https://deepseek.com) 上。**
 
-**本仓库不包含成品 `.app`、`app.asar`、官方 Codex 安装包、真实 API key、登录态、日志、会话、缓存、SQLite 数据库或第三方二进制。** 也不再依赖任何私有运行时（ccx 二进制已被纯 Python 翻译层替代）。
+DeepCodeX 给你已有的 Codex 桌面应用打个补丁，让它不走 OpenAI，改走 DeepSeek —— 全程在你自己的 Mac 上完成。只要有一个 DeepSeek API key 就能用。
 
-视觉素材采用 DeepCodeX 原创图形，不使用 DeepSeek 官方图标。
+> 非官方社区项目，与 OpenAI、DeepSeek 无关。
 
-DeepCodeX 是非官方项目，不隶属于 OpenAI、Codex、DeepSeek 或相关权利方。
+## 快速上手
 
-## 一张图看懂
+你需要三样东西：一台 Mac、[官方 Codex 应用](https://openai.com/codex/)、一个 [DeepSeek API key](https://platform.deepseek.com)。
+
+> **还没装 Codex？** 先从 [openai.com/codex](https://openai.com/codex/) 下载装好。DeepCodeX 只是给它打补丁，不自带 Codex。如果你的 Codex 不在默认路径，运行前 `export CODEX_APP=/你的路径` 就行。
+
+```bash
+# 1. 确保 Codex.app 在 /Applications/Codex.app
+
+# 2. 克隆并安装
+git clone https://github.com/KK-invent/DeepCodeX.git
+cd DeepCodeX
+scripts/install-local.sh
+
+# 3. 填入你的 DeepSeek key
+~/.codex-deepseek/bin/deepcodex-configure-deepseek.py --restart-services
+
+# 4. 从本地 Codex 构建 DeepCodeX
+~/.codex-deepseek/bin/deepcodex-sync-upstream.py --stage    # 先预检
+~/.codex-deepseek/bin/deepcodex-sync-upstream.py --apply    # 正式构建
+
+# 5. 检查一切是否正常
+~/.codex-deepseek/bin/deepcodex-doctor.py
+```
+
+脚本会问你 base URL —— 大多数人直接回车用默认的 `https://api.deepseek.com` 就行。如果你走公司内网或第三方网关，填那个地址。别填 `127.0.0.1:3100`，那是内部用的。
+
+装好后，随时可以在 DeepCodeX 菜单栏点 **「配置 DeepSeek...」** 改这些设置。
+
+## 工作原理
 
 ![DeepCodeX 本地路由架构](assets/brand/routing-architecture.zh-CN.svg)
 
+```
+Codex 应用 ──Responses API──▶ 剥图中转 (:3100) ──▶ 协议翻译 (:3000) ──▶ DeepSeek
+```
+
+Codex 说的是 OpenAI 的 Responses API，DeepSeek 说的是 Chat Completions API。DeepCodeX 在本地用两个轻量 Python 服务把它们接起来：
+
+| 端口 | 服务 | 干什么的 |
+|------|------|----------|
+| 3100 | **剥图中转** | DeepSeek 是纯文本模型，图片会导致整轮失败。这层把图片剥掉（或用视觉模型转成文字描述），再转发给翻译层 |
+| 3000 | **协议翻译** | Responses ↔ Chat Completions 双向翻译，把你的本地代理 key 换成真正的 DeepSeek API key，流式透传 |
+
+纯 Python，不需要 pip install，不需要 Docker。装完后由 macOS launchd 开机自动拉起。
+
+### 仓库里有什么
+
+| 文件 | 用途 |
+|------|------|
+| `bin/deepcodex-sync-upstream.py` | 拷贝 Codex.app → 打 DeepSeek 补丁 → 签名 → 验证 |
+| `bin/deepcodex-deepseek-bridge.py` | Responses ↔ Chat Completions 翻译器（端口 3000） |
+| `bin/deepcodex-image-strip-proxy.py` | 剥图 / 图生文中转（端口 3100） |
+| `bin/deepcodex-configure-deepseek.py` | 配置 DeepSeek 地址和 API key（不会打印密钥） |
+| `bin/deepcodex-doctor.py` | 体检 —— 告诉你哪里不对、怎么修 |
+| `bin/deepcodex-log-prune.py` | 日志清理，别让磁盘被 log 撑爆 |
+| `bin/deepcodex-backup.sh` | 改配置前自动备份 |
+
+### 仓库里没有什么
+
+没有 Codex 二进制，没有 `.app` 成品，没有 API key，没有日志，没有缓存。这里只有工具；Codex 应用和 DeepSeek key 由你自己提供。
+
 ![DeepCodeX 统一安装检测流程](assets/brand/install-detection-flow.zh-CN.svg)
 
-![DeepCodeX 安全门禁一览](assets/brand/safety-scorecard.zh-CN.svg)
+## 配置 DeepSeek
 
-## 当前链路（已去除私有 ccx）
+有三种方式，选一个你顺手的：
 
-```
-DeepCodex.app ──responses──▶ shim(3100, 剥图) ──▶ bridge(3000, Python翻译) ──▶ DeepSeek(/v1/chat/completions)
-```
-
-`bin/deepcodex-deepseek-bridge.py` 是在端口 3000 上运行的开源 Python 服务，替代了之前私有的 `ccx` 二进制。它做三件事：
-
-1. **请求翻译**：把 Codex 的 OpenAI Responses API（`POST /v1/responses`）翻译成 DeepSeek Chat Completions API（`POST /v1/chat/completions`）。
-2. **响应翻译**：把 DeepSeek 的流式/非流式响应还原成 Codex 能理解的 Responses 事件流（包含 reasoning、function_call、output_text）。
-3. **鉴权转发**：校验本地 `CCX_PROXY_ACCESS_KEY`，替换成你的 `DEEPSEEK_API_KEY` 后转发给 DeepSeek。
-
-零额外依赖——只用 Python 标准库。
-
-## 普通用户安装（无需任何私有二进制）
-
-### 你需要准备
-
-- 一台 macOS 电脑。
-- **官方 Codex desktop app**，从 [OpenAI Codex 官方页面](https://openai.com/codex/) 下载并安装到 `/Applications/Codex.app`。
-- **一个 DeepSeek API key**，从 [platform.deepseek.com](https://platform.deepseek.com) → API Keys 创建。
-
-### 没有 Codex？先做这一步
-
-DeepCodeX 不自带官方 Codex。先从 [OpenAI Codex 官方页面](https://openai.com/codex/) 安装 Codex，并确认它在 `/Applications/Codex.app`，再继续下面的安装步骤。如果你的 Codex 放在别的位置，运行前先设置 `CODEX_APP=/path/to/Codex.app`。
-
-Codex 官方下载地址：https://openai.com/codex/
-
-### 一步安装
-
-```bash
-# 1. 从官方页面下载 Codex.app，安装到 /Applications/Codex.app
-
-# 2. 克隆本仓库
-git clone https://github.com/KK-invent/DeepCodeX.git
-cd DeepCodeX
-
-# 3. 安装维护工具和本地 bridge 服务
-scripts/install-local.sh
-
-# 4. 填写你自己的 DeepSeek base URL 和 API key
-~/.codex-deepseek/bin/deepcodex-configure-deepseek.py --restart-services
-
-# 5. 从本地 Codex 构建 DeepCodeX
-~/.codex-deepseek/bin/deepcodex-sync-upstream.py --stage   # 预检
-~/.codex-deepseek/bin/deepcodex-sync-upstream.py --apply   # 构建
-
-# 6. 以后也可以在 DeepCodeX.app 菜单里打开"配置 DeepSeek..."修改配置
-
-# 7. 验证
-~/.codex-deepseek/bin/deepcodex-doctor.py     # 期望 FAIL=0
-```
-
-> **全程不需要向任何人索要私有二进制或密钥**。你的 API key 只保存在本机 `~/.codex-deepseek/secrets.env` 中，不会发送给任何人。
-
-### 配置 DeepSeek 的两种方式
-
-**方式一（源码首次安装推荐）：命令行配置**
+**命令行（首次推荐）**
 
 ```bash
 ~/.codex-deepseek/bin/deepcodex-configure-deepseek.py --restart-services
 ```
 
-按提示填写：
+按提示填 base URL 和 API key 就行。key 通过密码输入，不会显示在屏幕上。
 
-- `DeepSeek base URL`：默认 `https://api.deepseek.com`，除非你使用内网或第三方 OpenAI-compatible 网关。
-- `DeepSeek API key`：从 [platform.deepseek.com](https://platform.deepseek.com) → API Keys 创建后粘贴。
+**应用内**
 
-配置会写入本机 `~/.codex-deepseek/secrets.env`，不会打印 key。
+首次启动 DeepCodeX 会自动弹窗让你填。之后可以从菜单栏 **「配置 DeepSeek...」** 再次打开。
 
-**方式二：DeepCodeX 应用内**
-
-1. 首次启动 DeepCodeX.app 时，自动弹出"配置 DeepSeek"窗口。
-2. 填写 **DeepSeek base URL**（默认 `https://api.deepseek.com`）和 **DeepSeek API key**（密码框）。
-3. 点击"保存并重启"。
-4. 之后也可以从菜单栏 **「配置 DeepSeek...」**(Configure DeepSeek...) 随时修改。
-
-或直接编辑 `~/.codex-deepseek/secrets.env`，设置：
+**直接编辑文件**
 
 ```bash
+# ~/.codex-deepseek/secrets.env
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_API_KEY=sk-你的key
 ```
 
-然后重启 bridge 服务：
+改完重启一下服务：`launchctl kickstart gui/$(id -u)/com.deepcodex.deepseek-bridge`
+
+## 更新 Codex 版本
+
+Codex 出新版了？重新跑一遍就行：
 
 ```bash
-launchctl kickstart gui/$(id -u)/com.deepcodex.deepseek-bridge
+~/.codex-deepseek/bin/deepcodex-sync-upstream.py --stage
+~/.codex-deepseek/bin/deepcodex-sync-upstream.py --apply
 ```
 
-## 维护者
+或者直接在应用里点更新按钮，效果一样。
 
-如果你要从源码构建 DeepCodeX，需要本机已有官方 Codex desktop app：
+## 安全
 
-```bash
-scripts/install-local.sh
-scripts/preflight-mac.sh
-"$DEEPCODEX_HOME/bin/deepcodex-configure-deepseek.py" --restart-services
-"$DEEPCODEX_HOME/bin/deepcodex-sync-upstream.py" --stage
-# --stage 通过后:
-"$DEEPCODEX_HOME/bin/deepcodex-sync-upstream.py" --apply
-"$DEEPCODEX_HOME/bin/deepcodex-doctor.py"
-```
+![DeepCodeX 安全门禁一览](assets/brand/safety-scorecard.zh-CN.svg)
 
-## 安全边界
+所有东西都在本地跑。你的 API key 存在 `~/.codex-deepseek/secrets.env`（权限 `0600`），除了发给 DeepSeek API 之外不会去别的地方。补丁器每次操作前都会备份，出问题自动回滚。
 
-- API key 不会打印到终端。
-- 真实 `secrets.env`、`auth.json` 不允许提交。
-- 会话、日志、缓存、SQLite 数据库不允许提交。
-- 仓库里不放官方 Codex 二进制、上游前端包或第三方二进制。
-- 源码、原创文档和原创视觉素材采用 MIT License；该许可证不授予任何上游应用、商标、服务账号、API key 或第三方资产的权利。
+## 合规
 
-发布前请运行：
+这是一个补丁工具，不是重分发。仓库里不含 Codex 二进制、OpenAI 资产或 DeepSeek 资产。源码和原创素材使用 MIT 协议；不包含上游应用和商标的权利。详见 [docs/COMPLIANCE.md](docs/COMPLIANCE.md)。
 
-```bash
-scripts/audit-release.sh
-```
+## 参与贡献
 
-更多文档：
+欢迎提 Issue 和 PR —— 但别把 API key 或密钥贴到 GitHub 上。先看一眼 [CONTRIBUTING.md](CONTRIBUTING.md)。安全问题请走 [SECURITY.md](SECURITY.md)。
 
-- [中文安装指南](docs/INSTALL.zh-CN.md)
-- [离线新用户快速指南](docs/OFFLINE_QUICKSTART.zh-CN.md)
-- [中文排障指南](docs/TROUBLESHOOTING.zh-CN.md)
-- [隐私与安全说明](docs/PRIVACY.zh-CN.md)
-- [合规说明](docs/COMPLIANCE.md)
-- [贡献指南](CONTRIBUTING.md)
-- [支持说明](SUPPORT.md)
-- [安全策略](SECURITY.md)
-- [更新记录](CHANGELOG.md)
+---
+
+[更新记录](CHANGELOG.md) · [中文安装指南](docs/INSTALL.zh-CN.md) · [离线快速指南](docs/OFFLINE_QUICKSTART.zh-CN.md) · [排障指南](docs/TROUBLESHOOTING.zh-CN.md) · [隐私说明](docs/PRIVACY.zh-CN.md)

@@ -1,27 +1,9 @@
-# Security Policy
+# Security
 
-## Secrets
+## Don't commit secrets
 
-Do not commit:
+The `.gitignore` already blocks the obvious ones (`secrets.env`, `auth.json`, `*.sqlite`, etc.), but double-check before pushing. Run `scripts/audit-release.sh` — if it flags something as a possible secret, treat it as real until proven otherwise.
 
-- `secrets.env`
-- `auth.json`
-- `ccx/.config/config.json`
-- API keys, OAuth tokens, cookies, private keys, or bearer tokens
-- session, log, cache, memory, or SQLite files
+## Found a vulnerability?
 
-Use `config/secrets.env.example` only as a template.
-
-## Local Audit
-
-Run this before every push:
-
-```bash
-scripts/audit-release.sh
-```
-
-If the script reports a possible secret, treat it as real until manually disproven.
-
-## Reporting
-
-For the private preview, report findings directly to the repository owner. Do not paste secrets into issues, pull requests, screenshots, or chat logs.
+Report it directly to the repository owner. Please don't open a public issue with secret material.
