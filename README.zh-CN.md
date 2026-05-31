@@ -119,7 +119,11 @@ Codex 出新版了？重新跑一遍就行：
 ~/.codex-deepseek/bin/deepcodex-sync-upstream.py --apply
 ```
 
-或者直接在应用里点更新按钮，效果一样。
+应用内更新按钮不会在 Codex 刚出新版时立刻显示。先跑
+`--stage --keep-staged` 做适配预检；预检通过后会写入
+`~/.codex-deepseek/deepcodex-update-adaptations.json`。重开 DeepCodeX 后，
+应用内才会显示 Codex 风格的更新入口；点更新会重新预构建、验证、替换，
+失败就保留旧版。想直接命令行更新，继续跑 `--apply`。
 
 ## 安全
 

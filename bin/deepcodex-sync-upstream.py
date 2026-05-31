@@ -33,6 +33,7 @@ USER_DATA = env_path("DEEPCODEX_USER_DATA", HOME / "Library/Application Support/
 APP_BACKUPS = DEEPCODEX_HOME / "app-backups"
 CACHE_BACKUPS = DEEPCODEX_HOME / "cache-backups"
 ASSETS = DEEPCODEX_HOME / "assets"
+UPDATE_ADAPTATIONS = DEEPCODEX_HOME / "deepcodex-update-adaptations.json"
 DOCTOR = DEEPCODEX_HOME / "bin" / "deepcodex-doctor.py"
 AUTH = DEEPCODEX_HOME / "auth.json"
 ASAR_BLOCK_SIZE = 4 * 1024 * 1024
@@ -78,6 +79,59 @@ def version(info: dict) -> str:
 
 def version_key(info: dict) -> tuple[str, str]:
     return (str(info.get("CFBundleShortVersionString", "")), str(info.get("CFBundleVersion", "")))
+
+
+# 只有通过预检的 Codex 构建，才允许 DeepCodex 暴露应用内更新入口。
+def update_build_record(info: dict) -> dict:
+    return {
+        "short_version": str(info.get("CFBundleShortVersionString", "")),
+        "bundle_version": str(info.get("CFBundleVersion", "")),
+    }
+
+
+def load_update_adaptations() -> dict:
+    if not UPDATE_ADAPTATIONS.exists():
+        return {"adapted_builds": []}
+    try:
+        data = json.loads(UPDATE_ADAPTATIONS.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {"adapted_builds": []}
+    if not isinstance(data, dict) or not isinstance(data.get("adapted_builds"), list):
+        return {"adapted_builds": []}
+    return data
+
+
+def is_update_adapted(info: dict) -> bool:
+    expected = update_build_record(info)
+    for item in load_update_adaptations().get("adapted_builds", []):
+        if not isinstance(item, dict):
+            continue
+        if item.get("short_version") == expected["short_version"] and item.get("bundle_version") == expected["bundle_version"]:
+            return True
+    return False
+
+
+def record_update_adaptation(info: dict, staged: Path, asar_hash: str) -> None:
+    data = load_update_adaptations()
+    record = {
+        **update_build_record(info),
+        "adapted_at": datetime.now().isoformat(timespec="seconds"),
+        "asar_hash": asar_hash,
+        "staged_app": str(staged),
+    }
+    records = [
+        item
+        for item in data.get("adapted_builds", [])
+        if not (
+            isinstance(item, dict)
+            and item.get("short_version") == record["short_version"]
+            and item.get("bundle_version") == record["bundle_version"]
+        )
+    ]
+    records.append(record)
+    data["adapted_builds"] = records[-20:]
+    UPDATE_ADAPTATIONS.parent.mkdir(parents=True, exist_ok=True)
+    UPDATE_ADAPTATIONS.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def read_secret_value(name: str) -> str | None:
@@ -607,12 +661,19 @@ def controlled_update_helpers(electron_var: str, child_process_var: str) -> str:
 function DCXUReadPlist(e,t){try{return __CHILD__.execFileSync(`/usr/libexec/PlistBuddy`,[`-c`,`Print :${t}`,`${e}/Contents/Info.plist`],{encoding:`utf8`,stdio:[`ignore`,`pipe`,`ignore`]}).trim()}catch{return null}}
 function DCXUHome(){return process.env.DEEPCODEX_HOME||`${process.env.HOME}/.codex-deepseek`}
 function DCXUScript(e){return `${DCXUHome()}/bin/${e}`}
-function DCXUUpdateAvailable(){let e=DCXUReadPlist(process.env.CODEX_APP||`/Applications/Codex.app`,`CFBundleVersion`),t=DCXUReadPlist(process.env.DEEPCODEX_APP||`/Applications/Deepcodex.app`,`CFBundleVersion`);return e!=null&&t!=null&&e!==t}
-function DCXUNotifyUpdateState(e,t){let n=DCXUUpdateAvailable();e.send(t,{type:`app-update-ready-changed`,isUpdateReady:n}),e.send(t,{type:`app-update-lifecycle-state-changed`,lifecycleState:n?`ready`:`idle`})}
+function DCXUAdaptations(){return process.env.DEEPCODEX_UPDATE_ADAPTATIONS||`${DCXUHome()}/deepcodex-update-adaptations.json`}
+function DCXUReadJson(e){try{return JSON.parse(require(`node:fs`).readFileSync(e,`utf8`))}catch{return null}}
+function DCXUBuild(e){return{shortVersion:DCXUReadPlist(e,`CFBundleShortVersionString`),bundleVersion:DCXUReadPlist(e,`CFBundleVersion`)}}
+function DCXUVersion(e){return e.shortVersion&&e.bundleVersion?`${e.shortVersion} (${e.bundleVersion})`:null}
+function DCXUIsAdapted(e){let t=DCXUReadJson(DCXUAdaptations()),n=t?.adapted_builds;return Array.isArray(n)&&n.some(t=>t&&t.short_version===e.shortVersion&&t.bundle_version===e.bundleVersion)}
+function DCXUUpdateState(){let e=DCXUBuild(process.env.CODEX_APP||`/Applications/Codex.app`),t=DCXUBuild(process.env.DEEPCODEX_APP||`/Applications/Deepcodex.app`),n=DCXUVersion(e),r=DCXUVersion(t);if(!e.bundleVersion||!t.bundleVersion)return{available:!1,reason:`missing-version`,codexVersion:n,deepcodexVersion:r};if(e.bundleVersion===t.bundleVersion)return{available:!1,reason:`same-version`,codexVersion:n,deepcodexVersion:r};if(!DCXUIsAdapted(e))return{available:!1,reason:`not-adapted`,codexVersion:n,deepcodexVersion:r};return{available:!0,reason:`adapted`,codexVersion:n,deepcodexVersion:r}}
+function DCXUUpdateAvailable(){return DCXUUpdateState().available}
+function DCXUUnavailableDetail(e){if(e.reason===`not-adapted`)return `检测到 Codex.app ${e.codexVersion||``}，但 DeepCodex 还没有完成适配预检；适配记录生成后才会显示更新入口。`;if(e.reason===`same-version`)return `DeepCodex 已经是当前 Codex.app 版本：${e.deepcodexVersion||``}。`;return `没有检测到比当前 DeepCodex 更新的可用 Codex.app 版本。`}
+function DCXUNotifyUpdateState(e,t){let n=DCXUUpdateState();e.send(t,{type:`app-update-ready-changed`,isUpdateReady:n.available}),e.send(t,{type:`app-update-lifecycle-state-changed`,lifecycleState:n.available?`ready`:`idle`})}
 function DCXUSendProgress(e,t,n,r=`installing`){try{e.send(t,{type:`app-update-lifecycle-state-changed`,lifecycleState:r}),e.send(t,{type:`app-update-install-progress-changed`,installProgressPercent:n})}catch{}}
 function DCXUProgressForOutput(e){if(e.includes(`copying Codex.app`))return 10;if(e.includes(`patching staged app.asar`))return 25;if(e.includes(`staged app.asar integrity`))return 40;if(e.includes(`codesigning staged bundle`))return 55;if(e.includes(`DeepSeek no-proxy smoke OK`))return 72;if(e.includes(`Stage OK:`))return 82;return null}
 function DCXURunSync(e,t,n){return new Promise((r,i)=>{let a=``,o=__CHILD__.spawn(DCXUScript(`deepcodex-sync-upstream.py`),e,{stdio:[`ignore`,`pipe`,`pipe`],env:{...process.env,CODEX_DEEPCODEX_BUTTON_UPDATE:`1`}}),s=e=>{a+=e.toString();let r=DCXUProgressForOutput(a);r!=null&&DCXUSendProgress(t,n,r)};o.stdout.on(`data`,s),o.stderr.on(`data`,s),o.on(`error`,i),o.on(`close`,e=>{e===0?r(a):i(Error(a||`DeepCodex update command failed with exit code ${e}`))})})}
-async function DCXUStartControlledUpdate(e,t,r){if(!DCXUUpdateAvailable()){let i={type:`info`,buttons:[`OK`],defaultId:0,noLink:!0,title:`DeepCodex 暂无可用更新`,message:`DeepCodex 暂无可用更新`,detail:`没有检测到比当前 DeepCodex 更新的 Codex.app 版本。`};await(e==null?__ELECTRON__.dialog.showMessageBox(i):__ELECTRON__.dialog.showMessageBox(e,i));return}let i={type:`warning`,buttons:[`更新`,`取消`],defaultId:0,cancelId:1,noLink:!0,title:`现在更新 DeepCodex？`,message:`现在更新 DeepCodex？`,detail:`DeepCodex 将先预构建并验证新版。进度条会显示预检进度；通过后会退出并替换应用，失败会保留当前版本。`};if((e==null?await __ELECTRON__.dialog.showMessageBox(i):await __ELECTRON__.dialog.showMessageBox(e,i)).response!==0)return;try{DCXUSendProgress(t,r,3);let e=await DCXURunSync([`--stage`,`--keep-staged`],t,r),i=/Stage OK: ([^\\n]+)/.exec(e);if(!i)throw Error(`staged bundle path not found in update output`);DCXUSendProgress(t,r,88);__CHILD__.spawn(DCXUScript(`deepcodex-sync-upstream.py`),[`--apply-staged`,i[1]],{detached:!0,stdio:`ignore`,env:{...process.env,CODEX_DEEPCODEX_BUTTON_UPDATE:`1`}}).unref();setTimeout(()=>__ELECTRON__.app.quit(),350)}catch(i){DCXUSendProgress(t,r,null,`ready`);let a=i instanceof Error?i.message:String(i),o={type:`error`,buttons:[`OK`],defaultId:0,noLink:!0,title:`DeepCodex 更新预检失败`,message:`DeepCodex 更新预检失败`,detail:a.slice(0,1800)};await(e==null?__ELECTRON__.dialog.showMessageBox(o):__ELECTRON__.dialog.showMessageBox(e,o))}}
+async function DCXUStartControlledUpdate(e,t,r){let s=DCXUUpdateState();if(!s.available){let i={type:`info`,buttons:[`OK`],defaultId:0,noLink:!0,title:`DeepCodex 暂无可用更新`,message:`DeepCodex 暂无可用更新`,detail:DCXUUnavailableDetail(s)};await(e==null?__ELECTRON__.dialog.showMessageBox(i):__ELECTRON__.dialog.showMessageBox(e,i));return}let i={type:`warning`,buttons:[`更新`,`取消`],defaultId:0,cancelId:1,noLink:!0,title:`现在更新 DeepCodex？`,message:`现在更新 DeepCodex？`,detail:`DeepCodex 将先预构建并验证新版。进度条会显示预检进度；通过后会退出并替换应用，失败会保留当前版本。`};if((e==null?await __ELECTRON__.dialog.showMessageBox(i):await __ELECTRON__.dialog.showMessageBox(e,i)).response!==0)return;try{DCXUSendProgress(t,r,3);let e=await DCXURunSync([`--stage`,`--keep-staged`],t,r),i=/Stage OK: ([^\\n]+)/.exec(e);if(!i)throw Error(`staged bundle path not found in update output`);DCXUSendProgress(t,r,88);__CHILD__.spawn(DCXUScript(`deepcodex-sync-upstream.py`),[`--apply-staged`,i[1]],{detached:!0,stdio:`ignore`,env:{...process.env,CODEX_DEEPCODEX_BUTTON_UPDATE:`1`}}).unref();setTimeout(()=>__ELECTRON__.app.quit(),350)}catch(i){DCXUSendProgress(t,r,null,`ready`);let a=i instanceof Error?i.message:String(i),o={type:`error`,buttons:[`OK`],defaultId:0,noLink:!0,title:`DeepCodex 更新预检失败`,message:`DeepCodex 更新预检失败`,detail:a.slice(0,1800)};await(e==null?__ELECTRON__.dialog.showMessageBox(o):__ELECTRON__.dialog.showMessageBox(e,o))}}
 """
     return helper.replace("__ELECTRON__", electron_var).replace("__CHILD__", child_process_var)
 
@@ -1008,6 +1069,8 @@ def stage_upstream(ts: str) -> tuple[Path, str]:
         codesign_and_register(tmp)
         verify_staged_app(tmp)
         smoke_deepseek_route()
+        record_update_adaptation(read_plist(CODEX_APP), tmp, asar_hash)
+        log(f"recorded DeepCodex adaptation for Codex.app {version(read_plist(CODEX_APP))}")
         return tmp, asar_hash
     except Exception:
         if tmp.exists():
@@ -1042,7 +1105,7 @@ def print_status() -> tuple[dict, dict]:
     target = read_plist(DEEPCODEX_APP) if DEEPCODEX_APP.exists() else {}
     print(f"Codex.app:     {version(source) if source else 'missing'}")
     print(f"Deepcodex.app: {version(target) if target else 'missing'}")
-    print("Policy: manual-only; DeepCodex never self-updates via Sparkle.")
+    print("Policy: DeepCodex shows the Codex update UI only after an adaptation preflight passes.")
     print(
         "Gate: stage -> patch app.asar -> ESM syntax -> integrity -> codesign -> "
         "DeepSeek smoke -> doctor -> cache refresh -> process+frontend launch check."
@@ -1050,7 +1113,9 @@ def print_status() -> tuple[dict, dict]:
     if source and target and version_key(source) == version_key(target):
         print("Status: versions match.")
     elif source and target:
-        print("Status: Codex.app version differs from DeepCodex; run --stage to preflight or --apply to update.")
+        adapted = is_update_adapted(source)
+        print("Status: Codex.app version differs from DeepCodex.")
+        print(f"Update UI: {'visible after restart' if adapted else 'hidden until --stage preflight succeeds'}.")
     return source, target
 
 
