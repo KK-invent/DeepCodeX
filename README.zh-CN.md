@@ -1,9 +1,5 @@
 <p align="center">
-  <img src="assets/brand/deepcodex-icon.svg" alt="DeepCodeX 渐变 X 图标" width="156">
-</p>
-
-<p align="center">
-  <img src="assets/brand/deepcodex-logo.zh-CN.svg" alt="DeepCodeX 中文标志" width="560">
+  <img src="assets/brand/deepcodex-hero.svg" alt="DeepCodeX 浅色蓝紫视觉横幅" width="860">
 </p>
 
 # DeepCodeX
@@ -45,6 +41,12 @@ DeepCodex.app ──responses──▶ shim(3100, 剥图) ──▶ bridge(3000,
 - 一台 macOS 电脑。
 - **官方 Codex desktop app**，从 [OpenAI Codex 官方页面](https://openai.com/codex/) 下载并安装到 `/Applications/Codex.app`。
 - **一个 DeepSeek API key**，从 [platform.deepseek.com](https://platform.deepseek.com) → API Keys 创建。
+
+### 没有 Codex？先做这一步
+
+DeepCodeX 不自带官方 Codex。先从 [OpenAI Codex 官方页面](https://openai.com/codex/) 安装 Codex，并确认它在 `/Applications/Codex.app`，再继续下面的安装步骤。如果你的 Codex 放在别的位置，运行前先设置 `CODEX_APP=/path/to/Codex.app`。
+
+Codex 官方下载地址：https://openai.com/codex/
 
 ### 一步安装
 

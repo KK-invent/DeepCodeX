@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360" role="img" aria-labelledby="title desc">
   <title id="title">DeepCodeX gradient X icon</title>
-  <desc id="desc">An original minimal uppercase X mark with a purple-to-blue gradient.</desc>
+  <desc id="desc">An original minimal uppercase X mark with a cyan-to-blue gradient.</desc>
   <defs>
     <linearGradient id="xGradient" x1="76" y1="54" x2="292" y2="306" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#D47CFF"/>
-      <stop offset=".44" stop-color="#8C5CFF"/>
-      <stop offset="1" stop-color="#4D6BFE"/>
+      <stop offset="0" stop-color="#335BFF"/>
+      <stop offset=".5" stop-color="#23C7F6"/>
+      <stop offset="1" stop-color="#2547DB"/>
     </linearGradient>
   </defs>
   <g fill="url(#xGradient)">

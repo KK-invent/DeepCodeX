@@ -1,9 +1,5 @@
 <p align="center">
-  <img src="assets/brand/deepcodex-icon.svg" alt="DeepCodeX gradient X icon" width="156">
-</p>
-
-<p align="center">
-  <img src="assets/brand/deepcodex-logo.svg" alt="DeepCodeX" width="560">
+  <img src="assets/brand/deepcodex-hero.svg" alt="DeepCodeX light blue hero" width="860">
 </p>
 
 # DeepCodeX
@@ -19,6 +15,12 @@ The visual identity uses original DeepCodeX artwork. See [assets/brand/SOURCES.m
 DeepCodeX is an unofficial project. It is not affiliated with, endorsed by, or supported by OpenAI, Codex, DeepSeek, or their respective owners.
 
 ## Quick Start
+
+### No Codex yet? Do this first
+
+DeepCodeX does not ship Codex itself. Install the official Codex desktop app from [OpenAI Codex](https://openai.com/codex/) first and make sure it exists at `/Applications/Codex.app`, then come back and run the steps below. If Codex lives somewhere else, set `CODEX_APP=/path/to/Codex.app` before running the installer.
+
+Official Codex download page: https://openai.com/codex/
 
 DeepCodeX no longer depends on the private `ccx` runtime. The local translation layer is `bin/deepcodex-deepseek-bridge.py`, a pure Python service that listens on `127.0.0.1:3000`.
 
