@@ -2,6 +2,15 @@
 
 All notable changes for the DeepCodeX preview and release preparation are tracked here.
 
+## v0.1.1
+
+- Replaced the private `ccx` runtime path with the tracked Python `deepcodex-deepseek-bridge.py` for public source installs.
+- Added a self-contained source install flow: install scripts, configure DeepSeek base URL/API key, stage, apply, and run doctor.
+- Updated launchd install and restart handling so stale legacy `ccx` and image-strip processes are stopped before bridge services start.
+- Adapted upstream patching for Codex `26.527.31326`, including bootstrap, menu, and model-query shape changes.
+- Fixed the DeepSeek smoke test to use non-streaming Responses output so release staging does not hang on SSE streams.
+- Kept the public release source-only: no Codex app bundle, no DeepCodeX app bundle, no API keys, and no third-party runtime binaries.
+
 ## v0.1.0
 
 - Prepared the first planned public source release identity with `VERSION` and public source release notes.
