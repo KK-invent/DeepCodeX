@@ -1,6 +1,6 @@
-# DeepCodeX v0.1.1 Public Source Release Notes
+# DeepCodeX v0.1.2 Public Source Release Notes
 
-DeepCodeX v0.1.1 is the first public source release meant to be usable by a stranger from source without a private `ccx` runtime.
+DeepCodeX v0.1.2 is the current public source release meant to be usable by a stranger from source without a private `ccx` runtime. It also fixes a false failure in the post-apply launch check on current Electron renderer paths.
 
 ## What Is Included
 

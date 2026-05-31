@@ -953,7 +953,7 @@ def launch_and_wait() -> None:
     deadline = time.time() + 25
     while time.time() < deadline:
         main_ok = process_exists(str(DEEPCODEX_APP / "Contents/MacOS/Codex"))
-        renderer_ok = process_exists(re.escape(str(DEEPCODEX_APP / "Contents/Frameworks/Codex Helper (Renderer).app")))
+        renderer_ok = process_exists(re.escape(str(DEEPCODEX_APP / "Contents/Frameworks")) + r".*Codex \(Renderer\)\.app")
         server_ok = process_exists(re.escape(str(DEEPCODEX_APP / "Contents/Resources")) + r"/codex(\.real)? app-server")
         if main_ok and renderer_ok and server_ok:
             log("launch check OK: main, renderer, and app-server are running")

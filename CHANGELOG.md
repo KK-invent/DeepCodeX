@@ -2,6 +2,10 @@
 
 All notable changes for the DeepCodeX preview and release preparation are tracked here.
 
+## v0.1.2
+
+- Fixed the post-apply launch check for current Electron renderer paths so a successful DeepCodex launch no longer exits as a false failure.
+
 ## v0.1.1
 
 - Replaced the private `ccx` runtime path with the tracked Python `deepcodex-deepseek-bridge.py` for public source installs.
