@@ -374,9 +374,6 @@ def patch_bootstrap_js(data: bytes) -> bytes:
             r"([A-Za-z_$][\w$]*)=require\(`node:path`\);",
             text,
         )
-        if not match:
-            raise RuntimeError("bootstrap import prelude shape changed; refusing unsafe patch")
-        session_var, session_path, workspace_var, workspace_path, electron_var, path_var = match.groups()
         prefix = (
             "process.env.LANG='zh_CN.UTF-8';"
             "process.env.LC_ALL='zh_CN.UTF-8';"
@@ -385,15 +382,35 @@ def patch_bootstrap_js(data: bytes) -> bytes:
             "process.env.CODEX_ELECTRON_USER_DATA_PATH="
             "process.env.CODEX_ELECTRON_USER_DATA_PATH||process.env.DEEPCODEX_USER_DATA||`${process.env.HOME}/Library/Application Support/Deepcodex`;"
         )
-        replacement = (
-            f"{prefix}let {electron_var}=require(`electron`);"
-            f"try{{{electron_var}.app.commandLine.appendSwitch(`lang`,`zh-CN`)}}catch{{}}"
-            f"try{{{electron_var}.app.commandLine.appendSwitch(`password-store`,`basic`)}}catch{{}}"
-            f"try{{{electron_var}.app.commandLine.appendSwitch(`use-mock-keychain`)}}catch{{}}"
-            f"const {session_var}=require(`{session_path}`),{workspace_var}=require(`{workspace_path}`);"
-            f"let {path_var}=require(`node:path`);"
-        )
-        text = replacement + text[match.end() :]
+        if match:
+            session_var, session_path, workspace_var, workspace_path, electron_var, path_var = match.groups()
+            switches = (
+                f"try{{{electron_var}.app.commandLine.appendSwitch(`lang`,`zh-CN`)}}catch{{}}"
+                f"try{{{electron_var}.app.commandLine.appendSwitch(`password-store`,`basic`)}}catch{{}}"
+                f"try{{{electron_var}.app.commandLine.appendSwitch(`use-mock-keychain`)}}catch{{}}"
+            )
+            replacement = (
+                f"{prefix}let {electron_var}=require(`electron`);"
+                f"{switches}"
+                f"const {session_var}=require(`{session_path}`),{workspace_var}=require(`{workspace_path}`);"
+                f"let {path_var}=require(`node:path`);"
+            )
+            text = replacement + text[match.end() :]
+        else:
+            electron_chain = re.search(r"let\s+([A-Za-z_$][\w$]*)=require\(`electron`\),([^;]+);", text)
+            if not electron_chain:
+                raise RuntimeError("bootstrap import prelude shape changed; refusing unsafe patch")
+            app_session_before_electron = text.find("app-session-") >= 0 and text.find("app-session-") < electron_chain.start()
+            if app_session_before_electron:
+                raise RuntimeError("bootstrap app-session loads before electron switches; refusing unsafe patch")
+            electron_var, rest = electron_chain.groups()
+            switches = (
+                f"try{{{electron_var}.app.commandLine.appendSwitch(`lang`,`zh-CN`)}}catch{{}}"
+                f"try{{{electron_var}.app.commandLine.appendSwitch(`password-store`,`basic`)}}catch{{}}"
+                f"try{{{electron_var}.app.commandLine.appendSwitch(`use-mock-keychain`)}}catch{{}}"
+            )
+            replacement = f"let {electron_var}=require(`electron`);{switches}let {rest};"
+            text = prefix + text[: electron_chain.start()] + replacement + text[electron_chain.end() :]
         changed = True
 
     electron_var = extract_electron_var(text)
@@ -433,10 +450,12 @@ def verify_bootstrap_patch(text: str) -> None:
     electron_idx = text.find("require(`electron`)", start)
     password_idx = text.find("appendSwitch(`password-store`,`basic`)", start)
     mock_idx = text.find("appendSwitch(`use-mock-keychain`)", start)
-    app_session_idx = text.find("app-session-", start)
-    if min(start, electron_idx, password_idx, mock_idx, app_session_idx) < 0:
+    late_marker_idx = text.find("app-session-", start)
+    if late_marker_idx < 0:
+        late_marker_idx = text.find(".app.setName(", start)
+    if min(start, electron_idx, password_idx, mock_idx, late_marker_idx) < 0:
         raise RuntimeError("bootstrap patch verification failed: missing key marker")
-    if not (electron_idx < password_idx < app_session_idx and electron_idx < mock_idx < app_session_idx):
+    if not (electron_idx < password_idx < late_marker_idx and electron_idx < mock_idx < late_marker_idx):
         raise RuntimeError("bootstrap patch verification failed: keychain switches load too late")
     if "CODEX_SPARKLE_ENABLED!==`false`" not in text:
         raise RuntimeError("bootstrap patch verification failed: Sparkle is not gated")
@@ -450,7 +469,10 @@ def patch_model_queries_js(data: bytes) -> bytes:
     if "var p=`gpt-5.5`" in text:
         text = text.replace("var p=`gpt-5.5`", "var p=`deepseek-v4-flash`", 1)
         changed = True
-    elif "var p=`deepseek-v4-flash`" not in text:
+    elif "defaultModel:f" in text:
+        text = text.replace("defaultModel:f", "defaultModel:`deepseek-v4-flash`", 1)
+        changed = True
+    elif "var p=`deepseek-v4-flash`" not in text and "defaultModel:`deepseek-v4-flash`" not in text:
         raise RuntimeError("model-queries default model marker missing")
 
     old_available = "_=[],v={availableModels:new Set(_),useHiddenModels:!1,defaultModel:p};"
@@ -459,7 +481,16 @@ def patch_model_queries_js(data: bytes) -> bytes:
         text = text.replace(old_available, new_available, 1)
         changed = True
     elif new_available not in text:
-        raise RuntimeError("model-queries availableModels marker missing")
+        text, count = re.subn(
+            r"([,;])([A-Za-z_$][\w$]*)=\[\],([A-Za-z_$][\w$]*)=\{availableModels:new Set\(\2\),useHiddenModels:!1,defaultModel:`deepseek-v4-flash`\};",
+            r"\1\2=[`deepseek-v4-flash`,`deepseek-v4-pro`],\3={availableModels:new Set(\2),useHiddenModels:!1,defaultModel:`deepseek-v4-flash`};",
+            text,
+            count=1,
+        )
+        if count:
+            changed = True
+        else:
+            raise RuntimeError("model-queries availableModels marker missing")
 
     old_filter = "if(d?a.has(e.model):!e.hidden){"
     new_filter = (
@@ -470,7 +501,16 @@ def patch_model_queries_js(data: bytes) -> bytes:
         text = text.replace(old_filter, new_filter, 1)
         changed = True
     elif new_filter not in text:
-        raise RuntimeError("model-queries DeepSeek filter marker missing")
+        text, count = re.subn(
+            r"if\(([A-Za-z_$][\w$]*)\?([A-Za-z_$][\w$]*)\.has\(e\.model\):!e\.hidden\)\{",
+            r"if((e.model===`deepseek-v4-flash`||e.model===`deepseek-v4-pro`)&&(\1?\2.has(e.model):!e.hidden)){",
+            text,
+            count=1,
+        )
+        if count:
+            changed = True
+        else:
+            raise RuntimeError("model-queries DeepSeek filter marker missing")
 
     old_statement_fallback = (
         "let s=[{model:`deepseek-v4-flash`,displayName:`DeepSeek Flash`,"
@@ -532,7 +572,7 @@ def patch_thread_management_js(data: bytes) -> bytes:
 
 def verify_new_frontend_patch(model_queries: str | None, use_model_settings: str | None) -> None:
     if model_queries is not None:
-        if "var p=`deepseek-v4-flash`" not in model_queries:
+        if "var p=`deepseek-v4-flash`" not in model_queries and "defaultModel:`deepseek-v4-flash`" not in model_queries:
             raise RuntimeError("model-queries default model is not DeepSeek")
         if "e.model===`deepseek-v4-flash`||e.model===`deepseek-v4-pro`" not in model_queries:
             raise RuntimeError("model-queries DeepSeek-only filter missing")
@@ -584,7 +624,7 @@ function DCXCfgHome(){return process.env.DEEPCODEX_HOME||`${process.env.HOME}/.c
 function DCXCfgScript(e){return `${DCXCfgHome()}/bin/${e}`}
 function DCXCfgRun(e,t=null){return new Promise((n,r)=>{let i=``,a=``,o=__CHILD__.spawn(DCXCfgScript(`deepcodex-configure-deepseek.py`),e,{stdio:[t==null?`ignore`:`pipe`,`pipe`,`pipe`],env:{...process.env,CODEX_DEEPSEEK_CONFIG_WINDOW:`1`}});o.stdout.on(`data`,e=>{i+=e.toString()}),o.stderr.on(`data`,e=>{a+=e.toString()}),o.on(`error`,r),o.on(`close`,e=>{e===0?n(i):r(Error((i+a).trim()||`DeepSeek configuration failed with exit code ${e}`))}),t!=null&&(o.stdin.write(t),o.stdin.end())})}
 async function DCXCfgStatus(){try{let e=await DCXCfgRun([`--status-json`]);return JSON.parse(e)}catch(e){return{configured:!1,base_url:`https://api.deepseek.com`,upstream_api_key_present:!1,missing:[e instanceof Error?e.message:String(e)]}}}
-function DCXCfgHtml(e){return `<!doctype html><html><head><meta charset="utf-8"><meta name="color-scheme" content="dark light"><title>DeepCodex DeepSeek 配置</title><style>body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101114;color:#f5f5f5}.wrap{padding:28px}h1{font-size:22px;margin:0 0 8px}.sub{color:#a7a7ad;font-size:13px;line-height:1.5;margin-bottom:22px}.field{margin:0 0 16px}label{display:block;font-size:13px;color:#c8c8cd;margin-bottom:8px}input{box-sizing:border-box;width:100%;height:38px;border:1px solid #3a3b42;border-radius:8px;background:#1b1c22;color:#fff;padding:0 12px;font-size:14px;outline:none}input:focus{border-color:#4b9dff;box-shadow:0 0 0 3px rgba(75,157,255,.18)}.hint{font-size:12px;color:#8f9097;line-height:1.45;margin-top:7px}.row{display:flex;gap:10px;align-items:center;margin-top:22px}button{height:36px;border:0;border-radius:8px;padding:0 14px;font-size:13px;color:#fff;background:#3478f6;cursor:pointer}button.secondary{background:#2b2c32;color:#d6d6db}button:disabled{opacity:.55;cursor:default}.status{min-height:40px;margin-top:18px;font-size:13px;line-height:1.45;color:#c9c9cf;white-space:pre-wrap}.error{color:#ff8a8a}.ok{color:#7ee787}</style></head><body><div class="wrap"><h1>配置 DeepSeek</h1><div class="sub">${e?`首次启动前需要填写 DeepSeek 上游地址和 API key。`:`可以在这里修改 DeepSeek 上游地址或 API key。`}DeepCodex 内部仍会通过本地 shim 与 ccx 转发。</div><form id="form"><div class="field"><label for="baseUrl">DeepSeek base URL</label><input id="baseUrl" autocomplete="off" spellcheck="false" placeholder="https://api.deepseek.com"><div class="hint">填写 OpenAI-compatible 上游地址，不要填写 127.0.0.1:3100。</div></div><div class="field"><label for="apiKey">DeepSeek API key</label><input id="apiKey" type="password" autocomplete="off" placeholder="留空则保留已配置的 key"><div id="keyHint" class="hint"></div></div><div class="row"><button id="save" type="submit">保存并重启</button><button id="close" class="secondary" type="button">稍后</button></div><div id="status" class="status">正在读取配置...</div></form></div><script>const{ipcRenderer}=require('electron'),baseUrl=document.getElementById('baseUrl'),apiKey=document.getElementById('apiKey'),keyHint=document.getElementById('keyHint'),statusEl=document.getElementById('status'),saveBtn=document.getElementById('save'),closeBtn=document.getElementById('close'),form=document.getElementById('form');function setStatus(t,c){statusEl.className='status '+(c||'');statusEl.textContent=t}ipcRenderer.invoke('dcx-deepseek-config-status').then(s=>{baseUrl.value=s.base_url||'https://api.deepseek.com';keyHint.textContent=s.upstream_api_key_present?'已配置 API key；留空会保留现有 key。':'未检测到 API key，首次配置必须填写。';setStatus(s.configured?'当前配置完整。':'配置不完整：'+(s.missing||[]).join(', '),s.configured?'ok':'')}).catch(e=>setStatus(String(e),'error'));form.addEventListener('submit',async e=>{e.preventDefault();saveBtn.disabled=true;setStatus('正在保存配置...');try{let r=await ipcRenderer.invoke('dcx-deepseek-config-save',{baseUrl:baseUrl.value,apiKey:apiKey.value});if(!r||!r.ok)throw Error(r&&r.error||'保存失败');setStatus('配置已保存，正在重启 DeepCodex...', 'ok');setTimeout(()=>ipcRenderer.invoke('dcx-deepseek-config-restart'),500)}catch(e){saveBtn.disabled=false;setStatus(String(e&&e.message||e),'error')}});closeBtn.addEventListener('click',()=>window.close());</script></body></html>`}
+function DCXCfgHtml(e){return `<!doctype html><html><head><meta charset="utf-8"><meta name="color-scheme" content="dark light"><title>DeepCodex DeepSeek 配置</title><style>body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#101114;color:#f5f5f5}.wrap{padding:28px}h1{font-size:22px;margin:0 0 8px}.sub{color:#a7a7ad;font-size:13px;line-height:1.5;margin-bottom:22px}.field{margin:0 0 16px}label{display:block;font-size:13px;color:#c8c8cd;margin-bottom:8px}input{box-sizing:border-box;width:100%;height:38px;border:1px solid #3a3b42;border-radius:8px;background:#1b1c22;color:#fff;padding:0 12px;font-size:14px;outline:none}input:focus{border-color:#4b9dff;box-shadow:0 0 0 3px rgba(75,157,255,.18)}.hint{font-size:12px;color:#8f9097;line-height:1.45;margin-top:7px}.row{display:flex;gap:10px;align-items:center;margin-top:22px}button{height:36px;border:0;border-radius:8px;padding:0 14px;font-size:13px;color:#fff;background:#3478f6;cursor:pointer}button.secondary{background:#2b2c32;color:#d6d6db}button:disabled{opacity:.55;cursor:default}.status{min-height:40px;margin-top:18px;font-size:13px;line-height:1.45;color:#c9c9cf;white-space:pre-wrap}.error{color:#ff8a8a}.ok{color:#7ee787}</style></head><body><div class="wrap"><h1>配置 DeepSeek</h1><div class="sub">${e?`首次启动前需要填写 DeepSeek 上游地址和 API key。`:`可以在这里修改 DeepSeek 上游地址或 API key。`}DeepCodex 内部会通过本地 shim 与 Python bridge 转发。</div><form id="form"><div class="field"><label for="baseUrl">DeepSeek base URL</label><input id="baseUrl" autocomplete="off" spellcheck="false" placeholder="https://api.deepseek.com"><div class="hint">填写 OpenAI-compatible 上游地址，不要填写 127.0.0.1:3100。</div></div><div class="field"><label for="apiKey">DeepSeek API key</label><input id="apiKey" type="password" autocomplete="off" placeholder="留空则保留已配置的 key"><div id="keyHint" class="hint"></div></div><div class="row"><button id="save" type="submit">保存并重启</button><button id="close" class="secondary" type="button">稍后</button></div><div id="status" class="status">正在读取配置...</div></form></div><script>const{ipcRenderer}=require('electron'),baseUrl=document.getElementById('baseUrl'),apiKey=document.getElementById('apiKey'),keyHint=document.getElementById('keyHint'),statusEl=document.getElementById('status'),saveBtn=document.getElementById('save'),closeBtn=document.getElementById('close'),form=document.getElementById('form');function setStatus(t,c){statusEl.className='status '+(c||'');statusEl.textContent=t}ipcRenderer.invoke('dcx-deepseek-config-status').then(s=>{baseUrl.value=s.base_url||'https://api.deepseek.com';keyHint.textContent=s.upstream_api_key_present?'已配置 API key；留空会保留现有 key。':'未检测到 API key，首次配置必须填写。';setStatus(s.configured?'当前配置完整。':'配置不完整：'+(s.missing||[]).join(', '),s.configured?'ok':'')}).catch(e=>setStatus(String(e),'error'));form.addEventListener('submit',async e=>{e.preventDefault();saveBtn.disabled=true;setStatus('正在保存配置...');try{let r=await ipcRenderer.invoke('dcx-deepseek-config-save',{baseUrl:baseUrl.value,apiKey:apiKey.value});if(!r||!r.ok)throw Error(r&&r.error||'保存失败');setStatus('配置已保存，正在重启 DeepCodex...', 'ok');setTimeout(()=>ipcRenderer.invoke('dcx-deepseek-config-restart'),500)}catch(e){saveBtn.disabled=false;setStatus(String(e&&e.message||e),'error')}});closeBtn.addEventListener('click',()=>window.close());</script></body></html>`}
 function DCXCfgRegisterIpc(){if(DCXCfgIpcRegistered)return;DCXCfgIpcRegistered=!0;__ELECTRON__.ipcMain.handle(`dcx-deepseek-config-status`,async()=>DCXCfgStatus()),__ELECTRON__.ipcMain.handle(`dcx-deepseek-config-save`,async(e,t)=>{let n=String(t&&t.baseUrl||``).trim(),r=String(t&&t.apiKey||``).trim();if(!n)throw Error(`DeepSeek base URL 不能为空`);let i=[`--base-url`,n,`--restart-services`,`--no-confirm`],a=null;return r?(i.push(`--key-stdin`),a=r):i.push(`--keep-existing-key`),await DCXCfgRun(i,a),{ok:!0}}),__ELECTRON__.ipcMain.handle(`dcx-deepseek-config-restart`,async()=>{__ELECTRON__.app.relaunch(),__ELECTRON__.app.exit(0)})}
 function DCXCfgOpen(e=!1){DCXCfgRegisterIpc();if(DCXCfgWindow&&!DCXCfgWindow.isDestroyed()){DCXCfgWindow.focus();return}DCXCfgWindow=new __ELECTRON__.BrowserWindow({width:540,height:500,title:`DeepCodex DeepSeek 配置`,resizable:!1,minimizable:!1,maximizable:!1,fullscreenable:!1,webPreferences:{nodeIntegration:!0,contextIsolation:!1}}),DCXCfgWindow.on(`closed`,()=>{DCXCfgWindow=null}),DCXCfgWindow.loadURL(`data:text/html;base64,`+Buffer.from(DCXCfgHtml(e),`utf8`).toString(`base64`))}
 function DCXCfgMenuPresent(e){return !!(e&&e.items&&e.items.some(e=>e.submenu&&e.submenu.items&&e.submenu.items.some(e=>e.label===`配置 DeepSeek...`)))}
@@ -670,7 +710,7 @@ def patch_main_js(data: bytes) -> bytes:
     if menu_old in text:
         text = text.replace(menu_old, menu_new, 1)
         changed = True
-    elif menu_new not in text:
+    elif menu_new not in text and "function DCXCfgInstallMenu()" not in text:
         raise RuntimeError("main process application menu template shape changed")
 
     return text.encode("utf-8") if changed else data
@@ -758,7 +798,7 @@ def verify_asar_patch(app: Path) -> None:
         raise RuntimeError("asar verification failed: DeepSeek config window patch missing")
     old_picker_ok = b"var FR = [`deepseek-v4-flash`, `deepseek-v4-pro`]" in data and b"function LRR(e)" in data
     new_picker_ok = (
-        b"var p=`deepseek-v4-flash`" in data
+        (b"var p=`deepseek-v4-flash`" in data or b"defaultModel:`deepseek-v4-flash`" in data)
         and b"e.model===`deepseek-v4-flash`||e.model===`deepseek-v4-pro`" in data
         and b"displayName:`DeepSeek Flash`" in data
         and b"displayName:`DeepSeek Pro`" in data
@@ -811,6 +851,7 @@ def smoke_deepseek_route(timeout: int = 25) -> None:
         "input": [{"role": "user", "content": [{"type": "input_text", "text": "ping"}]}],
         "reasoning": {"effort": "high"},
         "store": False,
+        "stream": False,
     }).encode("utf-8")
     env = os.environ.copy()
     for name in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy"):

@@ -1,6 +1,6 @@
 # Compliance Notes
 
-This repository should stay private until the remaining upstream terms and CI boundaries are reviewed.
+This repository is public source. Keep public releases source-only unless the upstream terms review explicitly approves public binary assets.
 
 ## What This Repository Does Not Ship
 
@@ -16,9 +16,9 @@ This repository should stay private until the remaining upstream terms and CI bo
 
 The scripts expect users to install the official Codex desktop app themselves. The patcher reads that local installation and builds a local private derivative on the user's own machine.
 
-Private binary packages are a separate distribution path. They must stay out of git and must be reviewed before sharing, especially if they include an app bundle or local `ccx` runtime. They must not become public release assets unless public binary distribution is explicitly approved in `docs/UPSTREAM_TERMS_APPROVAL.md`.
+Private binary packages are a separate distribution path. They must stay out of git and must be reviewed before sharing, especially if they include a generated app bundle. They must not become public release assets unless public binary distribution is explicitly approved in `docs/UPSTREAM_TERMS_APPROVAL.md`.
 
-Before public release, review whether this patching model is acceptable under the upstream app's terms and any applicable distribution rules. If the answer is unclear, keep the repository private.
+Before changing distribution behavior, review whether this patching model is acceptable under the upstream app's terms and any applicable distribution rules. If the answer is unclear, keep public releases source-only.
 
 ## Trademark Boundary
 
@@ -37,12 +37,12 @@ The MIT License does not grant rights to:
 - DeepSeek or OpenAI service accounts, API keys, hosted services, or service names.
 - Third-party binaries, runtimes, or assets that are not tracked in this repository.
 
-Do not present the project as public-ready until the upstream patching model has been reviewed against the applicable upstream terms. Track that review in `docs/UPSTREAM_TERMS_REVIEW.md`.
+Do not present binary packages as public-ready until the upstream patching model has been reviewed against the applicable upstream terms. Track that review in `docs/UPSTREAM_TERMS_REVIEW.md`.
 
 ## Public Release Checklist
 
 - `scripts/audit-release.sh` passes.
-- `scripts/audit-public-release.sh --repo KK-invent/DeepCodeX` passes, except for an intentional private-repository check before the final visibility switch.
+- `scripts/audit-public-release.sh --repo KK-invent/DeepCodeX --require-public` passes for public source releases.
 - `git ls-files` contains only expected source, docs, templates, and audit scripts.
 - No `.app`, `.asar`, `.dmg`, `.pkg`, `.sqlite`, `.db`, `.log`, `.env`, `auth.json`, or session files are tracked.
 - README clearly says the private package checks for official Codex and guides missing users to install it.
@@ -52,4 +52,4 @@ Do not present the project as public-ready until the upstream patching model has
 - GitHub detects the MIT License after the license commit is pushed.
 - GitHub Actions audit CI is enabled before public visibility.
 - Private preview binary release assets are removed before public visibility unless public binary distribution is explicitly approved.
-- GitHub repository is private until the maintainer completes review.
+- GitHub public releases stay source-only until the maintainer completes binary distribution review.

@@ -21,6 +21,9 @@ python3 scripts/verify-doc-links.py --root "${ROOT}"
 echo "== Image-strip self-test =="
 python3 bin/deepcodex-image-strip-proxy.py --selftest
 
+echo "== DeepSeek bridge self-test =="
+python3 bin/deepcodex-deepseek-bridge.py --selftest
+
 echo "== Install mode detection self-test =="
 scripts/detect-install-mode.sh --selftest
 
@@ -68,7 +71,7 @@ done
 
 echo "== Local username leak scan =="
 current_user="$(id -un 2>/dev/null || true)"
-if [ -n "${current_user}" ] && rg -n --hidden --glob '!.git/**' --glob '!scripts/audit-release.sh' -e "/Users/${current_user}" -e "${current_user}" .; then
+if [ -n "${current_user}" ] && rg -n --hidden --glob '!.git' --glob '!.git/**' --glob '!scripts/audit-release.sh' -e "/Users/${current_user}" -e "${current_user}" .; then
   echo "Local username or absolute private path detected." >&2
   exit 1
 fi

@@ -23,7 +23,7 @@ DeepCodeX-mac.zip.sha256
 
 这个包会自动检测 Codex。它不是“有 Codex 版”或“无 Codex 版”二选一；如果检测不到 `/Applications/Codex.app`，安装器会先提示你安装官方 Codex。
 
-`DeepCodeX-mac-no-runtime.zip` 只适合维护者或已经有兼容 runtime 的机器，普通新用户不要优先使用。
+旧的 `DeepCodeX-mac-no-runtime.zip` 命名已经不再适合作为普通用户入口。当前链路使用仓库内置的 Python bridge，不需要额外索要私有 runtime。
 
 ## base URL 填什么
 
@@ -102,15 +102,11 @@ xattr -dr com.apple.quarantine DeepCodeX-mac
 
 DeepCodeX 统一包会主动检测，不需要你重新下载另一个“无 Codex 版”。
 
-## 看到 runtime 警告怎么办
+## 现在不需要私有运行时了
 
-如果安装器提示：
+DeepCodeX 已不再依赖私有 ccx 二进制。翻译层 `bin/deepcodex-deepseek-bridge.py` 是开源 Python 脚本，包含在仓库内。
 
-```text
-package does not contain ccx runtime
-```
-
-说明你拿到的是 `DeepCodeX-mac-no-runtime.zip`。它可以安装应用外壳，但普通新用户还不能直接发起模型请求。请向维护者索要 `DeepCodeX-mac.zip`，或让维护者补齐兼容 runtime。
+如果安装器提示旧 runtime 缺失，说明拿到的不是当前 bridge 版本安装包。请改用包含 `deepcodex-deepseek-bridge.py` 的新包，或从公开源码运行 `scripts/install-local.sh`。
 
 ## 安装后仍不可用
 

@@ -1,0 +1,468 @@
+event: response.created
+data: {"type":"response.created","sequence_number":1,"response":{"id":"fa8e214f-10aa-41ee-8e3c-a26954f217fa","object":"response","created_at":1780152871,"status":"in_progress","background":false,"error":null,"instructions":""}}
+
+event: response.in_progress
+data: {"type":"response.in_progress","sequence_number":2,"response":{"id":"fa8e214f-10aa-41ee-8e3c-a26954f217fa","object":"response","created_at":1780152871,"status":"in_progress"}}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","sequence_number":3,"output_index":0,"item":{"id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","type":"reasoning","status":"in_progress","summary":[]}}
+
+event: response.reasoning_summary_part.added
+data: {"type":"response.reasoning_summary_part.added","sequence_number":4,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"part":{"type":"summary_text","text":""}}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":5,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"We"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":6,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" need"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":7,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" to"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":8,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" explain"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":9,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" why"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":10,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" the"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":11,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" sky"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":12,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" is"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":13,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" blue"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":14,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" in"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":15,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" "}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":16,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"2"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":17,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" sentences"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":18,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"."}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":19,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" The"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":20,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" user"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":21,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" asked"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":22,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":":"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":23,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" \""}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":24,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"Explain"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":25,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" why"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":26,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" the"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":27,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" sky"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":28,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" is"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":29,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" blue"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":30,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" in"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":31,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" "}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":32,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"2"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":33,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" sentences"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":34,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":".\""}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":35,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" So"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":36,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" I"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":37,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" need"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":38,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" to"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":39,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" craft"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":40,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" a"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":41,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" concise"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":42,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" explanation"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":43,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"."}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":44,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" The"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":45,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" key"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":46,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" is"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":47,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" Rayleigh"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":48,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" scattering"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":49,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":":"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":50,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" sunlight"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":51,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" interacts"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":52,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" with"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":53,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" air"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":54,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" molecules"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":55,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":","}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":56,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" scattering"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":57,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" shorter"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":58,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" wavelengths"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":59,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" ("}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":60,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"blue"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":61,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"/v"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":62,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"iolet"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":63,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":")"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":64,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" more"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":65,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" than"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":66,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" longer"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":67,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" wavelengths"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":68,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" ("}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":69,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"red"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":70,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":")."}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":71,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" Our"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":72,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" eyes"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":73,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" are"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":74,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" more"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":75,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" sensitive"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":76,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" to"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":77,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" blue"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":78,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" than"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":79,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" violet"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":80,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":","}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":81,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" so"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":82,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" the"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":83,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" sky"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":84,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" appears"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":85,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" blue"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":86,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"."}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":87,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" I"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":88,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"'ll"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":89,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" cond"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":90,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"ense"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":91,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" that"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":92,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" into"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":93,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" two"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":94,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" clear"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":95,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":" sentences"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":96,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"."}
+
+event: response.reasoning_summary_text.done
+data: {"type":"response.reasoning_summary_text.done","sequence_number":97,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"text":"We need to explain why the sky is blue in 2 sentences. The user asked: \"Explain why the sky is blue in 2 sentences.\" So I need to craft a concise explanation. The key is Rayleigh scattering: sunlight interacts with air molecules, scattering shorter wavelengths (blue/violet) more than longer wavelengths (red). Our eyes are more sensitive to blue than violet, so the sky appears blue. I'll condense that into two clear sentences."}
+
+event: response.reasoning_summary_part.done
+data: {"type":"response.reasoning_summary_part.done","sequence_number":98,"item_id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","output_index":0,"summary_index":0,"part":{"type":"summary_text","text":"We need to explain why the sky is blue in 2 sentences. The user asked: \"Explain why the sky is blue in 2 sentences.\" So I need to craft a concise explanation. The key is Rayleigh scattering: sunlight interacts with air molecules, scattering shorter wavelengths (blue/violet) more than longer wavelengths (red). Our eyes are more sensitive to blue than violet, so the sky appears blue. I'll condense that into two clear sentences."}}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","sequence_number":99,"output_index":0,"item":{"id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","type":"reasoning","status":"completed","summary":[{"text":"We need to explain why the sky is blue in 2 sentences. The user asked: \"Explain why the sky is blue in 2 sentences.\" So I need to craft a concise explanation. The key is Rayleigh scattering: sunlight interacts with air molecules, scattering shorter wavelengths (blue/violet) more than longer wavelengths (red). Our eyes are more sensitive to blue than violet, so the sky appears blue. I'll condense that into two clear sentences.","type":"summary_text"}]}}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","sequence_number":100,"output_index":1,"item":{"id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","type":"message","status":"in_progress","content":[],"role":"assistant"}}
+
+event: response.content_part.added
+data: {"type":"response.content_part.added","sequence_number":101,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"part":{"type":"output_text","annotations":[],"logprobs":[],"text":""}}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":102,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":"Sun","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":103,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":"light","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":104,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" sc","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":105,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":"atters","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":106,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" off","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":107,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" air","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":108,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" molecules","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":109,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" in","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":110,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" the","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":111,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" atmosphere","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":112,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":",","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":113,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" with","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":114,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" shorter","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":115,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" blue","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":116,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" wavelengths","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":117,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" scattering","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":118,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" much","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":119,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" more","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":120,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" than","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":121,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" longer","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":122,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" red","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":123,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" wavelengths","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":124,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" due","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":125,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" to","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":126,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" Rayleigh","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":127,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" scattering","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":128,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":".","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":129,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" Because","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":130,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" our","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":131,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" eyes","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":132,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" are","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":133,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" more","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":134,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" sensitive","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":135,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" to","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":136,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" blue","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":137,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" than","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":138,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" to","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":139,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" the","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":140,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" even","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":141,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" more","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":142,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" scattered","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":143,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" violet","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":144,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" light","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":145,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":",","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":146,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" we","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":147,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" perceive","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":148,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" the","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":149,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" sky","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":150,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" as","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":151,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":" blue","logprobs":[]}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":152,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"delta":".","logprobs":[]}
+
+event: response.output_text.done
+data: {"type":"response.output_text.done","sequence_number":153,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"text":"Sunlight scatters off air molecules in the atmosphere, with shorter blue wavelengths scattering much more than longer red wavelengths due to Rayleigh scattering. Because our eyes are more sensitive to blue than to the even more scattered violet light, we perceive the sky as blue.","logprobs":[]}
+
+event: response.content_part.done
+data: {"type":"response.content_part.done","sequence_number":154,"item_id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","output_index":1,"content_index":0,"part":{"type":"output_text","annotations":[],"logprobs":[],"text":"Sunlight scatters off air molecules in the atmosphere, with shorter blue wavelengths scattering much more than longer red wavelengths due to Rayleigh scattering. Because our eyes are more sensitive to blue than to the even more scattered violet light, we perceive the sky as blue."}}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","sequence_number":155,"output_index":1,"item":{"id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","type":"message","status":"completed","content":[{"type":"output_text","annotations":[],"logprobs":[],"text":"Sunlight scatters off air molecules in the atmosphere, with shorter blue wavelengths scattering much more than longer red wavelengths due to Rayleigh scattering. Because our eyes are more sensitive to blue than to the even more scattered violet light, we perceive the sky as blue."}],"role":"assistant"}}
+
+event: response.completed
+data: {"type":"response.completed","sequence_number":156,"response":{"id":"fa8e214f-10aa-41ee-8e3c-a26954f217fa","object":"response","created_at":1780152871,"status":"completed","background":false,"error":null,"instructions":"You are a helpful assistant.","model":"deepseek-v4-pro","reasoning":{"effort":"high"},"output":[{"id":"rs_fa8e214f-10aa-41ee-8e3c-a26954f217fa_0","status":"completed","summary":[{"text":"We need to explain why the sky is blue in 2 sentences. The user asked: \"Explain why the sky is blue in 2 sentences.\" So I need to craft a concise explanation. The key is Rayleigh scattering: sunlight interacts with air molecules, scattering shorter wavelengths (blue/violet) more than longer wavelengths (red). Our eyes are more sensitive to blue than violet, so the sky appears blue. I'll condense that into two clear sentences.","type":"summary_text"}],"type":"reasoning"},{"content":[{"annotations":[],"logprobs":[],"text":"Sunlight scatters off air molecules in the atmosphere, with shorter blue wavelengths scattering much more than longer red wavelengths due to Rayleigh scattering. Because our eyes are more sensitive to blue than to the even more scattered violet light, we perceive the sky as blue.","type":"output_text"}],"id":"msg_fa8e214f-10aa-41ee-8e3c-a26954f217fa_1","role":"assistant","status":"completed","type":"message"}],"usage":{"input_tokens":21,"output_tokens":144,"total_tokens":165,"output_tokens_details":{"reasoning_tokens":92}}}}
+

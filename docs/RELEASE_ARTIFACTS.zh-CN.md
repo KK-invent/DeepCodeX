@@ -6,7 +6,7 @@
 
 源码仓库不包含成品 app，也不包含官方 Codex 二进制。这是为了降低泄露风险和合规风险。
 
-因此当前 private 仓库适合维护者，不适合直接给普通用户下载源码使用。普通用户应使用私有 Release 里的统一成品包。
+公开源码仓库适合能运行命令行的用户和维护者。普通用户如果不想从源码构建，可以使用维护者私下提供的统一成品包。
 
 ## 普通用户成品包应包含
 
@@ -38,7 +38,7 @@
 scripts/audit-release.sh
 "$DEEPCODEX_HOME/bin/deepcodex-doctor.py"
 codesign --verify --deep --strict "$DEEPCODEX_APP"
-scripts/package-private-release.sh --bundle-runtime
+scripts/package-private-release.sh
 ```
 
 还需要手动检查：
@@ -59,23 +59,15 @@ scripts/package-private-release.sh --bundle-runtime
 面向普通用户的私有预览包：
 
 ```bash
-scripts/package-private-release.sh --bundle-runtime
-```
-
-输出文件名是 `DeepCodeX-mac.zip`。这是默认推荐给普通用户的统一包。
-
-默认命令仍会生成 `DeepCodeX-mac-no-runtime.zip`：
-
-```bash
 scripts/package-private-release.sh
 ```
 
-这种包不包含本地 `ccx` runtime，只适合维护者或已经有兼容 runtime 的机器，不作为普通用户推荐下载项。
+输出文件名是 `DeepCodeX-mac.zip`。这是默认推荐给普通用户的统一包。`--bundle-runtime` 已弃用；当前包使用仓库内置 Python bridge，不再包含或要求私有 `ccx` runtime。
 
 如果要从 staged app 打包，而不是从 `/Applications/Deepcodex.app` 打包：
 
 ```bash
-DEEPCODEX_APP=/Applications/Deepcodex.app.tmp-controlled-upgrade-YYYYMMDD-HHMMSS scripts/package-private-release.sh --bundle-runtime
+DEEPCODEX_APP=/Applications/Deepcodex.app.tmp-controlled-upgrade-YYYYMMDD-HHMMSS scripts/package-private-release.sh
 ```
 
 打包脚本会调用 `scripts/audit-package.sh`。如果当前 app 里还残留维护者路径或真实本机 key，打包会失败。
@@ -86,20 +78,20 @@ DEEPCODEX_APP=/Applications/Deepcodex.app.tmp-controlled-upgrade-YYYYMMDD-HHMMSS
 scripts/smoke-offline-package.sh dist/private/DeepCodeX-mac.zip
 ```
 
-这个 smoke test 会解压包、模拟没有 Codex 的新机器、检查安装器缺 Codex 时会停止、检查 runtime、用假的 base URL/API key 配置临时 app，并确认输出不泄露 key。
+这个 smoke test 会解压包、模拟没有 Codex 的新机器、检查安装器缺 Codex 时会停止、检查 Python bridge 支持文件、用假的 base URL/API key 配置临时 app，并确认输出不泄露 key。
 
 ## 上传私有 GitHub Release
 
 确认本地包和校验文件存在后：
 
 ```bash
-scripts/publish-private-release.sh --include-runtime-bundled
+scripts/publish-private-release.sh
 ```
 
 如果是在更新已有的 `private-preview-*` Release，且同名 git tag 还指向旧 commit，确认这个私有预览 tag 应该移动后再加 `--retarget-tag`：
 
 ```bash
-scripts/publish-private-release.sh --include-runtime-bundled --retarget-tag
+scripts/publish-private-release.sh --retarget-tag
 ```
 
 这个脚本会先确认 GitHub 仓库是 private，再运行源码审计、完整离线安装 smoke、SHA256 校验，让 Release tag 对齐本次发布 commit，然后创建或更新 prerelease。不要把 `DeepCodeX-mac.zip` 成品包上传到公开仓库。

@@ -16,7 +16,7 @@ RETARGET_TAG=0
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/publish-private-release.sh --include-runtime-bundled [options]
+  scripts/publish-private-release.sh [options]
 
 Creates or updates a GitHub prerelease in the private repository and uploads
 audited DeepCodeX package assets from dist/private.
@@ -26,14 +26,13 @@ Options:
   --tag TAG                      Release tag. Defaults to private-preview-YYYYMMDD-HHMMSS.
   --title TITLE                  Release title. Defaults to the tag.
   --notes-file FILE              Release notes markdown.
-  --include-runtime-bundled      Upload the package with bundled local runtime.
-  --include-runtime-external     Also upload the conservative package without bundled runtime.
+  --include-runtime-bundled      Deprecated no-op; the Python bridge is bundled as source.
+  --include-runtime-external     Deprecated no-op; there is no separate runtime variant.
   --draft                        Create the release as a draft.
   --dry-run                      Print the planned release and asset list, but do not upload.
   --retarget-tag                 Move an existing private-preview git tag to the current commit.
 
-The script refuses to run unless the GitHub repository is PRIVATE. Use
---include-runtime-bundled only after reviewing the private runtime boundary.
+The script refuses to run unless the GitHub repository is PRIVATE.
 EOF
 }
 
@@ -63,10 +62,8 @@ fi
 if [ -z "${TITLE}" ]; then
   TITLE="${TAG}"
 fi
-if [ "${INCLUDE_RUNTIME_BUNDLED}" -ne 1 ]; then
-  echo "[FAIL] Refusing to publish a private release without --include-runtime-bundled." >&2
-  echo "Use --include-runtime-external only when you also want to publish the package without bundled runtime." >&2
-  exit 2
+if [ "${INCLUDE_RUNTIME_BUNDLED}" -eq 1 ] || [ "${INCLUDE_RUNTIME_EXTERNAL}" -eq 1 ]; then
+  echo "[WARN] runtime package flags are deprecated; publishing the single Python-bridge package." >&2
 fi
 if [ ! -f "${NOTES_FILE}" ]; then
   echo "[FAIL] release notes file missing: ${NOTES_FILE}" >&2
@@ -99,21 +96,12 @@ remote_tag_commit() {
     '
 }
 
-assets=()
-if [ "${INCLUDE_RUNTIME_EXTERNAL}" -eq 1 ]; then
-  external_pkg="$(latest_matching 'DeepCodeX-mac-no-runtime.zip')"
-  if [ -z "${external_pkg}" ] || [ ! -f "${external_pkg}.sha256" ]; then
-    echo "[FAIL] missing DeepCodeX-mac-no-runtime.zip or checksum in ${OUT_DIR}" >&2
-    exit 2
-  fi
-  assets+=("${external_pkg}" "${external_pkg}.sha256")
-fi
-
 bundled_pkg="$(latest_matching 'DeepCodeX-mac.zip')"
 if [ -z "${bundled_pkg}" ] || [ ! -f "${bundled_pkg}.sha256" ]; then
   echo "[FAIL] missing DeepCodeX-mac.zip or checksum in ${OUT_DIR}" >&2
   exit 2
 fi
+assets=()
 assets+=("${bundled_pkg}" "${bundled_pkg}.sha256")
 
 echo "== Release preflight =="
@@ -193,8 +181,5 @@ fi
 gh release upload "${TAG}" "${assets[@]}" --repo "${REPO}" --clobber
 verify_flags=(--repo "${REPO}" --tag "${TAG}")
 verify_flags+=(--expected-target "${target}")
-if [ "${INCLUDE_RUNTIME_EXTERNAL}" -eq 1 ]; then
-  verify_flags+=(--allow-no-runtime)
-fi
 "${ROOT}/scripts/verify-release-assets.sh" "${verify_flags[@]}"
 gh release view "${TAG}" --repo "${REPO}" --json tagName,targetCommitish,isDraft,isPrerelease,url,assets

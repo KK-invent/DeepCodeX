@@ -74,6 +74,11 @@ required_paths=(
   "support/docs/OFFLINE_QUICKSTART.zh-CN.md"
   "support/docs/TROUBLESHOOTING.zh-CN.md"
   "support/docs/PRIVACY.zh-CN.md"
+  "support/bin/deepcodex-deepseek-bridge.py"
+  "support/config/config.toml.example"
+  "support/config/model-catalog.json"
+  "support/config/launchagents/com.deepcodex.deepseek-bridge.plist"
+  "support/config/launchagents/com.deepcodex.deepcodex-image-strip.plist"
   "support/scripts/detect-install-mode.sh"
   "support/scripts/preflight-mac.sh"
   "runtime/THIRD_PARTY_BINARIES.txt"
@@ -111,16 +116,8 @@ fi
 
 ccx_bin="$(find "${ROOT}" -path '*/runtime/ccx/ccx' -type f | head -n 1)"
 if [ -n "${ccx_bin}" ]; then
-  ccx_dir="$(dirname "${ccx_bin}")"
-  if [ ! -f "${ccx_dir}/SHA256SUMS" ]; then
-    echo "[FAIL] bundled ccx is missing runtime/ccx/SHA256SUMS" >&2
-    exit 1
-  fi
-  (cd "${ccx_dir}" && shasum -a 256 -c SHA256SUMS)
-  if [ -n "${current_user}" ] && rg -a -q -e "/Users/${current_user}" "${ccx_bin}"; then
-    echo "[FAIL] bundled ccx contains maintainer path strings" >&2
-    exit 1
-  fi
+  echo "[FAIL] package contains legacy runtime/ccx/ccx; Python bridge packages must not ship it" >&2
+  exit 1
 fi
 
 echo "Package audit passed."

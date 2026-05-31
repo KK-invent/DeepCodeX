@@ -13,7 +13,7 @@
 
 - [ ] `DEEPCODEX_HOME`, `CODEX_APP`, and `DEEPCODEX_APP` are configurable.
 - [ ] Scripts do not depend on a specific macOS username.
-- [ ] README explains prerequisites and the expected local `ccx` service boundary.
+- [ ] README explains prerequisites and the expected local bridge service (port 3000) boundary.
 - [ ] Missing optional icon assets do not block a staged build.
 
 ## Compliance

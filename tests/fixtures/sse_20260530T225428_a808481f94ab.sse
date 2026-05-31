@@ -1,0 +1,111 @@
+event: response.created
+data: {"type":"response.created","sequence_number":1,"response":{"id":"801f287a-9836-49a3-b241-bd60801e5cb5","object":"response","created_at":1780152868,"status":"in_progress","background":false,"error":null,"instructions":""}}
+
+event: response.in_progress
+data: {"type":"response.in_progress","sequence_number":2,"response":{"id":"801f287a-9836-49a3-b241-bd60801e5cb5","object":"response","created_at":1780152868,"status":"in_progress"}}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","sequence_number":3,"output_index":0,"item":{"id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","type":"reasoning","status":"in_progress","summary":[]}}
+
+event: response.reasoning_summary_part.added
+data: {"type":"response.reasoning_summary_part.added","sequence_number":4,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"part":{"type":"summary_text","text":""}}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":5,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":"We"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":6,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" need"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":7,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" to"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":8,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" answer"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":9,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" \""}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":10,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":"What"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":11,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" is"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":12,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" "}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":13,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":"3"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":14,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":"+"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":15,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":"5"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":16,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":"?\""}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":17,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" with"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":18,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" just"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":19,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" the"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":20,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" number"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":21,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":"."}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":22,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" The"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":23,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" answer"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":24,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" is"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":25,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":" "}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":26,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":"8"}
+
+event: response.reasoning_summary_text.delta
+data: {"type":"response.reasoning_summary_text.delta","sequence_number":27,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":"."}
+
+event: response.reasoning_summary_text.done
+data: {"type":"response.reasoning_summary_text.done","sequence_number":28,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"text":"We need to answer \"What is 3+5?\" with just the number. The answer is 8."}
+
+event: response.reasoning_summary_part.done
+data: {"type":"response.reasoning_summary_part.done","sequence_number":29,"item_id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","output_index":0,"summary_index":0,"part":{"type":"summary_text","text":"We need to answer \"What is 3+5?\" with just the number. The answer is 8."}}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","sequence_number":30,"output_index":0,"item":{"id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","type":"reasoning","status":"completed","summary":[{"text":"We need to answer \"What is 3+5?\" with just the number. The answer is 8.","type":"summary_text"}]}}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","sequence_number":31,"output_index":1,"item":{"id":"msg_801f287a-9836-49a3-b241-bd60801e5cb5_1","type":"message","status":"in_progress","content":[],"role":"assistant"}}
+
+event: response.content_part.added
+data: {"type":"response.content_part.added","sequence_number":32,"item_id":"msg_801f287a-9836-49a3-b241-bd60801e5cb5_1","output_index":1,"content_index":0,"part":{"type":"output_text","annotations":[],"logprobs":[],"text":""}}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":33,"item_id":"msg_801f287a-9836-49a3-b241-bd60801e5cb5_1","output_index":1,"content_index":0,"delta":"8","logprobs":[]}
+
+event: response.output_text.done
+data: {"type":"response.output_text.done","sequence_number":34,"item_id":"msg_801f287a-9836-49a3-b241-bd60801e5cb5_1","output_index":1,"content_index":0,"text":"8","logprobs":[]}
+
+event: response.content_part.done
+data: {"type":"response.content_part.done","sequence_number":35,"item_id":"msg_801f287a-9836-49a3-b241-bd60801e5cb5_1","output_index":1,"content_index":0,"part":{"type":"output_text","annotations":[],"logprobs":[],"text":"8"}}
+
+event: response.output_item.done
+data: {"type":"response.output_item.done","sequence_number":36,"output_index":1,"item":{"id":"msg_801f287a-9836-49a3-b241-bd60801e5cb5_1","type":"message","status":"completed","content":[{"type":"output_text","annotations":[],"logprobs":[],"text":"8"}],"role":"assistant"}}
+
+event: response.completed
+data: {"type":"response.completed","sequence_number":37,"response":{"id":"801f287a-9836-49a3-b241-bd60801e5cb5","object":"response","created_at":1780152868,"status":"completed","background":false,"error":null,"instructions":"You are a helpful assistant. Be concise.","model":"deepseek-v4-flash","output":[{"id":"rs_801f287a-9836-49a3-b241-bd60801e5cb5_0","status":"completed","summary":[{"text":"We need to answer \"What is 3+5?\" with just the number. The answer is 8.","type":"summary_text"}],"type":"reasoning"},{"content":[{"annotations":[],"logprobs":[],"text":"8","type":"output_text"}],"id":"msg_801f287a-9836-49a3-b241-bd60801e5cb5_1","role":"assistant","status":"completed","type":"message"}],"usage":{"input_tokens":26,"output_tokens":25,"total_tokens":51,"output_tokens_details":{"reasoning_tokens":23}}}}
+

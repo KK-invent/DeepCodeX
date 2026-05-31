@@ -1,5 +1,9 @@
 # DeepCodeX 中文安装指南
 
+> **2026-05-30 更新**：DeepCodeX 翻译层已从私有 ccx 二进制替换为开源 Python bridge（`bin/deepcodex-deepseek-bridge.py`），零额外依赖。
+> 任何只要装了官方 Codex.app、有 DeepSeek API key 的人都能开箱即用，无需向维护者索要私有组件。
+> 详见 [README.zh-CN.md](../README.zh-CN.md) 的新安装流程。
+
 ## 先确认一个事实
 
 DeepCodeX 使用 DeepSeek 兼容接口，不需要 ChatGPT OAuth 登录。但它仍然需要能访问某个 DeepSeek / OpenAI-compatible 服务。
@@ -34,7 +38,23 @@ DeepCodeX 使用 DeepSeek 兼容接口，不需要 ChatGPT OAuth 登录。但它
 
 这是服务提供方给你的密钥。它只保存在本机配置里，不应发给别人，也不应提交到 GitHub。
 
-## 普通用户安装路径
+## 公开源码安装路径
+
+适用于从 GitHub 公开仓库安装：
+
+```bash
+git clone https://github.com/KK-invent/DeepCodeX.git
+cd DeepCodeX
+scripts/install-local.sh
+"$HOME/.codex-deepseek/bin/deepcodex-configure-deepseek.py" --restart-services
+"$HOME/.codex-deepseek/bin/deepcodex-sync-upstream.py" --stage
+"$HOME/.codex-deepseek/bin/deepcodex-sync-upstream.py" --apply
+"$HOME/.codex-deepseek/bin/deepcodex-doctor.py"
+```
+
+`deepcodex-configure-deepseek.py` 会提示你填写 `DeepSeek base URL` 和 `DeepSeek API key`。如果你能直连官方 DeepSeek，base URL 使用默认值 `https://api.deepseek.com` 即可。`--restart-services` 会让本地 bridge 立刻读取新配置。
+
+## 私有成品包安装路径
 
 适用于维护者已经提供私有 Release 成品包的情况。推荐下载：
 
@@ -58,7 +78,7 @@ shasum -a 256 -c DeepCodeX-mac.zip.sha256
 5. 先看安装脚本输出的环境检测结果：
    - 已安装 Codex：可以继续安装，DeepCodeX 使用独立目录，不覆盖原 Codex。
    - 未安装 Codex：先安装官方 Codex，再重新运行 `Install-DeepCodeX.command`。
-6. 按安装脚本提示填写：
+6. 按安装脚本提示，或在应用菜单 **「配置 DeepSeek...」** 中填写：
    - `DeepSeek base URL`
    - `DeepSeek API key`
 7. 安装完成后打开 `/Applications/Deepcodex.app`。
@@ -80,10 +100,10 @@ scripts/install-local.sh
 scripts/preflight-mac.sh
 ```
 
-配置 DeepSeek：
+先配置 DeepSeek，再预构建。`--stage` 会跑本地 DeepSeek smoke test，因此不能在 key 为空时执行：
 
 ```bash
-"$DEEPCODEX_HOME/bin/deepcodex-configure-deepseek.py"
+"$DEEPCODEX_HOME/bin/deepcodex-configure-deepseek.py" --restart-services
 ```
 
 预构建：

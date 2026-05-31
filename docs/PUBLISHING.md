@@ -115,20 +115,18 @@ The public source release script refuses to upload binary assets. For real publi
 
 If a private binary package is needed, build it locally and upload it as a private release asset only after `scripts/audit-package.sh` passes.
 
-Use `DeepCodeX-mac.zip` for the single ordinary-user package after the private runtime boundary is reviewed. The installer detects whether `/Applications/Codex.app` exists and points missing users to the official Codex page; do not publish separate "has Codex" and "no Codex" user-facing packages.
-
-`DeepCodeX-mac-no-runtime.zip` is a maintainer-only package for machines that already have a compatible runtime.
+Use `DeepCodeX-mac.zip` for the single ordinary-user package. The installer detects whether `/Applications/Codex.app` exists and points missing users to the official Codex page; do not publish separate "has Codex" and "no Codex" user-facing packages. The DeepSeek translation runtime is the tracked Python bridge, not a bundled private `ccx` binary.
 
 Recommended private preview command:
 
 ```bash
-scripts/publish-private-release.sh --include-runtime-bundled
+scripts/publish-private-release.sh
 ```
 
 If updating an existing `private-preview-*` release whose git tag points at an older commit, pass `--retarget-tag` after confirming that preview tag should move:
 
 ```bash
-scripts/publish-private-release.sh --include-runtime-bundled --retarget-tag
+scripts/publish-private-release.sh --retarget-tag
 ```
 
 The publish script refuses to upload assets unless the GitHub repository is private. It audits source, runs the full offline smoke test for every zip package, verifies `.sha256`, makes the release tag match the release commit, then creates or updates a prerelease and uploads the selected assets.
@@ -154,7 +152,7 @@ Before sharing a direct-use asset, you can rerun the same smoke test manually:
 scripts/smoke-offline-package.sh dist/private/DeepCodeX-mac.zip
 ```
 
-The smoke test unzips the package, simulates a machine with no Codex/DeepCodeX app, checks that the installer blocks on missing Codex with clear guidance, checks the bundled runtime, configures a temporary extracted app with a fake base URL/API key, and verifies the key is not printed.
+The smoke test unzips the package, simulates a machine with no Codex/DeepCodeX app, checks that the installer blocks on missing Codex with clear guidance, checks the Python bridge support files, configures a temporary extracted app with a fake base URL/API key, and verifies the key is not printed.
 
 Private preview binary assets must remain private. If the repository is changed to public, GitHub release assets attached to that repository become public too. Remove private preview zip assets first unless `docs/UPSTREAM_TERMS_APPROVAL.md` explicitly approves public binary release distribution.
 
