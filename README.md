@@ -114,7 +114,12 @@ When Codex releases a new version, just re-run:
 ~/.codex-deepseek/bin/deepcodex-sync-upstream.py --apply
 ```
 
-Or hit the update button inside the app — same thing.
+The in-app update button only appears after DeepCodeX has adapted to the new
+Codex build. Run `--stage --keep-staged` first; after the preflight passes,
+DeepCodeX records the adapted build in
+`~/.codex-deepseek/deepcodex-update-adaptations.json`. Restart DeepCodeX and the
+Codex-style update UI can update through the same verified staging path. If you
+prefer the command line, keep using `--apply`.
 
 ## Safety
 
