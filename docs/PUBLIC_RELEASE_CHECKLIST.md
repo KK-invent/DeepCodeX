@@ -2,7 +2,7 @@
 
 This checklist tracks the public source release posture for DeepCodeX.
 
-Current posture: the repository may stay public as a source-only project. Uploaded app packages, zip archives, or checksum assets still need explicit public-binary approval before they are exposed from a public release.
+Current posture: the repository may stay public as a source-only project. The tracked root `Install-DeepCodeX.command` is a source installer that rebuilds from the user's own Codex.app. Uploaded app packages, custom zip archives, or checksum assets still need explicit public-binary approval before they are exposed from a public release.
 
 ## Hard Blockers
 

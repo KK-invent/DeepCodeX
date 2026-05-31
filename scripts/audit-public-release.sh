@@ -150,6 +150,8 @@ fi
 
 echo "== Public repository operations posture =="
 required_public_files=(
+  "Install-DeepCodeX.command"
+  "START-HERE.zh-CN.txt"
   "CONTRIBUTING.md"
   "SUPPORT.md"
   "SECURITY.md"

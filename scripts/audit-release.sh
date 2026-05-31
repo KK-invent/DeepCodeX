@@ -13,7 +13,29 @@ trap cleanup EXIT
 PYTHONPYCACHEPREFIX="${pycache_root}" python3 -m py_compile bin/*.py scripts/*.py
 
 echo "== Shell syntax =="
-bash -n bin/*.sh scripts/*.sh
+bash -n Install-DeepCodeX.command bin/*.sh scripts/*.sh
+
+echo "== Source installer smoke =="
+installer_out="${pycache_root}/source-installer-missing-codex.out"
+set +e
+HOME="${pycache_root}/home" \
+CODEX_APP="${pycache_root}/missing-Codex.app" \
+DEEPCODEX_APP="${pycache_root}/missing-Deepcodex.app" \
+DEEPCODEX_NO_OPEN=1 \
+DEEPCODEX_NO_PAUSE=1 \
+"${ROOT}/Install-DeepCodeX.command" > "${installer_out}" 2>&1
+installer_rc=$?
+set -e
+if [ "${installer_rc}" -ne 2 ]; then
+  cat "${installer_out}" >&2
+  echo "Source installer missing-Codex smoke failed; expected exit 2, got ${installer_rc}." >&2
+  exit 1
+fi
+if ! rg -q '\[ACTION REQUIRED\].*Codex|未检测到官方 Codex' "${installer_out}"; then
+  cat "${installer_out}" >&2
+  echo "Source installer did not print clear missing-Codex guidance." >&2
+  exit 1
+fi
 
 echo "== Documentation links and assets =="
 python3 scripts/verify-doc-links.py --root "${ROOT}"

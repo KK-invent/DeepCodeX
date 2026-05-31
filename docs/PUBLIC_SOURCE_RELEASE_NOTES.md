@@ -8,6 +8,7 @@ DeepCodeX v0.1.2 is the current public source release meant to be usable by a st
 - A pure Python DeepSeek bridge that translates Codex Responses-style requests to a DeepSeek-compatible Chat Completions upstream.
 - DeepSeek-compatible configuration helper that avoids printing API keys.
 - Local doctor, preflight, backup, log pruning, launchd, and image-strip helper scripts.
+- Root `Install-DeepCodeX.command` source installer for users who download the GitHub source ZIP and do not know terminal commands.
 - English and Chinese installation, troubleshooting, privacy, compliance, release, and review documentation.
 - Original DeepCodeX brand artwork and diagrams.
 - Public repository operations files: contributing guide, support guide, security policy, issue templates, and pull request template.
@@ -40,7 +41,15 @@ Before publishing this release publicly:
 
 The source repository is not a direct app download. Users need the official Codex desktop app installed at `/Applications/Codex.app` before DeepCodeX can rebuild a local DeepCodex app.
 
-Users also need their own DeepSeek-compatible base URL and API key. The normal public-source path is:
+Users also need their own DeepSeek-compatible base URL and API key. The beginner public-source path is:
+
+```text
+Download GitHub source ZIP
+Unzip
+Double-click Install-DeepCodeX.command
+```
+
+The terminal fallback is:
 
 ```bash
 scripts/install-local.sh

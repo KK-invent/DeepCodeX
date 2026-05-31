@@ -2,9 +2,15 @@
 
 ## 启动前先确认路径
 
-普通用户如果拿到的是 `DeepCodeX-mac.zip`，先解压并双击 `Install-DeepCodeX.command`。安装器会自动检测 Codex、DeepCodeX 和本地 bridge 状态。
+普通用户如果从 GitHub 下载源码 zip，先完整解压，再双击根目录的 `Install-DeepCodeX.command`。如果拿到的是私有 `DeepCodeX-mac.zip` 成品包，也先解压并双击里面的 `Install-DeepCodeX.command`。安装器会自动检测 Codex、DeepCodeX 和本地 bridge 状态。
 
-如果你想在成品包解压目录里手动看检测结果，运行：
+如果你想在源码 zip 解压目录里手动看检测结果，运行：
+
+```bash
+scripts/detect-install-mode.sh
+```
+
+如果你想在私有成品包解压目录里手动看检测结果，运行：
 
 ```bash
 ./support/scripts/detect-install-mode.sh
@@ -39,7 +45,7 @@ missing upstream app: /Applications/Codex.app
 
 处理：
 
-- 普通用户：先安装官方 Codex desktop app，再运行维护者提供的 DeepCodeX 统一成品包。
+- 普通用户：先安装官方 Codex desktop app，再重新双击 `Install-DeepCodeX.command`。
 - 维护者：先安装官方 Codex desktop app，再运行 `deepcodex-sync-upstream.py --stage`。
 
 如果检测结果是 `[MODE] codex-required` 或 `[MODE] codex-missing-existing-deepcodex`，说明当前机器缺少官方 Codex。安装器会停止并提示官方 Codex 下载页面；补装 Codex 后重新运行安装器。
@@ -78,10 +84,10 @@ export no_proxy="127.0.0.1,localhost,::1"
 
 如果完全不能访问外部网络，需要满足两个条件：
 
-- 成品包通过内网、U 盘或其他离线方式拿到本机。
+- DeepCodeX 源码 zip 或私有成品包通过内网、U 盘或其他离线方式拿到本机。
 - 官方 Codex 安装包也通过内网、U 盘或其他离线方式拿到本机，并安装到 `/Applications/Codex.app`。
 - base URL 是本机能访问的内网 DeepSeek 兼容服务。
-- 对普通新用户，成品包应使用当前 bridge 版本的 `DeepCodeX-mac.zip`；旧的 no-runtime 包不再作为推荐入口。
+- 对普通新用户，公开路径优先使用 GitHub 源码 zip；私有成品包则应使用当前 bridge 版本的 `DeepCodeX-mac.zip`，旧的 no-runtime 包不再作为推荐入口。
 
 如果没有可访问的模型服务，应用可以打开，但无法完成模型请求。
 
@@ -107,10 +113,10 @@ codesign --verify --deep --strict "$DEEPCODEX_APP"
 
 如果这是维护者私有构建，可能是 ad-hoc 签名。公开发布前应明确签名策略和校验值。
 
-如果是刚从 GitHub 下载的 zip，请先确认 `.sha256` 校验是 `OK`，再右键打开 `Install-DeepCodeX.command`。仍被拦截时，可以对已解压且校验通过的目录执行：
+如果是 GitHub 源码 zip，先确认仓库来源是 `KK-invent/DeepCodeX`，再右键打开 `Install-DeepCodeX.command`。如果是私有成品包，请先确认 `.sha256` 校验是 `OK`。仍被拦截时，可以只对来源确认过的解压目录执行：
 
 ```bash
-xattr -dr com.apple.quarantine DeepCodeX-mac
+xattr -dr com.apple.quarantine /path/to/DeepCodeX-unzipped-folder
 ```
 
 不要对来源不明或校验不一致的文件执行 quarantine 移除。

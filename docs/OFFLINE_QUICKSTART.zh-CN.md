@@ -5,8 +5,8 @@
 ## 你需要先拿到什么
 
 1. 官方 Codex desktop app 安装包。请从 [OpenAI Codex 官方页面](https://openai.com/codex/) 获取；如果这台 Mac 没外网，就在有网机器下载后传入。
-2. 维护者提供的 DeepCodeX 统一成品包。
-3. DeepCodeX 成品包对应的 `.sha256` 校验文件。
+2. DeepCodeX 公开源码 zip，或维护者提供的私有统一成品包。
+3. 如果是私有成品包，还需要对应的 `.sha256` 校验文件。
 4. 一个这台 Mac 能访问的 `DeepSeek base URL`。
 5. 这个服务对应的 `DeepSeek API key`。
 
@@ -14,7 +14,9 @@
 
 ## 应该下载哪个 DeepCodeX 包
 
-普通用户只需要一个统一包，推荐文件名形如：
+公开合规路径优先使用 GitHub 自动生成的源码 zip。它不包含官方 Codex，也不包含预构建 Deepcodex.app；解压后双击根目录里的 `Install-DeepCodeX.command`，安装器会从本机已有 Codex.app 构建 DeepCodeX。
+
+如果维护者另行提供私有成品包，普通用户只需要一个统一包，推荐文件名形如：
 
 ```text
 DeepCodeX-mac.zip
@@ -59,6 +61,17 @@ DeepCodeX-mac.zip.sha256
 DeepCodeX 安装脚本不会把 API key 打印到终端，也不会上传给维护者。
 
 ## 安装步骤
+
+### 公开源码 zip
+
+1. 先安装官方 Codex，并确认 `/Applications/Codex.app` 存在。
+2. 把 GitHub 下载的 DeepCodeX 源码 zip 传到这台 Mac。
+3. 完整解压源码 zip。
+4. 双击 `Install-DeepCodeX.command`。
+5. 按提示填写 `DeepSeek base URL` 和 `DeepSeek API key`。
+6. 安装完成后打开 `/Applications/Deepcodex.app`。
+
+### 私有成品包
 
 1. 先安装官方 Codex，并确认 `/Applications/Codex.app` 存在。
 2. 把 DeepCodeX 成品包和 `.sha256` 文件放到同一个文件夹。

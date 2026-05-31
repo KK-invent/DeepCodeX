@@ -111,6 +111,8 @@ scripts/verify-public-source-release.sh --repo KK-invent/DeepCodeX --tag v$(cat 
 
 The public source release script refuses to upload binary assets. For real publishing, it also reruns the public-release audit and source-release preparation gate before creating or updating the `vX.Y.Z` GitHub Release using `docs/PUBLIC_SOURCE_RELEASE_NOTES.md`.
 
+For ordinary public users, the compliant no-binary path is the GitHub source ZIP: unzip it and double-click the tracked root `Install-DeepCodeX.command`. That installer still rebuilds from the user's own `/Applications/Codex.app`; it is not a prebuilt app package.
+
 ## Private Binary Assets
 
 If a private binary package is needed, build it locally and upload it as a private release asset only after `scripts/audit-package.sh` passes.

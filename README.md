@@ -14,6 +14,16 @@ DeepCodeX patches your existing Codex desktop app so it talks to DeepSeek instea
 
 ## Quick Start
 
+### Beginner path: no Terminal knowledge
+
+1. Install the official Codex desktop app from https://openai.com/codex/.
+2. Download this repository from GitHub as a source ZIP and unzip it.
+3. Double-click `Install-DeepCodeX.command`.
+
+The installer stops early if Codex is missing, opens the official Codex page, then asks only for your DeepSeek-compatible base URL and API key.
+
+### Terminal path
+
 You need three things: a Mac, the [official Codex app](https://openai.com/codex/), and a [DeepSeek API key](https://platform.deepseek.com).
 
 > **Don't have Codex yet?** Grab it from [openai.com/codex](https://openai.com/codex/) first — DeepCodeX patches it but doesn't ship it. If your Codex lives somewhere other than `/Applications/Codex.app`, set `CODEX_APP=/your/path` before running the installer.

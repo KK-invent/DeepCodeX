@@ -1,0 +1,16 @@
+DeepCodeX 小白版 3 步
+
+1. 先安装官方 Codex：
+   https://openai.com/codex/
+
+2. 从 GitHub 下载 DeepCodeX 源码 zip，完整解压。
+
+3. 双击解压目录里的 Install-DeepCodeX.command。
+
+安装器会自动检测 Codex。没有 Codex 时会停止并打开官方下载页。
+
+你只需要准备两个配置：
+- DeepSeek base URL：能直连官方 DeepSeek 时用 https://api.deepseek.com
+- DeepSeek API key：从 DeepSeek 或你的服务提供方获取
+
+不要填写 127.0.0.1:3100；那是 DeepCodeX 内部地址。

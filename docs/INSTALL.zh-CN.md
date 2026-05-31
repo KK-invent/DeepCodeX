@@ -40,6 +40,22 @@ DeepCodeX 使用 DeepSeek 兼容接口，不需要 ChatGPT OAuth 登录。但它
 
 ## 公开源码安装路径
 
+### 小白双击路径
+
+适用于不会使用终端的普通用户：
+
+1. 先安装官方 Codex，并确认 `/Applications/Codex.app` 存在。
+2. 在 GitHub 下载 DeepCodeX 源码 zip，完整解压。
+3. 双击解压目录里的 `Install-DeepCodeX.command`。
+4. 按提示填写 `DeepSeek base URL` 和 `DeepSeek API key`。
+5. 安装完成后打开 `/Applications/Deepcodex.app`。
+
+这个公开源码 zip 不包含官方 Codex 二进制，也不包含预构建的 Deepcodex.app。安装器会从你本机已经安装的官方 Codex.app 构建 DeepCodeX。
+
+如果没有检测到 Codex，安装器会停止并打开 [OpenAI Codex 官方页面](https://openai.com/codex/)。
+
+### 终端路径
+
 适用于从 GitHub 公开仓库安装：
 
 ```bash

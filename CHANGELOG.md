@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Added a root `Install-DeepCodeX.command` source installer so GitHub source ZIP users can double-click through the public, no-binary install path.
+- Added `START-HERE.zh-CN.txt` and updated Chinese install/troubleshooting docs for the source ZIP beginner flow.
+- Extended release audit coverage with a missing-Codex smoke test for the root source installer.
+
 ## v0.1.2
 
 Fixed a false failure in the post-apply launch check (Electron renderer path changed in newer Codex).
