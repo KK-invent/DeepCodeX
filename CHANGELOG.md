@@ -5,6 +5,7 @@
 - Added a root `Install-DeepCodeX.command` source installer so GitHub source ZIP users can double-click through the public, no-binary install path.
 - Added `START-HERE.zh-CN.txt` and updated Chinese install/troubleshooting docs for the source ZIP beginner flow.
 - Extended release audit coverage with a missing-Codex smoke test for the root source installer.
+- Extended Codex conversation import to sync the desktop thread database, archived sessions, shell snapshots, and session index so DeepCodeX can actually list and resume imported Codex projects.
 
 ## v0.1.2
 

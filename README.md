@@ -111,9 +111,10 @@ export DEEPCODEX_LAUNCHD_DOMAIN="com.deepcodex"
 DeepCodeX keeps its data in an isolated home (`~/.codex-deepseek`), so by default
 it can't see the conversations from your regular Codex app (`~/.codex`). The
 installer sets up a background sync (`com.deepcodex.session-sync`) that
-automatically imports those conversations — and keeps importing new ones — so a
-project you started in Codex shows up in DeepCodeX's history and can be picked up
-right where you left off.
+automatically imports those conversations, archived threads, session index, and
+thread database rows — and keeps importing new ones — so a project you started
+in Codex shows up in DeepCodeX's history and can be picked up right where you
+left off.
 
 To import on demand (or preview first):
 

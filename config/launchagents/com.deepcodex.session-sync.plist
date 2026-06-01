@@ -26,6 +26,10 @@
 	<key>WatchPaths</key>
 	<array>
 		<string>__CODEX_SOURCE_HOME__/sessions</string>
+		<string>__CODEX_SOURCE_HOME__/archived_sessions</string>
+		<string>__CODEX_SOURCE_HOME__/shell_snapshots</string>
+		<string>__CODEX_SOURCE_HOME__/session_index.jsonl</string>
+		<string>__CODEX_SOURCE_HOME__/state_5.sqlite</string>
 	</array>
 	<key>StartInterval</key>
 	<integer>900</integer>
