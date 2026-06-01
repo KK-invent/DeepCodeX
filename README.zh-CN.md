@@ -77,12 +77,29 @@ Codex 说的是 OpenAI 的 Responses API，DeepSeek 说的是 Chat Completions A
 | `bin/deepcodex-doctor.py` | 体检 —— 告诉你哪里不对、怎么修 |
 | `bin/deepcodex-log-prune.py` | 日志清理，别让磁盘被 log 撑爆 |
 | `bin/deepcodex-backup.sh` | 改配置前自动备份 |
+| `bin/deepcodex-session-import.py` | 自动同步普通 Codex 对话，让项目能在 DeepCodeX 继续 |
 
 ### 仓库里没有什么
 
 没有 Codex 二进制，没有 `.app` 成品，没有 API key，没有日志，没有缓存。这里只有工具；Codex 应用和 DeepSeek key 由你自己提供。
 
 ![DeepCodeX 统一安装检测流程](assets/brand/install-detection-flow.zh-CN.svg)
+
+## 继续 Codex 里的项目
+
+DeepCodeX 的运行目录是独立的 `~/.codex-deepseek`，普通 Codex 的对话在
+`~/.codex`。安装脚本会配置一个后台同步任务，把 Codex 的对话文件、历史
+索引、归档会话和线程数据库导入 DeepCodeX；这样你在 Codex 里开过的项目，
+会出现在 DeepCodeX 的历史/继续列表里。
+
+手动补一次也可以：
+
+```bash
+~/.codex-deepseek/bin/deepcodex-session-import.py --dry-run --include-history   # 先预览
+~/.codex-deepseek/bin/deepcodex-session-import.py --include-history             # 正式导入
+```
+
+详细说明：[docs/SESSION_IMPORT.md](docs/SESSION_IMPORT.md)。
 
 ## 配置 DeepSeek
 

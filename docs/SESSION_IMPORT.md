@@ -7,19 +7,22 @@ a project you started in Codex doesn't show up in DeepCodeX's resume/history
 picker out of the box.
 
 `bin/deepcodex-session-import.py` bridges the two by mirroring the regular Codex
-session rollouts (the conversations) — and, optionally, the cross-session
-`history.jsonl` — into the DeepCodeX home.
+session rollouts, archived conversations, shell snapshots, session index, and
+desktop thread database into the DeepCodeX home. Optionally, it also merges the
+cross-session `history.jsonl`.
 
 It is deliberately **non-invasive**: it only writes inside the DeepCodeX home
 data directory. It never touches the app bundle, `app.asar`, the DeepSeek
-bridge, the image shim, or the request chain.
+bridge, the image shim, the request chain, or the regular Codex home.
 
 ## What it does
 
-- Scans `<source>/sessions/**/rollout-*.jsonl` and copies any rollout not
-  already in `<target>/sessions/`, preserving the `YYYY/MM/DD/` layout.
-- Deduplicates by the **session UUID** embedded in the rollout filename, so
-  re-running only imports what is new.
+- Mirrors `<source>/sessions/`, `<source>/archived_sessions/`, and
+  `<source>/shell_snapshots/` into the matching target directories without
+  overwriting newer DeepCodeX-side files.
+- Merges `session_index.jsonl`, keeping the newest record for each thread ID.
+- Merges `state_5.sqlite` thread rows so the DeepCodeX UI can actually see the
+  imported conversations in its history/resume picker.
 - Records imported sessions in a sidecar manifest
   (`<target>/.deepcodex-import-manifest.json`) for fast, idempotent re-runs.
 - With `--include-history`, merges `history.jsonl` entries that are not already
@@ -61,7 +64,8 @@ conversations.
 (`com.deepcodex.session-sync`) that keeps DeepCodeX continuously in sync with
 the regular Codex app. It runs the importer:
 
-- **on change** — `WatchPaths` fires whenever `~/.codex/sessions` changes, and
+- **on change** — `WatchPaths` fires whenever Codex sessions, archives, shell
+  snapshots, the session index, or the thread database change, and
 - **on a fallback interval** — every 15 minutes (`StartInterval`).
 
 Logs go to `~/.codex-deepseek/logs/session-sync.out.log` and `session-sync.err.log`.
@@ -85,5 +89,8 @@ rm ~/Library/LaunchAgents/com.deepcodex.session-sync.plist
   modified.
 - History merges are deduplicated and the target `history.jsonl` is backed up
   to `history.jsonl.bak.before-import-<timestamp>` before each write.
+- Thread database merges are idempotent and the target `state_5.sqlite` is
+  backed up to `state_5.sqlite.bak.before-import-<timestamp>` before changed
+  rows are written.
 - Imported sessions keep their original UUIDs, so they never collide with
   DeepCodeX-native sessions.

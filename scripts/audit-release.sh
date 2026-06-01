@@ -46,6 +46,9 @@ python3 bin/deepcodex-image-strip-proxy.py --selftest
 echo "== DeepSeek bridge self-test =="
 python3 bin/deepcodex-deepseek-bridge.py --selftest
 
+echo "== Session import self-test =="
+python3 bin/deepcodex-session-import.py --selftest
+
 echo "== Install mode detection self-test =="
 scripts/detect-install-mode.sh --selftest
 

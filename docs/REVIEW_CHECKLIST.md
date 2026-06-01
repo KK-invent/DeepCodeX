@@ -38,6 +38,7 @@
 
 - [ ] `PYTHONPYCACHEPREFIX="$(mktemp -d)" python3 -m py_compile bin/*.py` passes without leaving `bin/__pycache__`.
 - [ ] `bin/deepcodex-image-strip-proxy.py --selftest` passes.
+- [ ] `bin/deepcodex-session-import.py --selftest` passes.
 - [ ] On a configured machine, `bin/deepcodex-sync-upstream.py --stage` passes.
 - [ ] On a configured machine, `bin/deepcodex-doctor.py` reports no failures.
 - [ ] `codesign --verify --deep --strict "$DEEPCODEX_APP"` passes after apply.
