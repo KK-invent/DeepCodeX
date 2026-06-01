@@ -23,6 +23,10 @@ bridge, the image shim, the request chain, or the regular Codex home.
 - Merges `session_index.jsonl`, keeping the newest record for each thread ID.
 - Merges `state_5.sqlite` thread rows so the DeepCodeX UI can actually see the
   imported conversations in its history/resume picker.
+- Keeps legacy terminal Codex (`source=cli`) conversations out of the
+  DeepCodeX UI index for now. Their rollout files are still mirrored, but the
+  current desktop UI can hang on a black loading screen when opening those old
+  CLI records.
 - Records imported sessions in a sidecar manifest
   (`<target>/.deepcodex-import-manifest.json`) for fast, idempotent re-runs.
 - With `--include-history`, merges `history.jsonl` entries that are not already
@@ -92,5 +96,8 @@ rm ~/Library/LaunchAgents/com.deepcodex.session-sync.plist
 - Thread database merges are idempotent and the target `state_5.sqlite` is
   backed up to `state_5.sqlite.bak.before-import-<timestamp>` before changed
   rows are written.
+- If a previous importer run already exposed legacy CLI records in the
+  DeepCodeX UI, the next run prunes those UI index rows. It does not delete the
+  mirrored rollout files.
 - Imported sessions keep their original UUIDs, so they never collide with
   DeepCodeX-native sessions.
