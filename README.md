@@ -10,6 +10,10 @@
 
 DeepCodeX patches your existing Codex desktop app so it talks to DeepSeek instead of OpenAI — entirely on your Mac, no cloud account swap needed. Bring your own DeepSeek API key and you're good to go.
 
+> ### 🆕 New & kind of a big deal: your whole Codex past comes with you
+>
+> Switching tools used to feel like moving apartments and "forgetting" all your boxes at the old place — every conversation stranded back in vanilla Codex. **Not anymore.** DeepCodeX now imports **all** of your existing Codex history — conversations, archived threads, the session index, even the thread database — and keeps syncing new chats in the background, so you can pick up the 2 a.m. debugging spiral right where you left off. Nothing gets left at the door. → [Jump to it](#continuing-your-codex-projects)
+
 > This is an unofficial community project. Not affiliated with OpenAI or DeepSeek.
 
 ## Quick Start
