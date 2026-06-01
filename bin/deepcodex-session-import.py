@@ -34,7 +34,7 @@ MANIFEST_NAME = ".deepcodex-import-manifest.json"
 STATE_DB = "state_5.sqlite"
 COPY_TREES = ("sessions", "archived_sessions", "shell_snapshots")
 STATE_TABLES = ("threads", "thread_dynamic_tools", "thread_spawn_edges")
-UNSUPPORTED_THREAD_SOURCES = {"cli"}
+LEGACY_CLI_THREAD_SOURCES = {"cli"}
 
 
 def log(msg: str = "") -> None:
@@ -43,6 +43,16 @@ def log(msg: str = "") -> None:
 
 def utc_now() -> str:
     return _dt.datetime.now(_dt.timezone.utc).isoformat()
+
+
+def iso_from_epoch(raw: object) -> str:
+    try:
+        value = int(raw or 0)
+    except (TypeError, ValueError):
+        value = 0
+    if value <= 0:
+        return utc_now()
+    return _dt.datetime.fromtimestamp(value, _dt.timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def session_uuid(filename: str) -> str | None:
@@ -175,26 +185,21 @@ def merge_session_index(
     target_home: Path,
     *,
     dry_run: bool,
-    exclude_thread_ids: set[str] | None = None,
+    extra_records: list[dict] | None = None,
 ) -> tuple[int, int]:
     src = source_home / "session_index.jsonl"
     dst = target_home / "session_index.jsonl"
-    excluded = exclude_thread_ids or set()
-    source_records = read_jsonl(src)
+    source_records = read_jsonl(src) + (extra_records or [])
     target_records = read_jsonl(dst)
     if not source_records and not target_records:
         return (0, 0)
 
     by_id: dict[str, dict] = {}
-    pruned = 0
     for item in target_records:
         sid = item.get("id")
         if not sid:
             continue
         sid = str(sid)
-        if sid in excluded:
-            pruned += 1
-            continue
         by_id[sid] = item
 
     changed = 0
@@ -203,17 +208,15 @@ def merge_session_index(
         if not sid:
             continue
         sid = str(sid)
-        if sid in excluded:
-            continue
         existing = by_id.get(sid)
         if existing is None or str(item.get("updated_at", "")) > str(existing.get("updated_at", "")):
             by_id[sid] = item
             changed += 1
 
-    if (changed or pruned) and not dry_run:
+    if changed and not dry_run:
         merged = sorted(by_id.values(), key=lambda item: str(item.get("updated_at", "")))
         write_jsonl(dst, merged)
-    return (changed, pruned)
+    return (changed, 0)
 
 
 def history_key(obj: dict) -> str:
@@ -296,59 +299,126 @@ def sql_placeholders(count: int) -> str:
     return ", ".join("?" for _ in range(count))
 
 
-def load_unsupported_thread_ids(source_home: Path) -> set[str]:
+def load_legacy_cli_thread_rows(source_home: Path) -> dict[str, dict]:
     source_db = source_home / STATE_DB
     if not source_db.is_file():
-        return set()
+        return {}
     with connect_ro(source_db) as conn:
         if not table_exists(conn, "threads") or "source" not in columns(conn, "threads"):
-            return set()
-        placeholders = sql_placeholders(len(UNSUPPORTED_THREAD_SOURCES))
+            return {}
+        placeholders = sql_placeholders(len(LEGACY_CLI_THREAD_SOURCES))
         rows = conn.execute(
-            f"SELECT id FROM threads WHERE source IN ({placeholders})",
-            sorted(UNSUPPORTED_THREAD_SOURCES),
+            f"SELECT * FROM threads WHERE source IN ({placeholders})",
+            sorted(LEGACY_CLI_THREAD_SOURCES),
         ).fetchall()
-    return {str(row["id"]) for row in rows}
+    return {str(row["id"]): dict(row) for row in rows}
 
 
-def count_threads_by_ids(conn: sqlite3.Connection, thread_ids: set[str]) -> int:
-    if not thread_ids or not table_exists(conn, "threads"):
-        return 0
-    placeholders = sql_placeholders(len(thread_ids))
-    row = conn.execute(
-        f"SELECT count(*) AS n FROM threads WHERE id IN ({placeholders})",
-        sorted(thread_ids),
-    ).fetchone()
-    return int(row["n"] or 0)
-
-
-def prune_unsupported_thread_state(conn: sqlite3.Connection, thread_ids: set[str]) -> int:
-    if not thread_ids:
-        return 0
-    ids = sorted(thread_ids)
-    placeholders = sql_placeholders(len(ids))
-    if table_exists(conn, "thread_dynamic_tools"):
-        conn.execute(f"DELETE FROM thread_dynamic_tools WHERE thread_id IN ({placeholders})", ids)
-    if table_exists(conn, "thread_spawn_edges"):
-        conn.execute(
-            f"""
-            DELETE FROM thread_spawn_edges
-            WHERE parent_thread_id IN ({placeholders}) OR child_thread_id IN ({placeholders})
-            """,
-            ids + ids,
+def legacy_cli_session_index_records(rows: dict[str, dict]) -> list[dict]:
+    records: list[dict] = []
+    for thread_id, row in rows.items():
+        records.append(
+            {
+                "id": thread_id,
+                "thread_name": row.get("title") or row.get("first_user_message") or thread_id,
+                "updated_at": iso_from_epoch(row.get("updated_at")),
+            }
         )
-    if not table_exists(conn, "threads"):
-        return 0
-    cur = conn.execute(f"DELETE FROM threads WHERE id IN ({placeholders})", ids)
-    return int(cur.rowcount if cur.rowcount is not None and cur.rowcount >= 0 else 0)
+    return records
+
+
+def parse_sandbox_policy(raw: object) -> object:
+    if not isinstance(raw, str):
+        return raw
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return raw
+
+
+def normalize_legacy_cli_record(obj: dict, row: dict) -> dict:
+    normalized = dict(obj)
+    payload = normalized.get("payload")
+    if not isinstance(payload, dict):
+        return normalized
+
+    payload = dict(payload)
+    if normalized.get("type") == "session_meta":
+        payload["originator"] = "Codex Desktop"
+        payload["source"] = "vscode"
+        payload["thread_source"] = payload.get("thread_source") or row.get("thread_source") or "user"
+        payload["cwd"] = row.get("cwd") or payload.get("cwd")
+        payload["model_provider"] = row.get("model_provider") or payload.get("model_provider")
+    elif normalized.get("type") == "turn_context":
+        payload["cwd"] = row.get("cwd") or payload.get("cwd")
+        payload["approval_policy"] = row.get("approval_mode") or payload.get("approval_policy")
+        payload["sandbox_policy"] = parse_sandbox_policy(row.get("sandbox_policy")) or payload.get("sandbox_policy")
+        payload["permission_profile"] = {"type": "disabled"}
+        payload["model"] = row.get("model") or payload.get("model")
+        payload.setdefault("personality", "pragmatic")
+        payload.setdefault("realtime_active", False)
+
+    normalized["payload"] = payload
+    return normalized
+
+
+def legacy_cli_target_path(row: dict, source_home: Path, target_home: Path) -> Path | None:
+    raw = row.get("rollout_path")
+    if not raw:
+        return None
+    return target_path_for_source(Path(str(raw)), source_home, target_home)
+
+
+def convert_legacy_cli_rollouts(
+    source_home: Path,
+    target_home: Path,
+    rows: dict[str, dict],
+    *,
+    dry_run: bool,
+    verbose: bool,
+) -> int:
+    converted = 0
+    for thread_id, row in sorted(rows.items()):
+        raw_path = row.get("rollout_path")
+        if not raw_path:
+            continue
+        src = Path(str(raw_path))
+        dst = legacy_cli_target_path(row, source_home, target_home)
+        if dst is None or not src.is_file():
+            continue
+        records = [normalize_legacy_cli_record(item, row) for item in read_jsonl(src)]
+        content = "".join(json.dumps(item, ensure_ascii=False) + "\n" for item in records)
+        if dst.is_file() and dst.read_text(encoding="utf-8") == content:
+            continue
+        converted += 1
+        if verbose or dry_run:
+            rel = relative_to_or_none(dst, target_home)
+            log(f"  convert legacy-cli {rel or dst}")
+        if not dry_run:
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            tmp = dst.with_name(f".{dst.name}.deepcodex-legacy-cli.tmp")
+            tmp.write_text(content, encoding="utf-8")
+            tmp.replace(dst)
+    return converted
+
+
+def normalize_legacy_cli_thread_data(data: dict, row: dict, source_home: Path, target_home: Path) -> dict:
+    normalized = dict(data)
+    target = legacy_cli_target_path(row, source_home, target_home)
+    if target is not None:
+        normalized["rollout_path"] = str(target)
+    normalized["source"] = "vscode"
+    if "thread_source" in normalized:
+        normalized["thread_source"] = normalized.get("thread_source") or "user"
+    return normalized
 
 
 def sanitize_seeded_state(
     conn: sqlite3.Connection,
     source_home: Path,
     target_home: Path,
-    unsupported_thread_ids: set[str],
-) -> tuple[int, int]:
+    legacy_cli_rows: dict[str, dict],
+) -> int:
     if table_exists(conn, "remote_control_enrollments"):
         conn.execute("DELETE FROM remote_control_enrollments")
     if table_exists(conn, "agent_job_items"):
@@ -361,10 +431,13 @@ def sanitize_seeded_state(
         rows = conn.execute("SELECT id, rollout_path FROM threads").fetchall()
         for row in rows:
             mapped = rewrite_rollout_path(str(row["rollout_path"]), source_home, target_home)
-            conn.execute("UPDATE threads SET rollout_path=? WHERE id=?", (mapped, row["id"]))
+            source = "vscode" if str(row["id"]) in legacy_cli_rows else None
+            if source is None:
+                conn.execute("UPDATE threads SET rollout_path=? WHERE id=?", (mapped, row["id"]))
+            else:
+                conn.execute("UPDATE threads SET rollout_path=?, source=? WHERE id=?", (mapped, source, row["id"]))
             count += 1
-    pruned = prune_unsupported_thread_state(conn, unsupported_thread_ids)
-    return (count - pruned, pruned)
+    return count
 
 
 def upsert_row(conn: sqlite3.Connection, table: str, data: dict) -> None:
@@ -391,25 +464,25 @@ def sync_state_db(
     *,
     dry_run: bool,
     verbose: bool,
-    unsupported_thread_ids: set[str] | None = None,
+    legacy_cli_rows: dict[str, dict] | None = None,
 ) -> tuple[int, int, int, str | None]:
     source_db = source_home / STATE_DB
     target_db = target_home / STATE_DB
     if not source_db.is_file():
         return (0, 0, 0, None)
-    unsupported_thread_ids = unsupported_thread_ids or load_unsupported_thread_ids(source_home)
+    legacy_cli_rows = legacy_cli_rows or load_legacy_cli_thread_rows(source_home)
+    legacy_cli_ids = set(legacy_cli_rows)
 
     if not target_db.exists():
         with connect_ro(source_db) as src:
             source_count = src.execute("SELECT count(*) AS n FROM threads").fetchone()["n"] if table_exists(src, "threads") else 0
-            unsupported_count = len(unsupported_thread_ids)
         if dry_run:
-            return (max(int(source_count) - unsupported_count, 0), unsupported_count, 0, "seed")
+            return (int(source_count), 0, 0, "seed")
         sqlite_backup(source_db, target_db)
         with connect_rw(target_db) as dst:
             with dst:
-                imported, pruned = sanitize_seeded_state(dst, source_home, target_home, unsupported_thread_ids)
-        return (imported, 0, pruned, "seed")
+                imported = sanitize_seeded_state(dst, source_home, target_home, legacy_cli_rows)
+        return (imported, 0, 0, "seed")
 
     with connect_ro(source_db) as src, connect_rw(target_db) as dst:
         if not table_exists(src, "threads") or not table_exists(dst, "threads"):
@@ -423,29 +496,31 @@ def sync_state_db(
             str(row["id"]): int(row["updated_at"] or 0)
             for row in dst.execute("SELECT id, updated_at FROM threads").fetchall()
         }
+        target_source = {
+            str(row["id"]): str(row["source"])
+            for row in dst.execute("SELECT id, source FROM threads").fetchall()
+        }
 
         thread_rows: list[dict] = []
         skipped = 0
         for row in source_rows:
             thread_id = str(row["id"])
-            # 旧终端版 Codex 会话当前会让桌面端打开后卡黑屏；先只同步文件，不放进 UI 索引。
-            if thread_id in unsupported_thread_ids:
-                skipped += 1
-                continue
             source_updated = int(row["updated_at"] or 0)
-            if thread_id in target_updated and target_updated[thread_id] >= source_updated:
+            legacy_needs_refresh = thread_id in legacy_cli_ids and target_source.get(thread_id) != "vscode"
+            if not legacy_needs_refresh and thread_id in target_updated and target_updated[thread_id] >= source_updated:
                 skipped += 1
                 continue
             data = {name: row[name] for name in common}
-            if "rollout_path" in data:
+            if thread_id in legacy_cli_ids:
+                data = normalize_legacy_cli_thread_data(data, legacy_cli_rows[thread_id], source_home, target_home)
+            elif "rollout_path" in data:
                 data["rollout_path"] = rewrite_rollout_path(str(data["rollout_path"]), source_home, target_home)
             thread_rows.append(data)
 
-        target_prune_count = count_threads_by_ids(dst, unsupported_thread_ids)
-        if not thread_rows and not target_prune_count:
+        if not thread_rows:
             return (0, skipped, 0, None)
         if dry_run:
-            return (len(thread_rows), skipped, target_prune_count, None)
+            return (len(thread_rows), skipped, 0, None)
 
         backup = backup_target_state(target_db)
         if verbose:
@@ -453,7 +528,6 @@ def sync_state_db(
 
         changed_ids = [str(row["id"]) for row in thread_rows]
         with dst:
-            pruned = prune_unsupported_thread_state(dst, unsupported_thread_ids)
             for data in thread_rows:
                 upsert_row(dst, "threads", data)
 
@@ -473,11 +547,9 @@ def sync_state_db(
                 for row in src.execute("SELECT * FROM thread_spawn_edges").fetchall():
                     parent_id = str(row["parent_thread_id"]) if "parent_thread_id" in src_edge_cols else ""
                     child_id = str(row["child_thread_id"]) if "child_thread_id" in src_edge_cols else ""
-                    if parent_id in unsupported_thread_ids or child_id in unsupported_thread_ids:
-                        continue
                     insert_or_replace_row(dst, "thread_spawn_edges", {name: row[name] for name in edge_common})
 
-        return (len(thread_rows), skipped, pruned, None)
+        return (len(thread_rows), skipped, 0, None)
 
 
 def write_summary_manifest(target_home: Path, summary: dict, *, dry_run: bool) -> None:
@@ -523,20 +595,27 @@ def run_import(args: argparse.Namespace) -> int:
     log(f"  target: {target_home}")
     log("")
 
-    unsupported_thread_ids = load_unsupported_thread_ids(source_home)
+    legacy_cli_rows = load_legacy_cli_thread_rows(source_home)
     summary = mirror_conversation_files(source_home, target_home, dry_run=args.dry_run, verbose=args.verbose)
+    legacy_converted = convert_legacy_cli_rollouts(
+        source_home,
+        target_home,
+        legacy_cli_rows,
+        dry_run=args.dry_run,
+        verbose=args.verbose,
+    )
     index_changed, index_pruned = merge_session_index(
         source_home,
         target_home,
         dry_run=args.dry_run,
-        exclude_thread_ids=unsupported_thread_ids,
+        extra_records=legacy_cli_session_index_records(legacy_cli_rows),
     )
     state_imported, state_skipped, state_pruned, state_mode = sync_state_db(
         source_home,
         target_home,
         dry_run=args.dry_run,
         verbose=args.verbose,
-        unsupported_thread_ids=unsupported_thread_ids,
+        legacy_cli_rows=legacy_cli_rows,
     )
     history_added = 0
     if args.include_history:
@@ -546,11 +625,12 @@ def run_import(args: argparse.Namespace) -> int:
         {
             "session_index_changed": index_changed,
             "session_index_pruned": index_pruned,
+            "legacy_cli_rollouts_converted": legacy_converted,
             "state_threads_imported": state_imported,
             "state_threads_skipped": state_skipped,
             "state_threads_pruned": state_pruned,
             "state_mode": state_mode,
-            "unsupported_cli_threads": len(unsupported_thread_ids),
+            "legacy_cli_threads": len(legacy_cli_rows),
             "history_added": history_added,
         }
     )
@@ -560,12 +640,11 @@ def run_import(args: argparse.Namespace) -> int:
     log(f"Sessions: {verb} {summary['sessions_copied']}, skipped {summary['sessions_skipped']}.")
     log(f"Archived: {verb} {summary['archived_sessions_copied']}, skipped {summary['archived_sessions_skipped']}.")
     log(f"Shell snapshots: {verb} {summary['shell_snapshots_copied']}, skipped {summary['shell_snapshots_skipped']}.")
+    log(f"Legacy CLI: {'would convert' if args.dry_run else 'converted'} {legacy_converted} desktop-compatible rollouts.")
     log(f"Session index: {'would update' if args.dry_run else 'updated'} {index_changed} records.")
-    if index_pruned:
-        log(f"Session index: {'would prune' if args.dry_run else 'pruned'} {index_pruned} unsupported CLI records.")
-    log(f"State index: {verb} {state_imported} threads, skipped {state_skipped}, pruned {state_pruned}.")
-    if unsupported_thread_ids:
-        log(f"Legacy CLI sessions: kept {len(unsupported_thread_ids)} records out of the DeepCodeX UI index.")
+    log(f"State index: {verb} {state_imported} threads, skipped {state_skipped}.")
+    if legacy_cli_rows:
+        log(f"Legacy CLI sessions: exposed {len(legacy_cli_rows)} records through the DeepCodeX UI index.")
     if args.include_history:
         log(f"History: {'would add' if args.dry_run else 'added'} {history_added} entries.")
     return 0
@@ -654,7 +733,36 @@ def selftest() -> int:
         legacy_rollout = source / "sessions/2026/06/01" / f"rollout-2026-06-01T00-00-00-{legacy_sid}.jsonl"
         source_rollout.parent.mkdir(parents=True)
         source_rollout.write_text('{"type":"session_meta","payload":{"id":"' + sid + '"}}\n', encoding="utf-8")
-        legacy_rollout.write_text('{"type":"session_meta","payload":{"id":"' + legacy_sid + '"}}\n', encoding="utf-8")
+        legacy_rollout.write_text(
+            json.dumps(
+                {
+                    "type": "session_meta",
+                    "payload": {
+                        "id": legacy_sid,
+                        "cwd": "/tmp/project",
+                        "originator": "codex-tui",
+                        "source": "cli",
+                        "model_provider": "openai",
+                    },
+                }
+            )
+            + "\n"
+            + json.dumps(
+                {
+                    "type": "turn_context",
+                    "payload": {
+                        "turn_id": "legacy-turn",
+                        "cwd": "/tmp/project",
+                        "approval_policy": "on-request",
+                        "sandbox_policy": {"type": "workspace-write"},
+                        "permission_profile": {"type": "managed"},
+                        "model": "gpt-5.5",
+                    },
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         (source / "archived_sessions").mkdir(parents=True)
         (source / "archived_sessions" / f"rollout-2026-05-01T00-00-00-{sid}.jsonl").write_text("archived\n", encoding="utf-8")
         (source / "shell_snapshots").mkdir(parents=True)
@@ -684,7 +792,7 @@ def selftest() -> int:
                     "openai",
                     "/tmp/project",
                     "Legacy CLI",
-                    "danger-full-access",
+                    '{"type":"workspace-write"}',
                     "never",
                     "legacy",
                 ),
@@ -714,14 +822,22 @@ def selftest() -> int:
         if row is None or row[0] != str(copied):
             raise AssertionError("thread state was not imported with rewritten rollout path")
         with sqlite3.connect(target / STATE_DB) as conn:
-            legacy_row = conn.execute("SELECT id FROM threads WHERE id=?", (legacy_sid,)).fetchone()
+            legacy_target = target / "sessions/2026/06/01" / legacy_rollout.name
+            legacy_row = conn.execute("SELECT rollout_path, source FROM threads WHERE id=?", (legacy_sid,)).fetchone()
             legacy_tool = conn.execute("SELECT thread_id FROM thread_dynamic_tools WHERE thread_id=?", (legacy_sid,)).fetchone()
-        if legacy_row is not None or legacy_tool is not None:
-            raise AssertionError("legacy CLI thread state was imported into the UI index")
+        if legacy_row is None or legacy_row[0] != str(legacy_target) or legacy_row[1] != "vscode":
+            raise AssertionError("legacy CLI thread state was not imported as a desktop-compatible thread")
+        if legacy_tool is None:
+            raise AssertionError("legacy CLI dynamic tools were not imported")
         if not (target / "session_index.jsonl").is_file():
             raise AssertionError("session index was not written")
-        if legacy_sid in (target / "session_index.jsonl").read_text(encoding="utf-8"):
-            raise AssertionError("legacy CLI thread was written to the session index")
+        if legacy_sid not in (target / "session_index.jsonl").read_text(encoding="utf-8"):
+            raise AssertionError("legacy CLI thread was not written to the session index")
+        legacy_records = read_jsonl(legacy_target)
+        if legacy_records[0]["payload"].get("source") != "vscode":
+            raise AssertionError("legacy CLI session_meta was not normalized")
+        if legacy_records[1]["payload"].get("permission_profile") != {"type": "disabled"}:
+            raise AssertionError("legacy CLI turn_context was not normalized")
         if not (target / "history.jsonl").is_file():
             raise AssertionError("history was not merged")
     log("session import selftest OK")
