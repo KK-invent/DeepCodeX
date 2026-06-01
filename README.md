@@ -127,6 +127,8 @@ To import on demand (or preview first):
 ~/.codex-deepseek/bin/deepcodex-session-import.py --include-history             # import
 ```
 
+> **Heads up:** importing runs in the background and your history isn't dumped on screen all at once. Search for a conversation in DeepCodeX and click it — that's when DeepCodeX loads it into view. So if the list looks empty at first, you're not missing anything; just search for what you're after.
+
 Details and options: [docs/SESSION_IMPORT.md](docs/SESSION_IMPORT.md).
 
 ## Updating
