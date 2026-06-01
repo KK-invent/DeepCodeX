@@ -34,6 +34,7 @@ MANIFEST_NAME = ".deepcodex-import-manifest.json"
 STATE_DB = "state_5.sqlite"
 COPY_TREES = ("sessions", "archived_sessions", "shell_snapshots")
 STATE_TABLES = ("threads", "thread_dynamic_tools", "thread_spawn_edges")
+UNSUPPORTED_THREAD_SOURCES = {"cli"}
 
 
 def log(msg: str = "") -> None:
@@ -169,18 +170,32 @@ def write_jsonl(path: Path, records: list[dict]) -> None:
     tmp.replace(path)
 
 
-def merge_session_index(source_home: Path, target_home: Path, *, dry_run: bool) -> int:
+def merge_session_index(
+    source_home: Path,
+    target_home: Path,
+    *,
+    dry_run: bool,
+    exclude_thread_ids: set[str] | None = None,
+) -> tuple[int, int]:
     src = source_home / "session_index.jsonl"
     dst = target_home / "session_index.jsonl"
+    excluded = exclude_thread_ids or set()
     source_records = read_jsonl(src)
-    if not source_records:
-        return 0
+    target_records = read_jsonl(dst)
+    if not source_records and not target_records:
+        return (0, 0)
 
     by_id: dict[str, dict] = {}
-    target_records = read_jsonl(dst)
+    pruned = 0
     for item in target_records:
-        if item.get("id"):
-            by_id[str(item["id"])] = item
+        sid = item.get("id")
+        if not sid:
+            continue
+        sid = str(sid)
+        if sid in excluded:
+            pruned += 1
+            continue
+        by_id[sid] = item
 
     changed = 0
     for item in source_records:
@@ -188,15 +203,17 @@ def merge_session_index(source_home: Path, target_home: Path, *, dry_run: bool) 
         if not sid:
             continue
         sid = str(sid)
+        if sid in excluded:
+            continue
         existing = by_id.get(sid)
         if existing is None or str(item.get("updated_at", "")) > str(existing.get("updated_at", "")):
             by_id[sid] = item
             changed += 1
 
-    if changed and not dry_run:
+    if (changed or pruned) and not dry_run:
         merged = sorted(by_id.values(), key=lambda item: str(item.get("updated_at", "")))
         write_jsonl(dst, merged)
-    return changed
+    return (changed, pruned)
 
 
 def history_key(obj: dict) -> str:
@@ -275,7 +292,63 @@ def rewrite_rollout_path(raw_path: str, source_home: Path, target_home: Path) ->
     return str(target) if target is not None else raw_path
 
 
-def sanitize_seeded_state(conn: sqlite3.Connection, source_home: Path, target_home: Path) -> int:
+def sql_placeholders(count: int) -> str:
+    return ", ".join("?" for _ in range(count))
+
+
+def load_unsupported_thread_ids(source_home: Path) -> set[str]:
+    source_db = source_home / STATE_DB
+    if not source_db.is_file():
+        return set()
+    with connect_ro(source_db) as conn:
+        if not table_exists(conn, "threads") or "source" not in columns(conn, "threads"):
+            return set()
+        placeholders = sql_placeholders(len(UNSUPPORTED_THREAD_SOURCES))
+        rows = conn.execute(
+            f"SELECT id FROM threads WHERE source IN ({placeholders})",
+            sorted(UNSUPPORTED_THREAD_SOURCES),
+        ).fetchall()
+    return {str(row["id"]) for row in rows}
+
+
+def count_threads_by_ids(conn: sqlite3.Connection, thread_ids: set[str]) -> int:
+    if not thread_ids or not table_exists(conn, "threads"):
+        return 0
+    placeholders = sql_placeholders(len(thread_ids))
+    row = conn.execute(
+        f"SELECT count(*) AS n FROM threads WHERE id IN ({placeholders})",
+        sorted(thread_ids),
+    ).fetchone()
+    return int(row["n"] or 0)
+
+
+def prune_unsupported_thread_state(conn: sqlite3.Connection, thread_ids: set[str]) -> int:
+    if not thread_ids:
+        return 0
+    ids = sorted(thread_ids)
+    placeholders = sql_placeholders(len(ids))
+    if table_exists(conn, "thread_dynamic_tools"):
+        conn.execute(f"DELETE FROM thread_dynamic_tools WHERE thread_id IN ({placeholders})", ids)
+    if table_exists(conn, "thread_spawn_edges"):
+        conn.execute(
+            f"""
+            DELETE FROM thread_spawn_edges
+            WHERE parent_thread_id IN ({placeholders}) OR child_thread_id IN ({placeholders})
+            """,
+            ids + ids,
+        )
+    if not table_exists(conn, "threads"):
+        return 0
+    cur = conn.execute(f"DELETE FROM threads WHERE id IN ({placeholders})", ids)
+    return int(cur.rowcount if cur.rowcount is not None and cur.rowcount >= 0 else 0)
+
+
+def sanitize_seeded_state(
+    conn: sqlite3.Connection,
+    source_home: Path,
+    target_home: Path,
+    unsupported_thread_ids: set[str],
+) -> tuple[int, int]:
     if table_exists(conn, "remote_control_enrollments"):
         conn.execute("DELETE FROM remote_control_enrollments")
     if table_exists(conn, "agent_job_items"):
@@ -290,7 +363,8 @@ def sanitize_seeded_state(conn: sqlite3.Connection, source_home: Path, target_ho
             mapped = rewrite_rollout_path(str(row["rollout_path"]), source_home, target_home)
             conn.execute("UPDATE threads SET rollout_path=? WHERE id=?", (mapped, row["id"]))
             count += 1
-    return count
+    pruned = prune_unsupported_thread_state(conn, unsupported_thread_ids)
+    return (count - pruned, pruned)
 
 
 def upsert_row(conn: sqlite3.Connection, table: str, data: dict) -> None:
@@ -311,26 +385,35 @@ def insert_or_replace_row(conn: sqlite3.Connection, table: str, data: dict) -> N
     conn.execute(f"INSERT OR REPLACE INTO {table} ({quoted}) VALUES ({placeholders})", [data[name] for name in names])
 
 
-def sync_state_db(source_home: Path, target_home: Path, *, dry_run: bool, verbose: bool) -> tuple[int, int, str | None]:
+def sync_state_db(
+    source_home: Path,
+    target_home: Path,
+    *,
+    dry_run: bool,
+    verbose: bool,
+    unsupported_thread_ids: set[str] | None = None,
+) -> tuple[int, int, int, str | None]:
     source_db = source_home / STATE_DB
     target_db = target_home / STATE_DB
     if not source_db.is_file():
-        return (0, 0, None)
+        return (0, 0, 0, None)
+    unsupported_thread_ids = unsupported_thread_ids or load_unsupported_thread_ids(source_home)
 
     if not target_db.exists():
         with connect_ro(source_db) as src:
             source_count = src.execute("SELECT count(*) AS n FROM threads").fetchone()["n"] if table_exists(src, "threads") else 0
+            unsupported_count = len(unsupported_thread_ids)
         if dry_run:
-            return (int(source_count), 0, "seed")
+            return (max(int(source_count) - unsupported_count, 0), unsupported_count, 0, "seed")
         sqlite_backup(source_db, target_db)
         with connect_rw(target_db) as dst:
             with dst:
-                imported = sanitize_seeded_state(dst, source_home, target_home)
-        return (imported, 0, "seed")
+                imported, pruned = sanitize_seeded_state(dst, source_home, target_home, unsupported_thread_ids)
+        return (imported, 0, pruned, "seed")
 
     with connect_ro(source_db) as src, connect_rw(target_db) as dst:
         if not table_exists(src, "threads") or not table_exists(dst, "threads"):
-            return (0, 0, None)
+            return (0, 0, 0, None)
 
         src_cols = columns(src, "threads")
         dst_cols = columns(dst, "threads")
@@ -345,6 +428,10 @@ def sync_state_db(source_home: Path, target_home: Path, *, dry_run: bool, verbos
         skipped = 0
         for row in source_rows:
             thread_id = str(row["id"])
+            # 旧终端版 Codex 会话当前会让桌面端打开后卡黑屏；先只同步文件，不放进 UI 索引。
+            if thread_id in unsupported_thread_ids:
+                skipped += 1
+                continue
             source_updated = int(row["updated_at"] or 0)
             if thread_id in target_updated and target_updated[thread_id] >= source_updated:
                 skipped += 1
@@ -354,10 +441,11 @@ def sync_state_db(source_home: Path, target_home: Path, *, dry_run: bool, verbos
                 data["rollout_path"] = rewrite_rollout_path(str(data["rollout_path"]), source_home, target_home)
             thread_rows.append(data)
 
-        if not thread_rows:
-            return (0, skipped, None)
+        target_prune_count = count_threads_by_ids(dst, unsupported_thread_ids)
+        if not thread_rows and not target_prune_count:
+            return (0, skipped, 0, None)
         if dry_run:
-            return (len(thread_rows), skipped, None)
+            return (len(thread_rows), skipped, target_prune_count, None)
 
         backup = backup_target_state(target_db)
         if verbose:
@@ -365,6 +453,7 @@ def sync_state_db(source_home: Path, target_home: Path, *, dry_run: bool, verbos
 
         changed_ids = [str(row["id"]) for row in thread_rows]
         with dst:
+            pruned = prune_unsupported_thread_state(dst, unsupported_thread_ids)
             for data in thread_rows:
                 upsert_row(dst, "threads", data)
 
@@ -382,9 +471,13 @@ def sync_state_db(source_home: Path, target_home: Path, *, dry_run: bool, verbos
                 dst_edge_cols = columns(dst, "thread_spawn_edges")
                 edge_common = [name for name in dst_edge_cols if name in src_edge_cols]
                 for row in src.execute("SELECT * FROM thread_spawn_edges").fetchall():
+                    parent_id = str(row["parent_thread_id"]) if "parent_thread_id" in src_edge_cols else ""
+                    child_id = str(row["child_thread_id"]) if "child_thread_id" in src_edge_cols else ""
+                    if parent_id in unsupported_thread_ids or child_id in unsupported_thread_ids:
+                        continue
                     insert_or_replace_row(dst, "thread_spawn_edges", {name: row[name] for name in edge_common})
 
-        return (len(thread_rows), skipped, None)
+        return (len(thread_rows), skipped, pruned, None)
 
 
 def write_summary_manifest(target_home: Path, summary: dict, *, dry_run: bool) -> None:
@@ -430,13 +523,20 @@ def run_import(args: argparse.Namespace) -> int:
     log(f"  target: {target_home}")
     log("")
 
+    unsupported_thread_ids = load_unsupported_thread_ids(source_home)
     summary = mirror_conversation_files(source_home, target_home, dry_run=args.dry_run, verbose=args.verbose)
-    index_changed = merge_session_index(source_home, target_home, dry_run=args.dry_run)
-    state_imported, state_skipped, state_mode = sync_state_db(
+    index_changed, index_pruned = merge_session_index(
+        source_home,
+        target_home,
+        dry_run=args.dry_run,
+        exclude_thread_ids=unsupported_thread_ids,
+    )
+    state_imported, state_skipped, state_pruned, state_mode = sync_state_db(
         source_home,
         target_home,
         dry_run=args.dry_run,
         verbose=args.verbose,
+        unsupported_thread_ids=unsupported_thread_ids,
     )
     history_added = 0
     if args.include_history:
@@ -445,9 +545,12 @@ def run_import(args: argparse.Namespace) -> int:
     summary.update(
         {
             "session_index_changed": index_changed,
+            "session_index_pruned": index_pruned,
             "state_threads_imported": state_imported,
             "state_threads_skipped": state_skipped,
+            "state_threads_pruned": state_pruned,
             "state_mode": state_mode,
+            "unsupported_cli_threads": len(unsupported_thread_ids),
             "history_added": history_added,
         }
     )
@@ -458,7 +561,11 @@ def run_import(args: argparse.Namespace) -> int:
     log(f"Archived: {verb} {summary['archived_sessions_copied']}, skipped {summary['archived_sessions_skipped']}.")
     log(f"Shell snapshots: {verb} {summary['shell_snapshots_copied']}, skipped {summary['shell_snapshots_skipped']}.")
     log(f"Session index: {'would update' if args.dry_run else 'updated'} {index_changed} records.")
-    log(f"State index: {verb} {state_imported} threads, skipped {state_skipped}.")
+    if index_pruned:
+        log(f"Session index: {'would prune' if args.dry_run else 'pruned'} {index_pruned} unsupported CLI records.")
+    log(f"State index: {verb} {state_imported} threads, skipped {state_skipped}, pruned {state_pruned}.")
+    if unsupported_thread_ids:
+        log(f"Legacy CLI sessions: kept {len(unsupported_thread_ids)} records out of the DeepCodeX UI index.")
     if args.include_history:
         log(f"History: {'would add' if args.dry_run else 'added'} {history_added} entries.")
     return 0
@@ -542,20 +649,50 @@ def selftest() -> int:
         source = root / "source"
         target = root / "target"
         sid = "019e8aaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa"
+        legacy_sid = "019e8bbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
         source_rollout = source / "sessions/2026/06/01" / f"rollout-2026-06-01T00-00-00-{sid}.jsonl"
+        legacy_rollout = source / "sessions/2026/06/01" / f"rollout-2026-06-01T00-00-00-{legacy_sid}.jsonl"
         source_rollout.parent.mkdir(parents=True)
         source_rollout.write_text('{"type":"session_meta","payload":{"id":"' + sid + '"}}\n', encoding="utf-8")
+        legacy_rollout.write_text('{"type":"session_meta","payload":{"id":"' + legacy_sid + '"}}\n', encoding="utf-8")
         (source / "archived_sessions").mkdir(parents=True)
         (source / "archived_sessions" / f"rollout-2026-05-01T00-00-00-{sid}.jsonl").write_text("archived\n", encoding="utf-8")
         (source / "shell_snapshots").mkdir(parents=True)
         (source / "shell_snapshots" / f"{sid}.1.sh").write_text("pwd\n", encoding="utf-8")
         (target / "sessions").mkdir(parents=True)
         (source / "session_index.jsonl").write_text(
-            json.dumps({"id": sid, "thread_name": "Codex project", "updated_at": "2026-06-01T00:00:00Z"}) + "\n",
+            json.dumps({"id": sid, "thread_name": "Codex project", "updated_at": "2026-06-01T00:00:00Z"}) + "\n"
+            + json.dumps({"id": legacy_sid, "thread_name": "Legacy CLI", "updated_at": "2026-06-01T00:00:01Z"}) + "\n",
             encoding="utf-8",
         )
         (source / "history.jsonl").write_text(json.dumps({"session_id": sid, "ts": 1, "text": "hello"}) + "\n", encoding="utf-8")
         create_test_state_db(source / STATE_DB, source_rollout, sid, 100)
+        with sqlite3.connect(source / STATE_DB) as conn:
+            conn.execute(
+                """
+                INSERT INTO threads (
+                    id, rollout_path, created_at, updated_at, source, model_provider, cwd,
+                    title, sandbox_policy, approval_mode, preview
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    legacy_sid,
+                    str(legacy_rollout),
+                    90,
+                    101,
+                    "cli",
+                    "openai",
+                    "/tmp/project",
+                    "Legacy CLI",
+                    "danger-full-access",
+                    "never",
+                    "legacy",
+                ),
+            )
+            conn.execute(
+                "INSERT INTO thread_dynamic_tools VALUES (?, ?, ?, ?, ?)",
+                (legacy_sid, 0, "legacy-tool", "desc", "{}"),
+            )
 
         args = argparse.Namespace(
             source=str(source),
@@ -576,8 +713,15 @@ def selftest() -> int:
             row = conn.execute("SELECT rollout_path FROM threads WHERE id=?", (sid,)).fetchone()
         if row is None or row[0] != str(copied):
             raise AssertionError("thread state was not imported with rewritten rollout path")
+        with sqlite3.connect(target / STATE_DB) as conn:
+            legacy_row = conn.execute("SELECT id FROM threads WHERE id=?", (legacy_sid,)).fetchone()
+            legacy_tool = conn.execute("SELECT thread_id FROM thread_dynamic_tools WHERE thread_id=?", (legacy_sid,)).fetchone()
+        if legacy_row is not None or legacy_tool is not None:
+            raise AssertionError("legacy CLI thread state was imported into the UI index")
         if not (target / "session_index.jsonl").is_file():
             raise AssertionError("session index was not written")
+        if legacy_sid in (target / "session_index.jsonl").read_text(encoding="utf-8"):
+            raise AssertionError("legacy CLI thread was written to the session index")
         if not (target / "history.jsonl").is_file():
             raise AssertionError("history was not merged")
     log("session import selftest OK")
