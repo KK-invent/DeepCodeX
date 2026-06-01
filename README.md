@@ -79,6 +79,7 @@ Pure Python, no `pip install`, no Docker. They run as launchd services that star
 | `bin/deepcodex-doctor.py` | Health check — tells you what's wrong and how to fix it |
 | `bin/deepcodex-log-prune.py` | Keeps logs from eating your disk |
 | `bin/deepcodex-backup.sh` | Backs up configs before changes |
+| `bin/deepcodex-session-import.py` | Imports your regular Codex conversations so you can continue them in DeepCodeX ([docs](docs/SESSION_IMPORT.md)) |
 
 ### What's NOT in the repo
 
@@ -104,6 +105,24 @@ export DEEPCODEX_LAUNCHD_DOMAIN="com.deepcodex"
 ```
 
 </details>
+
+## Continuing your Codex projects
+
+DeepCodeX keeps its data in an isolated home (`~/.codex-deepseek`), so by default
+it can't see the conversations from your regular Codex app (`~/.codex`). The
+installer sets up a background sync (`com.deepcodex.session-sync`) that
+automatically imports those conversations — and keeps importing new ones — so a
+project you started in Codex shows up in DeepCodeX's history and can be picked up
+right where you left off.
+
+To import on demand (or preview first):
+
+```bash
+~/.codex-deepseek/bin/deepcodex-session-import.py --dry-run --include-history   # preview
+~/.codex-deepseek/bin/deepcodex-session-import.py --include-history             # import
+```
+
+Details and options: [docs/SESSION_IMPORT.md](docs/SESSION_IMPORT.md).
 
 ## Updating
 

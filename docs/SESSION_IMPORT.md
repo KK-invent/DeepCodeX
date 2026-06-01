@@ -1,0 +1,89 @@
+# Continuing Codex projects in DeepCodeX
+
+DeepCodeX runs with an **isolated** home (`~/.codex-deepseek`) so it never
+pollutes a normal Codex install. The trade-off: DeepCodeX can't see the
+conversations created by the regular Codex app, which live under `~/.codex`. So
+a project you started in Codex doesn't show up in DeepCodeX's resume/history
+picker out of the box.
+
+`bin/deepcodex-session-import.py` bridges the two by mirroring the regular Codex
+session rollouts (the conversations) — and, optionally, the cross-session
+`history.jsonl` — into the DeepCodeX home.
+
+It is deliberately **non-invasive**: it only writes inside the DeepCodeX home
+data directory. It never touches the app bundle, `app.asar`, the DeepSeek
+bridge, the image shim, or the request chain.
+
+## What it does
+
+- Scans `<source>/sessions/**/rollout-*.jsonl` and copies any rollout not
+  already in `<target>/sessions/`, preserving the `YYYY/MM/DD/` layout.
+- Deduplicates by the **session UUID** embedded in the rollout filename, so
+  re-running only imports what is new.
+- Records imported sessions in a sidecar manifest
+  (`<target>/.deepcodex-import-manifest.json`) for fast, idempotent re-runs.
+- With `--include-history`, merges `history.jsonl` entries that are not already
+  present (dedup by `session_id` + `ts` + `text`), backing up the target
+  history first.
+
+## One-off import
+
+After installing (`scripts/install-local.sh`), the tool lives at
+`~/.codex-deepseek/bin/deepcodex-session-import.py`:
+
+```bash
+# Preview — writes nothing
+~/.codex-deepseek/bin/deepcodex-session-import.py --dry-run --include-history
+
+# Import conversations only
+~/.codex-deepseek/bin/deepcodex-session-import.py
+
+# Import conversations AND merge cross-session history
+~/.codex-deepseek/bin/deepcodex-session-import.py --include-history
+```
+
+Restart DeepCodeX (or reopen the history picker) afterwards to see the imported
+conversations.
+
+### Options
+
+| Flag | Default | Meaning |
+| --- | --- | --- |
+| `--source` | `$CODEX_SOURCE_HOME` or `~/.codex` | Regular Codex home to read from (read-only). |
+| `--target` | `$DEEPCODEX_HOME` or `~/.codex-deepseek` | DeepCodeX home to write into. |
+| `--include-history` | off | Also merge `history.jsonl` (backed up first). |
+| `--dry-run` | off | Report what would happen; write nothing. |
+| `--verbose` / `-v` | off | Print each session as it is considered. |
+
+## Automatic sync
+
+`scripts/install-local.sh` installs a launchd agent
+(`com.deepcodex.session-sync`) that keeps DeepCodeX continuously in sync with
+the regular Codex app. It runs the importer:
+
+- **on change** — `WatchPaths` fires whenever `~/.codex/sessions` changes, and
+- **on a fallback interval** — every 15 minutes (`StartInterval`).
+
+Logs go to `~/.codex-deepseek/logs/session-sync.out.log` and `session-sync.err.log`.
+
+Override the source home at install time with `CODEX_SOURCE_HOME`:
+
+```bash
+CODEX_SOURCE_HOME="$HOME/.codex" scripts/install-local.sh
+```
+
+Uninstall just the sync agent:
+
+```bash
+launchctl bootout gui/$(id -u)/com.deepcodex.session-sync
+rm ~/Library/LaunchAgents/com.deepcodex.session-sync.plist
+```
+
+## Safety notes
+
+- The source home is opened **read-only**; the regular Codex install is never
+  modified.
+- History merges are deduplicated and the target `history.jsonl` is backed up
+  to `history.jsonl.bak.before-import-<timestamp>` before each write.
+- Imported sessions keep their original UUIDs, so they never collide with
+  DeepCodeX-native sessions.

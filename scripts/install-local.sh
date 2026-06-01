@@ -3,6 +3,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEEPCODEX_HOME="${DEEPCODEX_HOME:-${HOME}/.codex-deepseek}"
+# Regular Codex home whose conversations are imported into DeepCodeX so projects
+# started in Codex can be continued here. Override with CODEX_SOURCE_HOME.
+CODEX_SOURCE_HOME="${CODEX_SOURCE_HOME:-${HOME}/.codex}"
 LAUNCHD_DOMAIN="${DEEPCODEX_LAUNCHD_DOMAIN:-com.deepcodex}"
 LEGACY_CCX_LABEL="${DEEPCODEX_CCX_LABEL:-${LAUNCHD_DOMAIN}.ccx-deepseek}"
 LEGACY_USER_DOMAIN="com.$(id -un)"
@@ -39,6 +42,7 @@ for tmpl in "${ROOT}/config/launchagents/"*.plist; do
   fname="$(basename "${tmpl}")"
   dest="${LAUNCH_AGENTS}/${fname}"
   sed -e "s|__DEEPCODEX_HOME__|${DEEPCODEX_HOME}|g" \
+      -e "s|__CODEX_SOURCE_HOME__|${CODEX_SOURCE_HOME}|g" \
       -e "s|__LAUNCHD_DOMAIN__|${LAUNCHD_DOMAIN}|g" \
       "${tmpl}" > "${dest}"
   chmod 644 "${dest}"
