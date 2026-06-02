@@ -642,10 +642,13 @@ def patch_main_js(data: bytes) -> bytes:
     child_process_var = extract_require_var(text, "node:child_process")
     changed = False
 
-    helper_text = controlled_update_helpers(electron_var, child_process_var) + deepseek_config_helpers(electron_var, child_process_var)
+    helper_text = (
+        controlled_update_helpers(electron_var, child_process_var)
+        + deepseek_config_helpers(electron_var, child_process_var)
+    )
     helper_start = text.find("function DCXUReadPlist(")
     if helper_start >= 0:
-        next_function = re.search(r"\nfunction (?!DCXU|DCXCfg)", text[helper_start + 1 :])
+        next_function = re.search(r"\nfunction (?!DCXU|DCXCfg|DCXRecent)", text[helper_start + 1 :])
         if not next_function:
             raise RuntimeError("main process controlled update helper boundary not found")
         helper_end = helper_start + 1 + next_function.start() + 1
@@ -906,7 +909,7 @@ def probe_frontend_ready() -> tuple[bool, str]:
         '    end try\n'
         '  end repeat\n'
         '  if targetProcess is missing value then error "DeepCodex process not found"\n'
-        '  get entire contents of window 1 of targetProcess\n'
+        '  get entire contents of every window of targetProcess\n'
         'end tell'
     )
     try:

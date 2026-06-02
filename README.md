@@ -120,6 +120,10 @@ thread database rows — and keeps importing new ones — so a project you start
 in Codex shows up in DeepCodeX's history and can be picked up right where you
 left off.
 
+DeepCodeX also mirrors Codex's left sidebar conversation/project state: Codex
+projectless chats and project order appear first, while DeepCodeX-native chats
+and projects are preserved after them.
+
 To import on demand (or preview first):
 
 ```bash

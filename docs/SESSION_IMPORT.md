@@ -23,6 +23,16 @@ bridge, the image shim, the request chain, or the regular Codex home.
 - Merges `session_index.jsonl`, keeping the newest record for each thread ID.
 - Merges `state_5.sqlite` thread rows so the DeepCodeX UI can actually see the
   imported conversations in its history/resume picker.
+- Rewrites imported thread rows to DeepCodeX's `ccx-deepseek` model provider so
+  the DeepCodeX sidebar includes them and resumed turns continue through
+  DeepSeek instead of being filtered as upstream OpenAI-provider threads.
+- Merges `.codex-global-state.json` sidebar state so the Codex project and
+  projectless conversation lists appear in DeepCodeX's left sidebar. Codex
+  entries keep their Codex order, and DeepCodeX-only chats/projects are kept
+  after them.
+- Marks imported Codex projectless chats as projectless in the DeepCodeX sidebar
+  state (`thread-workspace-root-hints` = `~`) so they stay in the left sidebar
+  "Chats" section instead of being swallowed by project/root grouping.
 - Converts legacy terminal Codex (`source=cli`) rollouts into a
   desktop-compatible view before exposing them in the DeepCodeX UI. The message
   and tool history is preserved, while the `codex-tui` metadata and old
@@ -51,7 +61,7 @@ After installing (`scripts/install-local.sh`), the tool lives at
 ```
 
 Restart DeepCodeX (or reopen the history picker) afterwards to see the imported
-conversations.
+conversations in the left sidebar.
 
 ### Options
 
@@ -97,6 +107,8 @@ rm ~/Library/LaunchAgents/com.deepcodex.session-sync.plist
 - Thread database merges are idempotent and the target `state_5.sqlite` is
   backed up to `state_5.sqlite.bak.before-import-<timestamp>` before changed
   rows are written.
+- Sidebar state merges are additive: Codex sidebar entries are inserted first,
+  and DeepCodeX-native conversations/projects remain in place after them.
 - Legacy CLI rollout conversion writes only to the DeepCodeX target home. The
   regular Codex source home remains untouched and read-only.
 - Imported sessions keep their original UUIDs, so they never collide with
