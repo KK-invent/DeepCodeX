@@ -21,6 +21,7 @@ import shutil
 import sqlite3
 import sys
 import tempfile
+import uuid
 from pathlib import Path
 
 
@@ -31,10 +32,22 @@ ROLLOUT_RE = re.compile(
     r".*\.jsonl$"
 )
 MANIFEST_NAME = ".deepcodex-import-manifest.json"
+GLOBAL_STATE_NAME = ".codex-global-state.json"
 STATE_DB = "state_5.sqlite"
 COPY_TREES = ("sessions", "archived_sessions", "shell_snapshots")
 STATE_TABLES = ("threads", "thread_dynamic_tools", "thread_spawn_edges")
 LEGACY_CLI_THREAD_SOURCES = {"cli"}
+DEEPCODEX_MODEL_PROVIDER = "ccx-deepseek"
+DEEPCODEX_DEFAULT_MODEL = "deepseek-v4-flash"
+SIDEBAR_STATE_KEYS = (
+    "project-order",
+    "projectless-thread-ids",
+    "thread-workspace-root-hints",
+    "thread-projectless-output-directories",
+    "pinned-thread-ids",
+    "electron-saved-workspace-roots",
+    "active-workspace-roots",
+)
 
 
 def log(msg: str = "") -> None:
@@ -108,19 +121,111 @@ def should_copy(src: Path, dst: Path) -> bool:
 
 def copy_file_atomic(src: Path, dst: Path) -> None:
     dst.parent.mkdir(parents=True, exist_ok=True)
-    tmp = dst.with_name(f".{dst.name}.deepcodex-import.tmp")
+    tmp = dst.with_name(f".{dst.name}.deepcodex-import.{os.getpid()}.{uuid.uuid4().hex}.tmp")
     shutil.copy2(src, tmp)
     tmp.replace(dst)
 
 
-def mirror_tree(source_root: Path, target_root: Path, *, dry_run: bool, verbose: bool) -> tuple[int, int]:
+def write_text_atomic(dst: Path, content: str, *, source_stat: os.stat_result | None = None) -> None:
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dst.with_name(f".{dst.name}.deepcodex-import.{os.getpid()}.{uuid.uuid4().hex}.tmp")
+    tmp.write_text(content, encoding="utf-8")
+    tmp.replace(dst)
+    if source_stat is not None:
+        os.utime(dst, ns=(source_stat.st_atime_ns, source_stat.st_mtime_ns))
+
+
+def normalize_deepcodex_model(raw: object) -> object:
+    if not isinstance(raw, str) or not raw:
+        return raw
+    if raw.startswith("deepseek-v4-"):
+        return raw
+    return DEEPCODEX_DEFAULT_MODEL
+
+
+def normalize_imported_rollout_record(obj: dict) -> dict:
+    normalized = dict(obj)
+    payload = normalized.get("payload")
+    if not isinstance(payload, dict):
+        return normalized
+
+    payload = dict(payload)
+    record_type = normalized.get("type")
+    if record_type == "session_meta":
+        # DeepCodeX 的服务端会读取 rollout 文件头来决定该 thread 属于哪个 provider。
+        # 只改元数据，不改历史消息正文。
+        payload["model_provider"] = DEEPCODEX_MODEL_PROVIDER
+        if "model" in payload:
+            payload["model"] = normalize_deepcodex_model(payload.get("model"))
+    elif record_type == "turn_context" and "model" in payload:
+        payload["model"] = normalize_deepcodex_model(payload.get("model"))
+
+    normalized["payload"] = payload
+    return normalized
+
+
+def normalized_imported_rollout_content(src: Path) -> str | None:
+    if src.suffix != ".jsonl":
+        return None
+    records: list[str] = []
+    try:
+        with src.open(encoding="utf-8") as fh:
+            for line in fh:
+                if not line.strip():
+                    records.append(line)
+                    continue
+                obj = json.loads(line)
+                if not isinstance(obj, dict):
+                    return None
+                records.append(json.dumps(normalize_imported_rollout_record(obj), ensure_ascii=False) + "\n")
+    except (OSError, json.JSONDecodeError):
+        return None
+    return "".join(records)
+
+
+def mirror_tree(
+    source_root: Path,
+    target_root: Path,
+    *,
+    dry_run: bool,
+    verbose: bool,
+    normalize_rollouts: bool = False,
+    skip_thread_ids: set[str] | None = None,
+) -> tuple[int, int]:
     copied = 0
     skipped = 0
+    skip_thread_ids = skip_thread_ids or set()
     if not source_root.is_dir():
         return copied, skipped
     for src in sorted(p for p in source_root.rglob("*") if p.is_file()):
         rel = src.relative_to(source_root)
+        if session_uuid(src.name) in skip_thread_ids:
+            skipped += 1
+            continue
         dst = target_root / rel
+        normalized_content = normalized_imported_rollout_content(src) if normalize_rollouts else None
+        if normalized_content is not None:
+            if dst.exists():
+                try:
+                    if dst.read_text(encoding="utf-8") == normalized_content:
+                        if not dry_run:
+                            src_stat = src.stat()
+                            try:
+                                dst_stat = dst.stat()
+                            except OSError:
+                                dst_stat = None
+                            if dst_stat is None or dst_stat.st_mtime_ns != src_stat.st_mtime_ns:
+                                os.utime(dst, ns=(src_stat.st_atime_ns, src_stat.st_mtime_ns))
+                        skipped += 1
+                        continue
+                except OSError:
+                    pass
+            copied += 1
+            if verbose or dry_run:
+                log(f"  copy {source_root.name}/{rel}")
+            if not dry_run:
+                write_text_atomic(dst, normalized_content, source_stat=src.stat())
+            continue
         if not should_copy(src, dst):
             skipped += 1
             continue
@@ -138,13 +243,21 @@ def mirror_conversation_files(
     *,
     dry_run: bool,
     verbose: bool,
+    legacy_cli_ids: set[str] | None = None,
 ) -> dict[str, int]:
     stats: dict[str, int] = {}
     manifest = load_manifest(target_home)
     imported = manifest.setdefault("imported", {})
 
     for name in COPY_TREES:
-        copied, skipped = mirror_tree(source_home / name, target_home / name, dry_run=dry_run, verbose=verbose)
+        copied, skipped = mirror_tree(
+            source_home / name,
+            target_home / name,
+            dry_run=dry_run,
+            verbose=verbose,
+            normalize_rollouts=name in {"sessions", "archived_sessions"},
+            skip_thread_ids=legacy_cli_ids if name == "sessions" else None,
+        )
         stats[f"{name}_copied"] = copied
         stats[f"{name}_skipped"] = skipped
 
@@ -327,6 +440,105 @@ def legacy_cli_session_index_records(rows: dict[str, dict]) -> list[dict]:
     return records
 
 
+def load_global_state(target_home: Path) -> dict:
+    path = target_home / GLOBAL_STATE_NAME
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def write_global_state(target_home: Path, data: dict) -> None:
+    path = target_home / GLOBAL_STATE_NAME
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f".{path.name}.tmp")
+    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    tmp.replace(path)
+
+
+def stable_list_key(item: object) -> str:
+    try:
+        return json.dumps(item, ensure_ascii=False, sort_keys=True)
+    except TypeError:
+        return repr(item)
+
+
+def merge_unique_list(source: list, target: object) -> list:
+    existing = target if isinstance(target, list) else []
+    merged: list = []
+    seen: set[str] = set()
+    for item in [*source, *existing]:
+        key = stable_list_key(item)
+        if key in seen:
+            continue
+        seen.add(key)
+        merged.append(item)
+    return merged
+
+
+def merge_sidebar_value(source_value: object, target_value: object) -> object:
+    if isinstance(source_value, list):
+        return merge_unique_list(source_value, target_value)
+    if isinstance(source_value, dict):
+        merged = dict(target_value) if isinstance(target_value, dict) else {}
+        # Codex 侧的同 ID 映射优先，DeepCodex 独有项保留。
+        merged.update(source_value)
+        return merged
+    return source_value
+
+
+def projectless_thread_ids(state: dict) -> set[str]:
+    ids = state.get("projectless-thread-ids")
+    return {str(item) for item in ids} if isinstance(ids, list) else set()
+
+
+def sync_sidebar_state(source_home: Path, target_home: Path, *, dry_run: bool) -> dict[str, int]:
+    source_state = load_global_state(source_home)
+    if not source_state:
+        return {
+            "keys_changed": 0,
+            "codex_projectless_threads": 0,
+            "total_projectless_threads": 0,
+            "codex_projects": 0,
+            "total_projects": 0,
+        }
+
+    target_state = load_global_state(target_home)
+    changed = 0
+    for key in SIDEBAR_STATE_KEYS:
+        if key not in source_state:
+            continue
+        source_value = source_state[key]
+        if key == "thread-workspace-root-hints" and isinstance(source_value, dict):
+            source_value = dict(source_value)
+            # Codex 的 projectless 对话在 DeepCodeX 里必须继续保持 projectless，
+            # 否则左侧“对话”区会把它们当项目/root 线程过滤掉。
+            for thread_id in projectless_thread_ids(source_state):
+                source_value[thread_id] = "~"
+        merged = merge_sidebar_value(source_value, target_state.get(key))
+        if target_state.get(key) != merged:
+            target_state[key] = merged
+            changed += 1
+
+    if changed and not dry_run:
+        write_global_state(target_home, target_state)
+
+    source_projectless = source_state.get("projectless-thread-ids")
+    target_projectless = target_state.get("projectless-thread-ids")
+    source_projects = source_state.get("project-order")
+    target_projects = target_state.get("project-order")
+    return {
+        "keys_changed": changed,
+        "codex_projectless_threads": len(source_projectless) if isinstance(source_projectless, list) else 0,
+        "total_projectless_threads": len(target_projectless) if isinstance(target_projectless, list) else 0,
+        "codex_projects": len(source_projects) if isinstance(source_projects, list) else 0,
+        "total_projects": len(target_projects) if isinstance(target_projects, list) else 0,
+    }
+
+
 def parse_sandbox_policy(raw: object) -> object:
     if not isinstance(raw, str):
         return raw
@@ -408,8 +620,23 @@ def normalize_legacy_cli_thread_data(data: dict, row: dict, source_home: Path, t
     if target is not None:
         normalized["rollout_path"] = str(target)
     normalized["source"] = "vscode"
+    if "model_provider" in normalized:
+        normalized["model_provider"] = DEEPCODEX_MODEL_PROVIDER
+    if "model" in normalized:
+        normalized["model"] = normalize_deepcodex_model(normalized.get("model"))
     if "thread_source" in normalized:
         normalized["thread_source"] = normalized.get("thread_source") or "user"
+    return normalized
+
+
+def normalize_imported_thread_data(data: dict, source_home: Path, target_home: Path) -> dict:
+    normalized = dict(data)
+    if "rollout_path" in normalized:
+        normalized["rollout_path"] = rewrite_rollout_path(str(normalized["rollout_path"]), source_home, target_home)
+    if "model_provider" in normalized:
+        normalized["model_provider"] = DEEPCODEX_MODEL_PROVIDER
+    if "model" in normalized:
+        normalized["model"] = normalize_deepcodex_model(normalized.get("model"))
     return normalized
 
 
@@ -429,13 +656,28 @@ def sanitize_seeded_state(
     count = 0
     if table_exists(conn, "threads"):
         rows = conn.execute("SELECT id, rollout_path FROM threads").fetchall()
+        thread_cols = columns(conn, "threads")
         for row in rows:
             mapped = rewrite_rollout_path(str(row["rollout_path"]), source_home, target_home)
             source = "vscode" if str(row["id"]) in legacy_cli_rows else None
+            provider_sql = ", model_provider=?" if "model_provider" in thread_cols else ""
+            model_sql = ", model=?" if "model" in thread_cols else ""
             if source is None:
-                conn.execute("UPDATE threads SET rollout_path=? WHERE id=?", (mapped, row["id"]))
+                values = [mapped]
+                if provider_sql:
+                    values.append(DEEPCODEX_MODEL_PROVIDER)
+                if model_sql:
+                    values.append(DEEPCODEX_DEFAULT_MODEL)
+                values.append(row["id"])
+                conn.execute(f"UPDATE threads SET rollout_path=?{provider_sql}{model_sql} WHERE id=?", values)
             else:
-                conn.execute("UPDATE threads SET rollout_path=?, source=? WHERE id=?", (mapped, source, row["id"]))
+                values = [mapped, source]
+                if provider_sql:
+                    values.append(DEEPCODEX_MODEL_PROVIDER)
+                if model_sql:
+                    values.append(DEEPCODEX_DEFAULT_MODEL)
+                values.append(row["id"])
+                conn.execute(f"UPDATE threads SET rollout_path=?, source=?{provider_sql}{model_sql} WHERE id=?", values)
             count += 1
     return count
 
@@ -500,6 +742,10 @@ def sync_state_db(
             str(row["id"]): str(row["source"])
             for row in dst.execute("SELECT id, source FROM threads").fetchall()
         }
+        target_provider = {
+            str(row["id"]): str(row["model_provider"])
+            for row in dst.execute("SELECT id, model_provider FROM threads").fetchall()
+        } if "model_provider" in dst_cols else {}
 
         thread_rows: list[dict] = []
         skipped = 0
@@ -507,14 +753,20 @@ def sync_state_db(
             thread_id = str(row["id"])
             source_updated = int(row["updated_at"] or 0)
             legacy_needs_refresh = thread_id in legacy_cli_ids and target_source.get(thread_id) != "vscode"
-            if not legacy_needs_refresh and thread_id in target_updated and target_updated[thread_id] >= source_updated:
+            provider_needs_refresh = "model_provider" in common and target_provider.get(thread_id) != DEEPCODEX_MODEL_PROVIDER
+            if (
+                not legacy_needs_refresh
+                and not provider_needs_refresh
+                and thread_id in target_updated
+                and target_updated[thread_id] >= source_updated
+            ):
                 skipped += 1
                 continue
             data = {name: row[name] for name in common}
             if thread_id in legacy_cli_ids:
                 data = normalize_legacy_cli_thread_data(data, legacy_cli_rows[thread_id], source_home, target_home)
-            elif "rollout_path" in data:
-                data["rollout_path"] = rewrite_rollout_path(str(data["rollout_path"]), source_home, target_home)
+            else:
+                data = normalize_imported_thread_data(data, source_home, target_home)
             thread_rows.append(data)
 
         if not thread_rows:
@@ -596,7 +848,13 @@ def run_import(args: argparse.Namespace) -> int:
     log("")
 
     legacy_cli_rows = load_legacy_cli_thread_rows(source_home)
-    summary = mirror_conversation_files(source_home, target_home, dry_run=args.dry_run, verbose=args.verbose)
+    summary = mirror_conversation_files(
+        source_home,
+        target_home,
+        dry_run=args.dry_run,
+        verbose=args.verbose,
+        legacy_cli_ids=set(legacy_cli_rows),
+    )
     legacy_converted = convert_legacy_cli_rollouts(
         source_home,
         target_home,
@@ -617,6 +875,7 @@ def run_import(args: argparse.Namespace) -> int:
         verbose=args.verbose,
         legacy_cli_rows=legacy_cli_rows,
     )
+    sidebar = sync_sidebar_state(source_home, target_home, dry_run=args.dry_run)
     history_added = 0
     if args.include_history:
         history_added = merge_history(source_home, target_home, dry_run=args.dry_run, verbose=args.verbose)
@@ -631,6 +890,11 @@ def run_import(args: argparse.Namespace) -> int:
             "state_threads_pruned": state_pruned,
             "state_mode": state_mode,
             "legacy_cli_threads": len(legacy_cli_rows),
+            "sidebar_state_keys_changed": sidebar["keys_changed"],
+            "sidebar_codex_projectless_threads": sidebar["codex_projectless_threads"],
+            "sidebar_total_projectless_threads": sidebar["total_projectless_threads"],
+            "sidebar_codex_projects": sidebar["codex_projects"],
+            "sidebar_total_projects": sidebar["total_projects"],
             "history_added": history_added,
         }
     )
@@ -643,6 +907,14 @@ def run_import(args: argparse.Namespace) -> int:
     log(f"Legacy CLI: {'would convert' if args.dry_run else 'converted'} {legacy_converted} desktop-compatible rollouts.")
     log(f"Session index: {'would update' if args.dry_run else 'updated'} {index_changed} records.")
     log(f"State index: {verb} {state_imported} threads, skipped {state_skipped}.")
+    log(
+        "Sidebar state: "
+        f"{'would merge' if args.dry_run else 'merged'} "
+        f"{sidebar['codex_projectless_threads']} Codex projectless chats and "
+        f"{sidebar['codex_projects']} Codex projects; DeepCodeX now keeps "
+        f"{sidebar['total_projectless_threads']} projectless chats and "
+        f"{sidebar['total_projects']} projects."
+    )
     if legacy_cli_rows:
         log(f"Legacy CLI sessions: exposed {len(legacy_cli_rows)} records through the DeepCodeX UI index.")
     if args.include_history:
@@ -729,10 +1001,26 @@ def selftest() -> int:
         target = root / "target"
         sid = "019e8aaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa"
         legacy_sid = "019e8bbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
+        local_sid = "019e8ccc-cccc-7ccc-8ccc-cccccccccccc"
         source_rollout = source / "sessions/2026/06/01" / f"rollout-2026-06-01T00-00-00-{sid}.jsonl"
         legacy_rollout = source / "sessions/2026/06/01" / f"rollout-2026-06-01T00-00-00-{legacy_sid}.jsonl"
         source_rollout.parent.mkdir(parents=True)
-        source_rollout.write_text('{"type":"session_meta","payload":{"id":"' + sid + '"}}\n', encoding="utf-8")
+        source_rollout.write_text(
+            '{"type":"session_meta","payload":{"id":"' + sid + '","model_provider":"openai"}}\n'
+            + '{"type":"turn_context","payload":{"model":"gpt-5.5"}}\n'
+            + json.dumps(
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "message",
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": "hello"}],
+                    },
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         legacy_rollout.write_text(
             json.dumps(
                 {
@@ -760,6 +1048,17 @@ def selftest() -> int:
                     },
                 }
             )
+            + "\n"
+            + json.dumps(
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "message",
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": "legacy hello"}],
+                    },
+                }
+            )
             + "\n",
             encoding="utf-8",
         )
@@ -774,6 +1073,27 @@ def selftest() -> int:
             encoding="utf-8",
         )
         (source / "history.jsonl").write_text(json.dumps({"session_id": sid, "ts": 1, "text": "hello"}) + "\n", encoding="utf-8")
+        write_global_state(
+            source,
+            {
+                "project-order": ["/tmp/project"],
+                "projectless-thread-ids": [legacy_sid, sid],
+                "thread-workspace-root-hints": {legacy_sid: "/tmp/project", sid: "/tmp/project"},
+                "thread-projectless-output-directories": {legacy_sid: "/tmp/out"},
+                "pinned-thread-ids": [sid],
+                "electron-saved-workspace-roots": [],
+                "active-workspace-roots": ["/tmp/project"],
+            },
+        )
+        write_global_state(
+            target,
+            {
+                "project-order": ["/tmp/deepcodex-project"],
+                "projectless-thread-ids": [local_sid],
+                "thread-workspace-root-hints": {local_sid: "/tmp/deepcodex-project"},
+                "pinned-thread-ids": [local_sid],
+            },
+        )
         create_test_state_db(source / STATE_DB, source_rollout, sid, 100)
         with sqlite3.connect(source / STATE_DB) as conn:
             conn.execute(
@@ -815,18 +1135,29 @@ def selftest() -> int:
         copied = target / "sessions/2026/06/01" / source_rollout.name
         if not copied.is_file():
             raise AssertionError("session rollout was not copied")
+        copied_records = read_jsonl(copied)
+        copied_meta = copied_records[0].get("payload", {})
+        copied_turn = copied_records[1].get("payload", {})
+        if copied_meta.get("model_provider") != DEEPCODEX_MODEL_PROVIDER:
+            raise AssertionError("imported rollout session metadata provider was not normalized")
+        if copied_turn.get("model") != DEEPCODEX_DEFAULT_MODEL:
+            raise AssertionError("imported rollout turn model was not normalized")
         if not (target / "archived_sessions" / f"rollout-2026-05-01T00-00-00-{sid}.jsonl").is_file():
             raise AssertionError("archived rollout was not copied")
         with sqlite3.connect(target / STATE_DB) as conn:
-            row = conn.execute("SELECT rollout_path FROM threads WHERE id=?", (sid,)).fetchone()
+            row = conn.execute("SELECT rollout_path, model_provider FROM threads WHERE id=?", (sid,)).fetchone()
         if row is None or row[0] != str(copied):
             raise AssertionError("thread state was not imported with rewritten rollout path")
+        if row[1] != DEEPCODEX_MODEL_PROVIDER:
+            raise AssertionError("imported Codex thread provider was not normalized for DeepCodeX")
         with sqlite3.connect(target / STATE_DB) as conn:
             legacy_target = target / "sessions/2026/06/01" / legacy_rollout.name
-            legacy_row = conn.execute("SELECT rollout_path, source FROM threads WHERE id=?", (legacy_sid,)).fetchone()
+            legacy_row = conn.execute("SELECT rollout_path, source, model_provider FROM threads WHERE id=?", (legacy_sid,)).fetchone()
             legacy_tool = conn.execute("SELECT thread_id FROM thread_dynamic_tools WHERE thread_id=?", (legacy_sid,)).fetchone()
         if legacy_row is None or legacy_row[0] != str(legacy_target) or legacy_row[1] != "vscode":
             raise AssertionError("legacy CLI thread state was not imported as a desktop-compatible thread")
+        if legacy_row[2] != DEEPCODEX_MODEL_PROVIDER:
+            raise AssertionError("legacy CLI thread provider was not normalized for DeepCodeX")
         if legacy_tool is None:
             raise AssertionError("legacy CLI dynamic tools were not imported")
         if not (target / "session_index.jsonl").is_file():
@@ -840,6 +1171,14 @@ def selftest() -> int:
             raise AssertionError("legacy CLI turn_context was not normalized")
         if not (target / "history.jsonl").is_file():
             raise AssertionError("history was not merged")
+        sidebar = load_global_state(target)
+        if sidebar.get("projectless-thread-ids") != [legacy_sid, sid, local_sid]:
+            raise AssertionError(f"sidebar projectless threads were not merged correctly: {sidebar.get('projectless-thread-ids')}")
+        if sidebar.get("project-order") != ["/tmp/project", "/tmp/deepcodex-project"]:
+            raise AssertionError(f"sidebar projects were not merged correctly: {sidebar.get('project-order')}")
+        hints = sidebar.get("thread-workspace-root-hints")
+        if not isinstance(hints, dict) or hints.get(local_sid) != "/tmp/deepcodex-project" or hints.get(sid) != "~":
+            raise AssertionError("sidebar workspace hints did not preserve both Codex and DeepCodeX conversations")
     log("session import selftest OK")
     return 0
 

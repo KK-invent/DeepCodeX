@@ -8,6 +8,7 @@ import plistlib
 import re
 import shutil
 import socket
+import sqlite3
 import struct
 import subprocess
 import sys
@@ -23,6 +24,7 @@ def env_path(name: str, default: str | Path) -> Path:
 
 HOME = env_path("DEEPCODEX_USER_HOME", Path.home())
 DEEPCODEX_HOME = env_path("DEEPCODEX_HOME", HOME / ".codex-deepseek")
+CODEX_SOURCE_HOME = env_path("CODEX_SOURCE_HOME", HOME / ".codex")
 DEEPCODEX_APP = env_path("DEEPCODEX_APP", "/Applications/Deepcodex.app")
 CODEX_APP = env_path("CODEX_APP", "/Applications/Codex.app")
 CONFIG = DEEPCODEX_HOME / "config.toml"
@@ -54,6 +56,20 @@ APP_ASAR = DEEPCODEX_APP / "Contents/Resources/app.asar"
 ICON_ASSET = DEEPCODEX_HOME / "assets/Deepcodex.icns"
 MAIN_ICON_FILES = ("Deepcodex.icns", "icon.icns", "electron.icns")
 HELPER_ICON_GLOB = "Contents/Frameworks/Codex Helper*.app"
+GLOBAL_STATE_NAME = ".codex-global-state.json"
+STATE_DB = "state_5.sqlite"
+DEEPCODEX_MODEL_PROVIDER = "ccx-deepseek"
+SIDEBAR_LIST_KEYS = (
+    "project-order",
+    "projectless-thread-ids",
+    "pinned-thread-ids",
+    "electron-saved-workspace-roots",
+    "active-workspace-roots",
+)
+SIDEBAR_MAP_KEYS = (
+    "thread-workspace-root-hints",
+    "thread-projectless-output-directories",
+)
 
 EXPECTED_CODEX_HOME = str(DEEPCODEX_HOME)
 EXPECTED_USER_DATA = str(HOME / "Library/Application Support/Deepcodex")
@@ -802,6 +818,135 @@ def check_deepseek_config_window(results: list[CheckResult]) -> None:
     results.append(CheckResult("OK", "deepseek-config-window", "first-run and menu DeepSeek base URL/API key window present"))
 
 
+def list_has_prefix(target: object, source: object) -> bool:
+    if not isinstance(source, list):
+        return True
+    if not isinstance(target, list):
+        return len(source) == 0
+    return target[: len(source)] == source
+
+
+def map_contains_entries(target: object, source: object) -> bool:
+    if not isinstance(source, dict):
+        return True
+    if not isinstance(target, dict):
+        return len(source) == 0
+    return all(target.get(key) == value for key, value in source.items())
+
+
+def projectless_thread_ids(state: dict) -> list[str]:
+    ids = state.get("projectless-thread-ids")
+    return [str(item) for item in ids] if isinstance(ids, list) else []
+
+
+def expected_sidebar_map_entries(key: str, source: dict) -> dict:
+    value = source.get(key)
+    expected = dict(value) if isinstance(value, dict) else {}
+    if key == "thread-workspace-root-hints":
+        for thread_id in projectless_thread_ids(source):
+            expected[thread_id] = "~"
+    return expected
+
+
+def rollout_session_provider(path: str) -> str | None:
+    try:
+        with Path(path).open(encoding="utf-8") as fh:
+            for line in fh:
+                if not line.strip():
+                    continue
+                item = json.loads(line)
+                if item.get("type") != "session_meta":
+                    continue
+                payload = item.get("payload")
+                if isinstance(payload, dict):
+                    provider = payload.get("model_provider")
+                    return str(provider) if provider is not None else None
+                return None
+    except (OSError, json.JSONDecodeError):
+        return None
+    return None
+
+
+def check_sidebar_state_sync(results: list[CheckResult]) -> None:
+    """Ensure the left sidebar mirrors Codex while preserving DeepCodeX-local chats."""
+    source_path = CODEX_SOURCE_HOME / GLOBAL_STATE_NAME
+    target_path = DEEPCODEX_HOME / GLOBAL_STATE_NAME
+    if not source_path.exists():
+        results.append(CheckResult("WARN", "sidebar-state", f"Codex sidebar state not found: {source_path}"))
+        return
+    if not target_path.exists():
+        results.append(CheckResult("FAIL", "sidebar-state", f"DeepCodeX sidebar state not found: {target_path}"))
+        return
+
+    try:
+        source = json.loads(source_path.read_text(encoding="utf-8"))
+        target = json.loads(target_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        results.append(CheckResult("FAIL", "sidebar-state", f"sidebar state parse error: {exc}"))
+        return
+    if not isinstance(source, dict) or not isinstance(target, dict):
+        results.append(CheckResult("FAIL", "sidebar-state", "sidebar state must be JSON objects"))
+        return
+
+    missing_lists = [key for key in SIDEBAR_LIST_KEYS if not list_has_prefix(target.get(key), source.get(key))]
+    missing_maps = [
+        key
+        for key in SIDEBAR_MAP_KEYS
+        if not map_contains_entries(target.get(key), expected_sidebar_map_entries(key, source))
+    ]
+    provider_mismatches: list[str] = []
+    projectless_ids = projectless_thread_ids(source)
+    source_db = CODEX_SOURCE_HOME / STATE_DB
+    target_db = DEEPCODEX_HOME / STATE_DB
+    if projectless_ids and source_db.exists() and target_db.exists():
+        try:
+            with sqlite3.connect(source_db) as conn:
+                rows = conn.execute(
+                    f"SELECT id FROM threads WHERE id IN ({', '.join('?' for _ in projectless_ids)})",
+                    projectless_ids,
+                ).fetchall()
+            real_projectless_ids = [str(row[0]) for row in rows]
+            if real_projectless_ids:
+                with sqlite3.connect(target_db) as conn:
+                    rows = conn.execute(
+                        f"SELECT id, model_provider, rollout_path FROM threads WHERE id IN ({', '.join('?' for _ in real_projectless_ids)})",
+                        real_projectless_ids,
+                    ).fetchall()
+                provider_by_id = {str(row[0]): str(row[1]) for row in rows}
+                rollout_by_id = {str(row[0]): str(row[2]) for row in rows}
+                provider_mismatches = [
+                    thread_id
+                    for thread_id in real_projectless_ids
+                    if provider_by_id.get(thread_id) != DEEPCODEX_MODEL_PROVIDER
+                ]
+                provider_mismatches.extend(
+                    thread_id
+                    for thread_id in real_projectless_ids
+                    if rollout_session_provider(rollout_by_id.get(thread_id, "")) != DEEPCODEX_MODEL_PROVIDER
+                )
+        except sqlite3.Error as exc:
+            results.append(CheckResult("FAIL", "sidebar-state", f"thread provider check failed: {exc}"))
+            return
+    if missing_lists or missing_maps or provider_mismatches:
+        missing = ", ".join(missing_lists + missing_maps)
+        if provider_mismatches:
+            missing = ", ".join(filter(None, [missing, "projectless thread providers"]))
+        results.append(CheckResult("FAIL", "sidebar-state", f"DeepCodeX sidebar is missing Codex entries for: {missing}"))
+        return
+
+    projectless = source.get("projectless-thread-ids")
+    projects = source.get("project-order")
+    results.append(
+        CheckResult(
+            "OK",
+            "sidebar-state",
+            "mirrors Codex sidebar entries while preserving DeepCodeX-local chats "
+            f"({len(projectless) if isinstance(projectless, list) else 0} Codex projectless chats, "
+            f"{len(projects) if isinstance(projects, list) else 0} Codex projects)",
+        )
+    )
+
+
 def check_models_cache(results: list[CheckResult]) -> None:
     """Ensure both model metadata files are DeepSeek-only.
 
@@ -884,6 +1029,7 @@ def main() -> int:
     check_bootstrap_sparkle(results)
     check_controlled_update_button(results)
     check_deepseek_config_window(results)
+    check_sidebar_state_sync(results)
     check_launchd(results, config_text)
 
     worst = 0
